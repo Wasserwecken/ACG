@@ -1,5 +1,4 @@
 ﻿using Framework;
-using Framework.Mesh;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -29,7 +28,7 @@ namespace Window
         ShaderProgram program;
         Texture2D tex1, tex2;
         Material mat;
-        MeshObject mesh;
+        VertexObject mesh;
         Stopwatch watch;
 
 
@@ -56,7 +55,6 @@ namespace Window
             mat.SetUniform("texture2", tex2);
 
 
-
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
 
@@ -79,11 +77,11 @@ namespace Window
                 1, 2, 3    // second triangle
             };
 
-
-            mesh = new MeshObject(BufferUsageHint.StaticDraw);
-            mesh.AddAttribute(new VertexAttribute<float>(0, "vertices", 3, false, vertices));
-            mesh.AddAttribute(new VertexAttribute<float>(1, "uv", 2, false, uv));
+            mesh = new VertexObject(BufferUsageHint.StaticDraw);
+            mesh.AddVertices(vertices);
+            mesh.AddUV(uv);
             mesh.AddIndicies(indices);
+
             mesh.Prepare();
             mesh.PushToGPU();
         }
@@ -110,7 +108,7 @@ namespace Window
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             mat.Use();
-            mat.SetUniform("time", (float)watch.Elapsed.TotalSeconds);
+            mat.SetUniformTime((float)watch.Elapsed.TotalSeconds);
 
             mesh.Draw();
 

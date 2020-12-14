@@ -25,6 +25,11 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
+        public void SetUniformTime(float seconds) => SetUniform(Definitions.Shader.Uniforms.Time.NAME, seconds);
+
+        /// <summary>
+        /// 
+        /// </summary>
         public void SetUniform(string name, float value) => TrySetUniform(name, value, _uniformFloats);
 
         /// <summary>

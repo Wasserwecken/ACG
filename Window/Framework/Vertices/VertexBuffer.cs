@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 
 namespace Framework
@@ -11,14 +9,10 @@ namespace Framework
 
         public BufferTarget Target { get; private set; }
         public BufferUsageHint UsageHint { get; private set; }
-        public VertexAttribPointerType AttribPointerType { get; private set; }
 
         public int StrideSize { get; private set; }
-        public int BufferSize { get; private set; }
-        public int TypeSize { get; private set; }
-
-        public byte[] BufferData { get; private set; }
-        public List<VertexAttribute<TType>> Attributes { get; private set; }
+        public byte[] ArrayBuffer { get; private set; }
+        public List<VertexAttribute> Attributes { get; private set; }
 
 
         /// <summary>
@@ -28,16 +22,14 @@ namespace Framework
         {
             Target = target;
             UsageHint = usageHint;
-            AttribPointerType = attribPointerType;
 
-            TypeSize = Marshal.SizeOf(default(TType));
-            Attributes = new List<VertexAttribute<TType>>();
+            Attributes = new List<VertexAttribute>();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void AddAttribute(VertexAttribute<TType> attribute)
+        public void AddAttribute(VertexAttribute attribute)
         {
             if (!Attributes.Contains(attribute))
                 Attributes.Add(attribute);
@@ -55,12 +47,11 @@ namespace Framework
             foreach (var attribute in Attributes)
             {
                 bufferLength += attribute.Data.Length;
-                strideLength += attribute.PairLength;
+                strideLength += attribute.PairSize;
             }
 
-            BufferData = new byte[bufferLength];
-            BufferSize = bufferLength * TypeSize;
-            StrideSize = strideLength * TypeSize;
+            ArrayBuffer = new byte[bufferLength];
+            StrideSize = strideLength;
 
             for (int i = 0; i < vertexCount; i++)
             {
@@ -68,13 +59,9 @@ namespace Framework
 
                 foreach (var attribute in Attributes)
                 {
-                    var attributeIndex = i * attribute.PairLength;
-
-                    System.Buffer.BlockCopy()
-
-                    Array.Copy(attribute.Data, attributeIndex, BufferData, bufferIndex, attribute.PairLength);
-
-                    bufferIndex += attribute.PairLength;
+                    var attributeIndex = i * attribute.PairSize;
+                    System.Buffer.BlockCopy(attribute.Data, attributeIndex, ArrayBuffer, bufferIndex, attribute.PairSize);
+                    bufferIndex += attribute.PairSize;
                 }
             }
         }
@@ -87,14 +74,14 @@ namespace Framework
             BufferHandle = GL.GenBuffer();
             
             GL.BindBuffer(Target, BufferHandle);
-            GL.BufferData(Target, BufferSize, BufferData, UsageHint);
+            GL.BufferData(Target, ArrayBuffer.Length, ArrayBuffer, UsageHint);
 
             var offset = 0;
             foreach (var attribute in Attributes)
             {
-                GL.VertexAttribPointer(attribute.Layout, attribute.PairLength, AttribPointerType, attribute.IsNormalized, StrideSize, offset);
+                GL.VertexAttribPointer(attribute.Layout, attribute.PairLength, attribute.PointerType, attribute.IsNormalized, StrideSize, offset);
                 GL.EnableVertexAttribArray(attribute.Layout);
-                offset += attribute.PairLength * TypeSize;
+                offset += attribute.PairSize;
             }
 
             GL.BindBuffer(Target, 0);

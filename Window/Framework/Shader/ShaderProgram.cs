@@ -91,11 +91,11 @@ namespace Framework
             GL.GetProgram(Handle, GetProgramParameterName.ActiveAttributes, out int attributeCount);
             Attributes = new ShaderAttribute[attributeCount];
             
-            for (int layout = 0; layout < attributeCount; layout++)
+            for (int i = 0; i < attributeCount; i++)
             {
-                GL.GetActiveAttrib(Handle, layout, 255, out int length, out int size, out var type, out var name);
-                Attributes[layout] = new ShaderAttribute(type, layout, name, length, size);
-                _nameToAttribute.Add(name, layout);
+                GL.GetActiveAttrib(Handle, i, 255, out int length, out int size, out var type, out var name);
+                Attributes[i] = new ShaderAttribute(type, GL.GetAttribLocation(Handle, name), name, length, size);
+                _nameToAttribute.Add(name, i);
             }
 
 
@@ -103,11 +103,11 @@ namespace Framework
             GL.GetProgram(Handle, GetProgramParameterName.ActiveUniforms, out int uniformCount);
             Uniforms = new ShaderUniform[uniformCount];
 
-            for (int layout = 0; layout < uniformCount; layout++)
+            for (int i = 0; i < uniformCount; i++)
             {
-                GL.GetActiveUniform(Handle, layout, 255, out int length, out int size, out var type, out var name);
-                Uniforms[layout] = new ShaderUniform(type, layout, name, length, size);
-                _nameToUniform.Add(name, layout);
+                GL.GetActiveUniform(Handle, i, 255, out int length, out int size, out var type, out var name);
+                Uniforms[i] = new ShaderUniform(type, GL.GetUniformLocation(Handle, name), name, length, size);
+                _nameToUniform.Add(name, i);
             }
         }
 
