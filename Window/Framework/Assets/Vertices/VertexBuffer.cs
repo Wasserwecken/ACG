@@ -8,7 +8,7 @@ namespace Framework
         public int BufferHandle { get; private set; }
 
         public BufferTarget Target { get; private set; }
-        public BufferUsageHint UsageHint { get; private set; }
+        public BufferUsageHint UsageHint { get; set; }
 
         public int StrideSize { get; private set; }
         public byte[] ArrayBuffer { get; private set; }
@@ -18,11 +18,10 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public VertexBuffer(BufferTarget target, BufferUsageHint usageHint, VertexAttribPointerType attribPointerType)
+        public VertexBuffer(BufferTarget target, VertexAttribPointerType attribPointerType)
         {
             Target = target;
-            UsageHint = usageHint;
-
+            UsageHint = BufferUsageHint.StaticDraw;
             Attributes = new List<VertexAttribute>();
         }
 

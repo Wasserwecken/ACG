@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 
 namespace Framework
 {
@@ -9,6 +10,7 @@ namespace Framework
         public ShaderProgram Shader { get; set; }
 
         private readonly Dictionary<int, float> _uniformFloats;
+        private readonly Dictionary<int, Matrix4> _uniformMat4s;
         private readonly Dictionary<int, Texture> _uniformTextures;
 
         /// <summary>
@@ -19,22 +21,19 @@ namespace Framework
             Shader = shader;
 
             _uniformFloats = new Dictionary<int, float>();
+            _uniformMat4s = new Dictionary<int, Matrix4>();
             _uniformTextures = new Dictionary<int, Texture>();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public void SetUniformTime(float seconds) => SetUniform(Definitions.Shader.Uniforms.Time.NAME, seconds);
+        public void SetTimeTotal(float seconds) => SetUniform(Definitions.Shader.Uniforms.Time.TOTAL, seconds);
+        public void SetTimeDelta(float seconds) => SetUniform(Definitions.Shader.Uniforms.Time.DELTA, seconds);
 
-        /// <summary>
-        /// 
-        /// </summary>
+        public void SetWorldSpace(Matrix4 transform) => SetUniform(Definitions.Shader.Uniforms.Space.WORLD, transform);
+        public void SetViewSpace(Matrix4 transform) => SetUniform(Definitions.Shader.Uniforms.Space.VIEW, transform);
+        public void SetProjectionSpace(Matrix4 transform) => SetUniform(Definitions.Shader.Uniforms.Space.PROJECTION, transform);
+
         public void SetUniform(string name, float value) => TrySetUniform(name, value, _uniformFloats);
-
-        /// <summary>
-        /// 
-        /// </summary>
+        public void SetUniform(string name, Matrix4 value) => TrySetUniform(name, value, _uniformMat4s);
         public void SetUniform(string name, Texture texture) => TrySetUniform(name, texture, _uniformTextures);
 
         /// <summary>
@@ -45,11 +44,17 @@ namespace Framework
         {
             GL.UseProgram(Shader.Handle);
 
+            foreach (var uniform in _uniformTextures)
+                UpdateTextureUniform(uniform.Key, uniform.Value);
+            
             foreach (var uniform in _uniformFloats)
                 GL.Uniform1(Shader.Uniforms[uniform.Key].Layout, uniform.Value);
 
-            foreach (var uniform in _uniformTextures)
-                UpdateTextureUniform(uniform.Key, uniform.Value);
+            foreach (var uniform in _uniformMat4s)
+            {
+                var matrix = uniform.Value;
+                GL.UniformMatrix4(Shader.Uniforms[uniform.Key].Layout, false, ref matrix);
+            }
         }
 
         /// <summary>

@@ -36,7 +36,7 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        protected virtual void Create(ushort[] pixels)
+        protected virtual void PushToGPU(ushort[] pixels)
         {
             Handle = GL.GenTexture();
             GL.BindTexture(Target, Handle);

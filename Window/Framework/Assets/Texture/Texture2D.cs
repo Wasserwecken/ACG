@@ -7,6 +7,7 @@ namespace Framework
     {
         public override TextureTarget Target => TextureTarget.Texture2D;
         public override GenerateMipmapTarget MipMapTarget => GenerateMipmapTarget.Texture2D;
+        public ushort[] Pixels { get; private set; }
 
         /// <summary>
         /// 
@@ -16,6 +17,7 @@ namespace Framework
             using var image = new MagickImage(path);
             image.Flip();
 
+            WrapMode = TextureWrapMode.Repeat;
             Width = image.Width;
             Height = image.Height;
 
@@ -25,7 +27,15 @@ namespace Framework
                 InternalFormat = PixelInternalFormat.Rgba;
             }
 
-            Create(image.GetPixels().ToArray());
+            Pixels = image.GetPixels().ToArray();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void PushToGPU()
+        {
+            PushToGPU(Pixels);
         }
 
         /// <summary>

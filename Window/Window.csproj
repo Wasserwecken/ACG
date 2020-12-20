@@ -6,12 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CjClutter.ObjLoader" Version="1.0.0" />
     <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="7.22.2.2" />
     <PackageReference Include="Magick.NET.Core" Version="5.2.2" />
     <PackageReference Include="OpenTK" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Assets\ape.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\shader.frag">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
