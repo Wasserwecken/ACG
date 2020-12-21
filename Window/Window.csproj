@@ -16,6 +16,12 @@
     <None Update="Assets\ape.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\Transform.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Transform.vert">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\shader.frag">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

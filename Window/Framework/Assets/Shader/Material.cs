@@ -8,6 +8,9 @@ namespace Framework
     public class Material
     {
         public ShaderProgram Shader { get; set; }
+        public bool IsTransparent { get; set; }
+        public BlendingFactor SourceBlend { get; set; }
+        public BlendingFactor DestinationBlend { get; set; }
 
         private readonly Dictionary<int, float> _uniformFloats;
         private readonly Dictionary<int, Matrix4> _uniformMat4s;
@@ -16,10 +19,8 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public Material(ShaderProgram shader)
+        public Material()
         {
-            Shader = shader;
-
             _uniformFloats = new Dictionary<int, float>();
             _uniformMat4s = new Dictionary<int, Matrix4>();
             _uniformTextures = new Dictionary<int, Texture>();
@@ -43,6 +44,16 @@ namespace Framework
         public void Use()
         {
             GL.UseProgram(Shader.Handle);
+
+
+            if (IsTransparent)
+            {
+                GL.Enable(EnableCap.Blend);
+                GL.BlendFunc(SourceBlend, DestinationBlend);
+            }
+            else
+                GL.Disable(EnableCap.Blend);
+
 
             foreach (var uniform in _uniformTextures)
                 UpdateTextureUniform(uniform.Key, uniform.Value);

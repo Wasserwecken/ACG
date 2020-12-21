@@ -23,7 +23,7 @@ namespace Framework
         /// </summary>
         public void Use()
         {
-            ProjectionSpace = ViewSpace * Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FieldOfView), AspectRatio, NearClipping, FarClipping);
+            ProjectionSpace = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FieldOfView), AspectRatio, NearClipping, FarClipping);
         }
     }
 }

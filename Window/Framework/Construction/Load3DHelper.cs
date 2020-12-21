@@ -20,7 +20,8 @@ namespace Framework
             foreach(var group in loadResult.Groups)
             {
                 var uniqueIds = new Dictionary<FaceVertex, uint>();
-                
+
+                uint nextId = 0;
                 var indicies = new List<uint>();
                 var verticies = new List<float>();
                 var normals = new List<float>();
@@ -40,8 +41,9 @@ namespace Framework
 
                         else
                         {
-                            index = (uint)indicies.Count;
-                            uniqueIds.Add(faceVertex, index);
+                            indicies.Add(nextId);
+                            uniqueIds.Add(faceVertex, nextId);
+                            nextId++;
 
                             var vertex = loadResult.Vertices[faceVertex.VertexIndex - 1];
                             verticies.AddRange(new float[] { vertex.X, vertex.Y, vertex.Z });

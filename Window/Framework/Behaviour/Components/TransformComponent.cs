@@ -64,15 +64,15 @@ namespace Framework
             get => _rotationSpaceInverted.Row2.Xyz;
             set
             {
-                value.Normalize();
-                var right = Vector3.Cross(Vector3.UnitY, value);
-                var up = Vector3.Cross(right, value);
+                var forward = value.Normalized();
+                var right = Vector3.Cross(Vector3.UnitY, forward).Normalized();
+                var up = Vector3.Cross(forward, right).Normalized();
 
                 _rotationSpaceInverted.Row0.Xyz = right;
                 _rotationSpaceInverted.Row1.Xyz = up;
-                _rotationSpaceInverted.Row2.Xyz = value;
+                _rotationSpaceInverted.Row2.Xyz = forward;
 
-                RotationSpace = _rotationSpaceInverted.Inverted();
+                RotationSpace = _rotationSpaceInverted;
             }
         }
 

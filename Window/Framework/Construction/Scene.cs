@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -22,8 +20,9 @@ namespace Framework
         Material mat;
         MeshObject mesh;
         PerspectiveCameraComponent camera;
-        TransformComponent cameraTransform;
         TransformComponent meshTransform;
+
+        TransformIndicator indicator;
 
         /// <summary>
         /// 
@@ -42,10 +41,24 @@ namespace Framework
             Console.WriteLine(program.Log);
 
 
-            meshTransform = new TransformComponent();
+            indicator = new TransformIndicator()
+            {
+                Transform = new TransformComponent(),
+                IndicatorObject = new TransformIndicatorObject(),
+                Material = new Material()
+                {
+                    IsTransparent = true,
+                    SourceBlend = BlendingFactor.SrcAlpha,
+                    DestinationBlend = BlendingFactor.OneMinusSrcAlpha,
+                    Shader = new ShaderProgram(
+                        new ShaderSource(ShaderType.VertexShader, "Assets/Transform.vert"),
+                        new ShaderSource(ShaderType.FragmentShader, "Assets/Transform.frag")
+                    )
+                }
+            };
+
             mesh = Load3DHelper.Load("Assets/ape.obj")[0];
             mesh.PushToGPU();
-
 
             tex1 = new Texture2D("Assets/wall.jpg");
             tex1.PushToGPU();
@@ -53,22 +66,24 @@ namespace Framework
             tex2 = new Texture2D("Assets/awesomeface.png");
             tex2.PushToGPU();
 
-            
-            mat = new Material(program);
+
+            meshTransform = new TransformComponent
+            {
+                Forward = new Vector3(1.0f, 0.0f, 1.0f),
+                Position = new Vector3(0.0f, 0.0f, -3.0f)
+            };
+
+            mat = new Material() { Shader = program };
             mat.SetUniform("texture1", tex1);
             mat.SetUniform("texture2", tex2);
 
-            cameraTransform = new TransformComponent()
-            {
-                Position = new Vector3(0f, 0f, -3f)
-            };
             camera = new PerspectiveCameraComponent()
             {
                 AspectRatio = 800/(float)600,
                 NearClipping = 0.1f,
                 FarClipping = 100f,
                 FieldOfView = 90f,
-                Transform = cameraTransform
+                Transform = new TransformComponent()
             };
         }
 
@@ -87,14 +102,18 @@ namespace Framework
         /// </summary>
         public void Draw()
         {
+            camera.Use();
+
             mat.Use();
             mat.SetTimeDelta(TimeDelta);
             mat.SetTimeTotal(TimeTotal);
-
-            camera.Use();
             mat.SetProjectionSpace(meshTransform.Space * camera.ProjectionSpace);
 
             mesh.Draw();
+
+            indicator.Material.Use();
+            indicator.Material.SetProjectionSpace(meshTransform.Space * camera.ProjectionSpace);
+            indicator.Draw();
         }
     }
 }

@@ -14,19 +14,18 @@ uniform mat4 WorldSpace;
 uniform mat4 ViewSpace;
 uniform mat4 ProjectionSpace;
 
-out vec4 outputColor;
+out vec4 OutputColor;
 
 
 uniform sampler2D texture1;
 uniform sampler2D texture2;
 
 
-
 void main()
 {
-    float offset = sin(TimeTotal * 0.5) * 0.5;
+    float offset = sin(TimeTotal * 0.2) * 0.5;
     vec4 texCol1 = texture(texture1, VertexUV + vec2(offset));
     vec4 texCol2 = texture(texture2, VertexUV - vec2(offset));
 
-    outputColor = mix(texCol1, texCol2, texCol2.w * 0.5);
+    OutputColor = mix(texCol1, texCol2, texCol2.w * 0.5);
 }

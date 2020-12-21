@@ -20,15 +20,9 @@ namespace Framework
                     public const string NAME = "BufferNormal";
                 }
             
-                public static class Colors
-                {
-                    public const int LAYOUT = 2;
-                    public const string NAME = "BufferColor";
-                }   
-            
                 public static class UV
                 {
-                    public const int LAYOUT = 3;
+                    public const int LAYOUT = 2;
                     public const string NAME = "BufferUV";
                 }
             }
@@ -63,13 +57,6 @@ namespace Framework
             {
                 public const int PAIRLENGTH = 3;
                 public const bool NORMALIZED = true;
-                public const VertexAttribPointerType POINTERTYPE = VertexAttribPointerType.Float;
-            }
-
-            public static class Colors
-            {
-                public const int PAIRLENGTH = 4;
-                public const bool NORMALIZED = false;
                 public const VertexAttribPointerType POINTERTYPE = VertexAttribPointerType.Float;
             }
 

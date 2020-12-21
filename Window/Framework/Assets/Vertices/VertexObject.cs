@@ -8,8 +8,10 @@ namespace Framework
     public class VertexObject
     {
         public int VertexHandle { get; protected set; }
-        public BufferUsageHint UsageHint { get; protected set; }
         public VertexBuffer Buffer { get; protected set; }
+
+        public BufferUsageHint UsageHint { get; set; }
+        public PrimitiveType Primitive { get; set; }
 
         public int IndicieHandle { get; protected set; }
         public bool IsIndexed => Indicies.Length > 0;
@@ -22,6 +24,8 @@ namespace Framework
         public VertexObject()
         {
             Indicies = new uint[0];
+            Primitive = PrimitiveType.Triangles;
+            UsageHint = BufferUsageHint.StaticDraw;
             Buffer = new VertexBuffer(BufferTarget.ArrayBuffer, VertexAttribPointerType.Float);
         }
 
@@ -36,13 +40,41 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
+        public void AddVertices<TType>(ICollection<TType> vertices, Func<TType, float[]> toFloats)
+        {
+            AddAttribute(
+                Definitions.Shader.Attributes.Vertices.LAYOUT,
+                Definitions.Buffer.Vertices.PAIRLENGTH,
+                Definitions.Buffer.Vertices.NORMALIZED,
+                Definitions.Buffer.Vertices.POINTERTYPE,
+                vertices, toFloats
+            );
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void AddVertices(float[] vertices)
+        {
+            AddAttribute(
+                Definitions.Shader.Attributes.Vertices.LAYOUT,
+                Definitions.Buffer.Vertices.PAIRLENGTH,
+                Definitions.Buffer.Vertices.NORMALIZED,
+                Definitions.Buffer.Vertices.POINTERTYPE,
+                vertices
+            );
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public void AddAttribute<TContainer, TType>(int layout, int pairLength, bool isNormalized, VertexAttribPointerType pointerType, ICollection<TContainer> dataList, Func<TContainer, TType[]> toTypeArray) where TType : struct
         {
             var typeList = new List<TType>();
             foreach (var entry in dataList)
                 typeList.AddRange(toTypeArray(entry));
 
-            Buffer.AddAttribute(VertexAttribute.Create(layout, pairLength, isNormalized, pointerType, typeList.ToArray()));
+            AddAttribute(layout, pairLength, isNormalized, pointerType, typeList.ToArray());
         }
 
         /// <summary>
@@ -69,15 +101,7 @@ namespace Framework
             VertexHandle = GL.GenVertexArray();
             GL.BindVertexArray(VertexHandle);
 
-            Buffer.UsageHint = UsageHint;
-            Buffer.PushToGPU();
-
-            if (IsIndexed)
-            {
-                IndicieHandle = GL.GenBuffer();
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, IndicieHandle);
-                GL.BufferData(BufferTarget.ElementArrayBuffer, Indicies.Length * sizeof(uint), Indicies, UsageHint);
-            }
+            PushObjectToGPU();
 
             GL.BindVertexArray(0);
         }
@@ -89,12 +113,36 @@ namespace Framework
         {
             GL.BindVertexArray(VertexHandle);
 
-            if (IsIndexed)
-                GL.DrawElements(PrimitiveType.Triangles, Indicies.Length, DrawElementsType.UnsignedInt, 0);
-            else
-                GL.DrawArrays(PrimitiveType.Triangles, 0, Buffer.ArrayBuffer.Length);
+            DrawObject();
 
             GL.BindVertexArray(0);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual void PushObjectToGPU()
+        {
+            Buffer.UsageHint = UsageHint;
+            Buffer.PushToGPU();
+
+            if (IsIndexed)
+            {
+                IndicieHandle = GL.GenBuffer();
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, IndicieHandle);
+                GL.BufferData(BufferTarget.ElementArrayBuffer, Indicies.Length * sizeof(uint), Indicies, UsageHint);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected virtual void DrawObject()
+        {
+            if (IsIndexed)
+                GL.DrawElements(Primitive, Indicies.Length, DrawElementsType.UnsignedInt, 0);
+            else
+                GL.DrawArrays(Primitive, 0, Buffer.ArrayBuffer.Length);
         }
     }
 }
