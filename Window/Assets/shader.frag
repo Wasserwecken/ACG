@@ -10,9 +10,8 @@ in vec4 WorldPosition;
 uniform float TimeTotal;
 uniform float TimeDelta;
 
-uniform mat4 WorldSpace;
-uniform mat4 ViewSpace;
-uniform mat4 ProjectionSpace;
+uniform mat4 LocalToWord;
+uniform mat4 LocalToProjection;
 
 out vec4 OutputColor;
 

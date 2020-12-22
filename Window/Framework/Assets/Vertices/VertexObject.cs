@@ -109,10 +109,10 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public void Draw()
+        public void Draw(ref RenderData renderData)
         {
             GL.BindVertexArray(VertexHandle);
-
+                        
             DrawObject();
 
             GL.BindVertexArray(0);

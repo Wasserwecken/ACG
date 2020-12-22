@@ -12,17 +12,21 @@ namespace Framework
         private Stopwatch _watchTotal;
         private Stopwatch _watchDelta;
 
-        private float TimeDelta { get; set; }
-        private float TimeTotal => (float)_watchTotal.Elapsed.TotalSeconds;
+        private float _timeDelta { get; set; }
+        private float _timeTotal => (float)_watchTotal.Elapsed.TotalSeconds;
 
         ShaderProgram program;
         Texture2D tex1, tex2;
         Material mat;
         MeshObject mesh;
-        PerspectiveCameraComponent camera;
-        TransformComponent meshTransform;
-
+        TransformData meshTransform;
         TransformIndicator indicator;
+
+
+
+        PerspectiveCamera camera;
+
+
 
         /// <summary>
         /// 
@@ -34,27 +38,17 @@ namespace Framework
 
             _watchDelta = new Stopwatch();
 
-
-            var vert = new ShaderSource(ShaderType.VertexShader, "Assets/shader.vert");
-            var frag = new ShaderSource(ShaderType.FragmentShader, "Assets/shader.frag");
-            program = new ShaderProgram(vert, frag);
-            Console.WriteLine(program.Log);
-
-
+            var inidcatorMat = MaterialData.Initial(
+                new ShaderProgram(
+                    new ShaderSource(ShaderType.VertexShader, "Assets/Transform.vert"),
+                    new ShaderSource(ShaderType.FragmentShader, "Assets/Transform.frag")
+                )
+            );
             indicator = new TransformIndicator()
             {
-                Transform = new TransformComponent(),
+                Transform = new TransformData(),
                 IndicatorObject = new TransformIndicatorObject(),
-                Material = new Material()
-                {
-                    IsTransparent = true,
-                    SourceBlend = BlendingFactor.SrcAlpha,
-                    DestinationBlend = BlendingFactor.OneMinusSrcAlpha,
-                    Shader = new ShaderProgram(
-                        new ShaderSource(ShaderType.VertexShader, "Assets/Transform.vert"),
-                        new ShaderSource(ShaderType.FragmentShader, "Assets/Transform.frag")
-                    )
-                }
+                Material = new Material() { Data = inidcatorMat }
             };
 
             mesh = Load3DHelper.Load("Assets/ape.obj")[0];
@@ -67,23 +61,34 @@ namespace Framework
             tex2.PushToGPU();
 
 
-            meshTransform = new TransformComponent
-            {
-                Forward = new Vector3(1.0f, 0.0f, 1.0f),
-                Position = new Vector3(0.0f, 0.0f, -3.0f)
-            };
+            meshTransform = TransformData.Initial();
+            meshTransform.Position = new Vector3(0f, 0f, -3f);
 
-            mat = new Material() { Shader = program };
+            var matData = MaterialData.Initial(
+                new ShaderProgram(
+                    new ShaderSource(ShaderType.VertexShader, "Assets/shader.vert"),
+                    new ShaderSource(ShaderType.FragmentShader, "Assets/shader.frag")
+            ));
+            mat = new Material() { Data = matData };
             mat.SetUniform("texture1", tex1);
             mat.SetUniform("texture2", tex2);
 
-            camera = new PerspectiveCameraComponent()
+
+            camera = new PerspectiveCamera()
             {
-                AspectRatio = 800/(float)600,
-                NearClipping = 0.1f,
-                FarClipping = 100f,
-                FieldOfView = 90f,
-                Transform = new TransformComponent()
+                BaseData = new CameraData()
+                {
+                    ClearColor = new Vector4(0.3f),
+                    ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit,
+                    Transform = TransformData.Initial(),
+                    AspectRatio = 800 / (float)600,
+                    NearClipping = 0.1f,
+                    FarClipping = 100f,
+                },
+                PerspectiveData = new PerspectiveCameraData()
+                {
+                    FieldOfView = 90f,
+                }
             };
         }
 
@@ -92,7 +97,7 @@ namespace Framework
         /// </summary>
         public void Update()
         {
-            TimeDelta = (float)_watchDelta.Elapsed.TotalSeconds;
+            _timeDelta = (float)_watchDelta.Elapsed.TotalSeconds;
             _watchDelta.Restart();
 
         }
@@ -102,18 +107,25 @@ namespace Framework
         /// </summary>
         public void Draw()
         {
-            camera.Use();
+            var renderData = new RenderData()
+            {
+                TimeDelta = _timeDelta,
+                TimeTotal = _timeTotal
+            };
 
-            mat.Use();
-            mat.SetTimeDelta(TimeDelta);
-            mat.SetTimeTotal(TimeTotal);
-            mat.SetProjectionSpace(meshTransform.Space * camera.ProjectionSpace);
+            camera.Use(ref renderData);
+            mat.Data.Shader.Use(ref renderData);
+            mat.Use(ref renderData);
 
-            mesh.Draw();
+            renderData.LocalToWorld = meshTransform.Space;
+            renderData.LocalToProjection = renderData.LocalToWorld * renderData.WorldToProjection;
+            mat.SetProjectionSpace(renderData.LocalToProjection);
+            mesh.Draw(ref renderData);
 
-            indicator.Material.Use();
-            indicator.Material.SetProjectionSpace(meshTransform.Space * camera.ProjectionSpace);
-            indicator.Draw();
+            indicator.Material.Data.Shader.Use(ref renderData);
+            indicator.Material.Use(ref renderData);
+            indicator.Material.SetProjectionSpace(meshTransform.Space * renderData.WorldToProjection);
+            indicator.Draw(ref renderData);
         }
     }
 }

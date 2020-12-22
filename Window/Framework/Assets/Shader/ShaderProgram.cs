@@ -68,6 +68,27 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
+        public void Use(ref RenderData renderData)
+        {
+            GL.UseProgram(Handle);
+
+            if (GetUniform(Definitions.Shader.Uniforms.Time.DELTA, out var deltaUniform))
+                GL.Uniform1(deltaUniform.Layout, renderData.TimeDelta);
+            if (GetUniform(Definitions.Shader.Uniforms.Time.TOTAL, out var totalUniform))
+                GL.Uniform1(totalUniform.Layout, renderData.TimeTotal);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Dispose()
+        {
+            GL.DeleteProgram(Handle);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         private void Create(params ShaderSource[] shaders)
         {
             Handle = GL.CreateProgram();
@@ -109,14 +130,6 @@ namespace Framework
                 Uniforms[i] = new ShaderUniform(type, GL.GetUniformLocation(Handle, name), name, length, size);
                 _nameToUniform.Add(name, i);
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Dispose()
-        {
-            GL.DeleteProgram(Handle);
         }
     }
 }

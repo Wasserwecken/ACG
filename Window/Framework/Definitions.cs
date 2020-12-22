@@ -37,9 +37,8 @@ namespace Framework
 
                 public static class Space
                 {
-                    public const string WORLD = "WorldSpace";
-                    public const string VIEW = "ViewSpace";
-                    public const string PROJECTION = "ProjectionSpace";
+                    public const string WORLD = "LocalToWord";
+                    public const string PROJECTION = "LocalToProjection";
                 }
             }
         }

@@ -32,11 +32,6 @@ namespace Window
         {
             base.OnLoad();
 
-            GL.FrontFace(FrontFaceDirection.Cw);
-            GL.Enable(EnableCap.CullFace);
-            GL.Enable(EnableCap.DepthTest);
-            GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
             _scene = new Scene();
         }
 
@@ -58,6 +53,7 @@ namespace Window
         protected override void OnRenderFrame(FrameEventArgs args)
         {
             base.OnRenderFrame(args);
+            
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 

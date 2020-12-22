@@ -7,10 +7,7 @@ namespace Framework
 {
     public class Material
     {
-        public ShaderProgram Shader { get; set; }
-        public bool IsTransparent { get; set; }
-        public BlendingFactor SourceBlend { get; set; }
-        public BlendingFactor DestinationBlend { get; set; }
+        public MaterialData Data { get; set; }
 
         private readonly Dictionary<int, float> _uniformFloats;
         private readonly Dictionary<int, Matrix4> _uniformMat4s;
@@ -26,11 +23,7 @@ namespace Framework
             _uniformTextures = new Dictionary<int, Texture>();
         }
 
-        public void SetTimeTotal(float seconds) => SetUniform(Definitions.Shader.Uniforms.Time.TOTAL, seconds);
-        public void SetTimeDelta(float seconds) => SetUniform(Definitions.Shader.Uniforms.Time.DELTA, seconds);
-
         public void SetWorldSpace(Matrix4 transform) => SetUniform(Definitions.Shader.Uniforms.Space.WORLD, transform);
-        public void SetViewSpace(Matrix4 transform) => SetUniform(Definitions.Shader.Uniforms.Space.VIEW, transform);
         public void SetProjectionSpace(Matrix4 transform) => SetUniform(Definitions.Shader.Uniforms.Space.PROJECTION, transform);
 
         public void SetUniform(string name, float value) => TrySetUniform(name, value, _uniformFloats);
@@ -41,15 +34,23 @@ namespace Framework
         /// 
         /// 
         /// </summary>
-        public void Use()
+        public void Use(ref RenderData renderData)
         {
-            GL.UseProgram(Shader.Handle);
+            GL.FrontFace(Data.FaceDirection);
 
+            if (Data.IsDepthTesting)
+                GL.Enable(EnableCap.DepthTest);
 
-            if (IsTransparent)
+            if (Data.IsCulling)
+            {
+                GL.Enable(EnableCap.CullFace);
+                GL.CullFace(Data.CullingMode);
+            }
+
+            if (Data.IsTransparent)
             {
                 GL.Enable(EnableCap.Blend);
-                GL.BlendFunc(SourceBlend, DestinationBlend);
+                GL.BlendFunc(Data.SourceBlend, Data.DestinationBlend);
             }
             else
                 GL.Disable(EnableCap.Blend);
@@ -59,12 +60,12 @@ namespace Framework
                 UpdateTextureUniform(uniform.Key, uniform.Value);
             
             foreach (var uniform in _uniformFloats)
-                GL.Uniform1(Shader.Uniforms[uniform.Key].Layout, uniform.Value);
+                GL.Uniform1(Data.Shader.Uniforms[uniform.Key].Layout, uniform.Value);
 
             foreach (var uniform in _uniformMat4s)
             {
                 var matrix = uniform.Value;
-                GL.UniformMatrix4(Shader.Uniforms[uniform.Key].Layout, false, ref matrix);
+                GL.UniformMatrix4(Data.Shader.Uniforms[uniform.Key].Layout, false, ref matrix);
             }
         }
 
@@ -73,7 +74,7 @@ namespace Framework
         /// </summary>
         private void TrySetUniform<TValue>(string name, TValue value, IDictionary<int, TValue> uniforms)
         {
-            if (Shader.GetUniform(name, out var uniform))
+            if (Data.Shader.GetUniform(name, out var uniform))
             {
                 if (uniforms.ContainsKey(uniform.Layout))
                     uniforms[uniform.Layout] = value;

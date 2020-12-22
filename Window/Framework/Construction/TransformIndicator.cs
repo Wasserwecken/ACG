@@ -7,16 +7,16 @@ namespace Framework
 {
     public class TransformIndicator
     {
-        public TransformComponent Transform { get; set; }
+        public TransformData Transform { get; set; }
         public TransformIndicatorObject IndicatorObject { get; set; }
         public Material Material { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public void Draw()
+        public void Draw(ref RenderData renderData)
         {
-            IndicatorObject.Draw();
+            IndicatorObject.Draw(ref renderData);
         }
     }
 }
