@@ -15,13 +15,13 @@ namespace Framework
         private float _timeDelta { get; set; }
         private float _timeTotal => (float)_watchTotal.Elapsed.TotalSeconds;
 
-        ShaderProgram program;
         Texture2D tex1, tex2;
         Material mat;
         MeshObject mesh;
         TransformData meshTransform;
         TransformIndicator indicator;
 
+        DirectionalLight dirLight = new DirectionalLight();
 
 
         PerspectiveCamera camera;
@@ -90,6 +90,12 @@ namespace Framework
                     FieldOfView = 90f,
                 }
             };
+
+            dirLight = new DirectionalLight()
+            {
+                Transform = TransformData.Initial(),
+                Color = new Vector4(1f)
+            };
         }
 
         /// <summary>
@@ -99,7 +105,6 @@ namespace Framework
         {
             _timeDelta = (float)_watchDelta.Elapsed.TotalSeconds;
             _watchDelta.Restart();
-
         }
 
         /// <summary>
