@@ -12,6 +12,8 @@ namespace Framework
         public Matrix4 LocalToWorld { get; set; }
         public Matrix4 LocalToProjection { get; set; }
 
+        public Vector3 ViewPosition { get; set; }
+
         public float TimeDelta { get; set; }
         public float TimeTotal { get; set; }
     }

@@ -10,6 +10,7 @@ uniform float TimeDelta;
 
 uniform mat4 LocalToWord;
 uniform mat4 LocalToProjection;
+uniform vec3 ViewPosition;
 
 
 out vec3 VertexNormalLocal;

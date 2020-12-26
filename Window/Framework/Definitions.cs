@@ -40,6 +40,11 @@ namespace Framework
                     public const string WORLD = "LocalToWord";
                     public const string PROJECTION = "LocalToProjection";
                 }
+
+                public static class View
+                {
+                    public const string POSITION = "ViewPositon";
+                }
             }
         }
 

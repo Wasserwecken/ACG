@@ -12,6 +12,7 @@ namespace Framework
 
         public BufferUsageHint UsageHint { get; set; }
         public PrimitiveType Primitive { get; set; }
+        public ShadingModel Shading { get; set; }
 
         public int IndicieHandle { get; protected set; }
         public bool IsIndexed => Indicies.Length > 0;
@@ -24,6 +25,7 @@ namespace Framework
         public VertexObject()
         {
             Indicies = new uint[0];
+            Shading = ShadingModel.Smooth;
             Primitive = PrimitiveType.Triangles;
             UsageHint = BufferUsageHint.StaticDraw;
             Buffer = new VertexBuffer(BufferTarget.ArrayBuffer, VertexAttribPointerType.Float);
@@ -139,6 +141,8 @@ namespace Framework
         /// </summary>
         protected virtual void DrawObject()
         {
+            GL.ShadeModel(Shading);
+
             if (IsIndexed)
                 GL.DrawElements(Primitive, Indicies.Length, DrawElementsType.UnsignedInt, 0);
             else

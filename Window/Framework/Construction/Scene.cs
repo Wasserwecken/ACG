@@ -124,11 +124,17 @@ namespace Framework
             };
 
             camera.Use(ref renderData);
+            renderData.ViewPosition = camera.BaseData.Transform.Position;
+
             mat.Data.Shader.Use(ref renderData);
             mat.Use(ref renderData);
 
             renderData.LocalToWorld = meshTransform.Space;
             renderData.LocalToProjection = renderData.LocalToWorld * renderData.WorldToProjection;
+
+            mat.SetWorldSpace(renderData.LocalToWorld);
+            mat.SetProjectionSpace(renderData.LocalToProjection);
+            mat.SetViewPosition(renderData.ViewPosition);
             mat.SetProjectionSpace(renderData.LocalToProjection);
             mesh.Draw(ref renderData);
 

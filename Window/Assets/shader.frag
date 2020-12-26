@@ -11,6 +11,8 @@ uniform mat4 LocalToWord;
 uniform mat4 LocalToProjection;
 uniform float TimeTotal;
 uniform float TimeDelta;
+uniform vec3 ViewPosition;
+
 
 uniform vec3 LightAmbientColor = vec3(0.1);
 uniform vec3 LightDirectionalColor = vec3(0.5, 0.5, 0.4);
@@ -23,15 +25,28 @@ uniform sampler2D texture1;
 uniform sampler2D texture2;
 out vec4 OutputColor;
 
+
+vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float smoothness, vec3 normal, vec3 halfway, vec3 lightDirection, vec3 lightColor)
+{
+    vec3 diffuse = surfaceDiffuse * max(dot(normal, lightDirection), 0.0);
+    vec3 specular = surfaceSpecular * pow(max(dot(normal, halfway), 0.0), smoothness);
+
+    return (diffuse + specular) * lightColor;
+}
+
+
 void main()
 {
+    vec3 viewDirection = normalize(ViewPosition - PositionWorld.xyz);
     vec3 surfaceNormal = normalize(VertexNormalProjection);
+    vec3 halfwayDirection = normalize(viewDirection + surfaceNormal);
 
-    vec3 diffuse = vec3(0.8);
-    vec3 surfaceColor = diffuse * LightAmbientColor;
+    vec3 surfaceDiffuse = vec3(0.5);
+    vec3 surfaceSpecular = vec3(0.9);
+    
+    vec3 surfaceColor = surfaceDiffuse * LightAmbientColor;
+    surfaceColor += blinn_phong(surfaceDiffuse, surfaceSpecular, 32.0, surfaceNormal, halfwayDirection, -LightDirectionalDirection, LightDirectionalColor);
 
-    surfaceColor += max(dot(surfaceNormal, -LightDirectionalDirection), 0.0) * LightDirectionalColor;
-
-
-    OutputColor = vec4(surfaceColor, 1.0);
+    vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
+    OutputColor = vec4(corrected, 1.0);
 }
