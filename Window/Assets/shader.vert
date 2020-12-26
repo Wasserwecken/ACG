@@ -12,18 +12,20 @@ uniform mat4 LocalToWord;
 uniform mat4 LocalToProjection;
 
 
-out vec3 VertexNormal;
+out vec3 VertexNormalLocal;
+out vec3 VertexNormalProjection;
 out vec2 VertexUV;
-out vec4 LocalPosition;
-out vec4 WorldPosition;
+out vec4 PositionLocal;
+out vec4 PositionWorld;
 
 
 void main(void)
 {
-    VertexNormal = BufferNormal;
+    VertexNormalLocal = BufferNormal;
+    VertexNormalProjection = mat3(LocalToProjection) * BufferNormal;
     VertexUV = BufferUV;
 
-    LocalPosition = vec4(BufferVertex, 1.0);
-    WorldPosition = LocalToWord * LocalPosition;
-    gl_Position = LocalToProjection * LocalPosition;
+    PositionLocal = vec4(BufferVertex, 1.0);
+    PositionWorld = LocalToWord * PositionLocal;
+    gl_Position = LocalToProjection * PositionLocal;
 }

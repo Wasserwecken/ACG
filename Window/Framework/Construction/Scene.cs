@@ -38,15 +38,16 @@ namespace Framework
 
             _watchDelta = new Stopwatch();
 
-            var inidcatorMat = MaterialData.Initial(
+            var inidcatorMat = new MaterialData(
                 new ShaderProgram(
                     new ShaderSource(ShaderType.VertexShader, "Assets/Transform.vert"),
                     new ShaderSource(ShaderType.FragmentShader, "Assets/Transform.frag")
                 )
             );
+
             indicator = new TransformIndicator()
             {
-                Transform = new TransformData(),
+                Transform = new TransformData(Vector3.Zero),
                 IndicatorObject = new TransformIndicatorObject(),
                 Material = new Material() { Data = inidcatorMat }
             };
@@ -61,10 +62,9 @@ namespace Framework
             tex2.PushToGPU();
 
 
-            meshTransform = TransformData.Initial();
-            meshTransform.Position = new Vector3(0f, 0f, -3f);
+            meshTransform = TransformData.Default;
 
-            var matData = MaterialData.Initial(
+            var matData = new MaterialData(
                 new ShaderProgram(
                     new ShaderSource(ShaderType.VertexShader, "Assets/shader.vert"),
                     new ShaderSource(ShaderType.FragmentShader, "Assets/shader.frag")
@@ -80,20 +80,20 @@ namespace Framework
                 {
                     ClearColor = new Vector4(0.3f),
                     ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit,
-                    Transform = TransformData.Initial(),
+                    Transform = new TransformData(new Vector3(0f, 0f, -3f)),
                     AspectRatio = 800 / (float)600,
                     NearClipping = 0.1f,
                     FarClipping = 100f,
                 },
                 PerspectiveData = new PerspectiveCameraData()
                 {
-                    FieldOfView = 90f,
+                    FieldOfView = 60f,
                 }
             };
 
             dirLight = new DirectionalLight()
             {
-                Transform = TransformData.Initial(),
+                Transform = TransformData.Default,
                 Color = new Vector4(1f)
             };
         }
@@ -105,6 +105,11 @@ namespace Framework
         {
             _timeDelta = (float)_watchDelta.Elapsed.TotalSeconds;
             _watchDelta.Restart();
+
+
+            //meshTransform.Forward = new Vector3(1f, 0f, 1f);
+            meshTransform.Forward = new Vector3(MathF.Sin(_timeTotal), -.2f, MathF.Cos(_timeTotal));
+            //meshTransform = TransformData.Default;
         }
 
         /// <summary>

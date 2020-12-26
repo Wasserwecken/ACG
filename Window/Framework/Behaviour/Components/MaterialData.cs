@@ -7,6 +7,17 @@ namespace Framework
 {
     public struct MaterialData
     {
+        public static MaterialData Default => new MaterialData()
+        {
+            IsTransparent = false,
+            IsCulling = true,
+            IsDepthTesting = true,
+            CullingMode = CullFaceMode.Back,
+            FaceDirection = FrontFaceDirection.Ccw,
+            SourceBlend = BlendingFactor.SrcAlpha,
+            DestinationBlend = BlendingFactor.OneMinusSrcAlpha
+        };
+
         public ShaderProgram Shader { get; set; }
         public bool IsTransparent { get; set; }
         public bool IsCulling { get; set; }
@@ -19,31 +30,10 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public static MaterialData Initial() => Initial(null);
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static MaterialData Initial(ShaderProgram shader)
+        public MaterialData(ShaderProgram shader)
         {
-            var material = new MaterialData();
-            material.Reset();
-            material.Shader = shader;
-            return material;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Reset()
-        {
-            IsTransparent = false;
-            IsCulling = true;
-            IsDepthTesting = true;
-            CullingMode = CullFaceMode.Back;
-            FaceDirection = FrontFaceDirection.Cw;
-            SourceBlend = BlendingFactor.SrcAlpha;
-            DestinationBlend = BlendingFactor.OneMinusSrcAlpha;
+            this = Default;
+            Shader = shader;
         }
     }
 }

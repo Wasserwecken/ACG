@@ -48,7 +48,7 @@ namespace Framework
             GL.DepthMask(false);
             GL.Disable(EnableCap.DepthTest);
 
-            GL.LineWidth(5f);
+            GL.LineWidth(2f);
             base.DrawObject();
 
             GL.DepthMask(true);
