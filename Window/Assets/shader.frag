@@ -42,8 +42,9 @@ void main()
     vec3 halfwayDirection = normalize(viewDirection + surfaceNormal);
 
     vec3 surfaceDiffuse = vec3(0.5);
-    vec3 surfaceSpecular = vec3(0.9);
+    vec3 surfaceSpecular = vec3(0.9, 0.7, 0.5);
     
+
     vec3 surfaceColor = surfaceDiffuse * LightAmbientColor;
     surfaceColor += blinn_phong(surfaceDiffuse, surfaceSpecular, 32.0, surfaceNormal, halfwayDirection, -LightDirectionalDirection, LightDirectionalColor);
 

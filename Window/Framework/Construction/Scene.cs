@@ -16,15 +16,13 @@ namespace Framework
         private float _timeTotal => (float)_watchTotal.Elapsed.TotalSeconds;
 
         Texture2D tex1, tex2;
-        Material mat;
-        MeshObject mesh;
+
+
+        PerspectiveCameraData _cameraData;
+        MaterialData _materialData;
+
         TransformData meshTransform;
-        TransformIndicator indicator;
-
-        DirectionalLight dirLight = new DirectionalLight();
-
-
-        PerspectiveCamera camera;
+        VertexData meshData;
 
 
 
@@ -45,15 +43,15 @@ namespace Framework
                 )
             );
 
-            indicator = new TransformIndicator()
-            {
-                Transform = new TransformData(Vector3.Zero),
-                IndicatorObject = new TransformIndicatorObject(),
-                Material = new Material() { Data = inidcatorMat }
-            };
 
-            mesh = Load3DHelper.Load("Assets/ape.obj")[0];
-            mesh.PushToGPU();
+
+            meshTransform = TransformData.Default;
+            var meshObject = Load3DHelper.Load("Assets/ape.obj")[0];
+            meshObject.PushToGPU();
+            meshData = new VertexData(meshObject);
+
+
+
 
             tex1 = new Texture2D("Assets/wall.jpg");
             tex1.PushToGPU();
@@ -62,39 +60,28 @@ namespace Framework
             tex2.PushToGPU();
 
 
-            meshTransform = TransformData.Default;
 
-            var matData = new MaterialData(
+
+            _materialData = new MaterialData(
                 new ShaderProgram(
                     new ShaderSource(ShaderType.VertexShader, "Assets/shader.vert"),
                     new ShaderSource(ShaderType.FragmentShader, "Assets/shader.frag")
             ));
-            mat = new Material() { Data = matData };
-            mat.SetUniform("texture1", tex1);
-            mat.SetUniform("texture2", tex2);
+            _materialData.SetUniform("texture1", tex1);
+            _materialData.SetUniform("texture2", tex2);
 
 
-            camera = new PerspectiveCamera()
+
+
+            _cameraData = new PerspectiveCameraData()
             {
-                BaseData = new CameraData()
-                {
-                    ClearColor = new Vector4(0.3f),
-                    ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit,
-                    Transform = new TransformData(new Vector3(0f, 0f, -3f)),
-                    AspectRatio = 800 / (float)600,
-                    NearClipping = 0.1f,
-                    FarClipping = 100f,
-                },
-                PerspectiveData = new PerspectiveCameraData()
-                {
-                    FieldOfView = 60f,
-                }
-            };
-
-            dirLight = new DirectionalLight()
-            {
-                Transform = TransformData.Default,
-                Color = new Vector4(1f)
+                FieldOfView = 60f,
+                ClearColor = new Vector4(0.3f),
+                ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit,
+                Transform = new TransformData(new Vector3(0f, 0f, -3f)),
+                AspectRatio = 800 / (float)600,
+                NearClipping = 0.1f,
+                FarClipping = 100f,
             };
         }
 
@@ -123,25 +110,17 @@ namespace Framework
                 TimeTotal = _timeTotal
             };
 
-            camera.Use(ref renderData);
-            renderData.ViewPosition = camera.BaseData.Transform.Position;
+            PerspectiveCameraSystem.Use(_cameraData, ref renderData);
+            ShaderSystem.Use(_materialData, ref renderData);
+            MaterialSystem.Use(_materialData);
 
-            mat.Data.Shader.Use(ref renderData);
-            mat.Use(ref renderData);
+            VertexSystem.Draw(meshTransform, meshData, renderData);
 
-            renderData.LocalToWorld = meshTransform.Space;
-            renderData.LocalToProjection = renderData.LocalToWorld * renderData.WorldToProjection;
 
-            mat.SetWorldSpace(renderData.LocalToWorld);
-            mat.SetProjectionSpace(renderData.LocalToProjection);
-            mat.SetViewPosition(renderData.ViewPosition);
-            mat.SetProjectionSpace(renderData.LocalToProjection);
-            mesh.Draw(ref renderData);
-
-            indicator.Material.Data.Shader.Use(ref renderData);
-            indicator.Material.Use(ref renderData);
-            indicator.Material.SetProjectionSpace(meshTransform.Space * renderData.WorldToProjection);
-            indicator.Draw(ref renderData);
+            //indicator.Material.Data.Shader.Use(ref renderData);
+            //indicator.Material.Use(ref renderData);
+            //indicator.Material.SetProjectionSpace(meshTransform.Space * renderData.WorldToProjection);
+            //indicator.Draw(ref renderData);
         }
     }
 }

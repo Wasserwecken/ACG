@@ -9,10 +9,7 @@ namespace Framework
     {
         public int VertexHandle { get; protected set; }
         public VertexBuffer Buffer { get; protected set; }
-
         public BufferUsageHint UsageHint { get; set; }
-        public PrimitiveType Primitive { get; set; }
-        public ShadingModel Shading { get; set; }
 
         public int IndicieHandle { get; protected set; }
         public bool IsIndexed => Indicies.Length > 0;
@@ -25,8 +22,6 @@ namespace Framework
         public VertexObject()
         {
             Indicies = new uint[0];
-            Shading = ShadingModel.Smooth;
-            Primitive = PrimitiveType.Triangles;
             UsageHint = BufferUsageHint.StaticDraw;
             Buffer = new VertexBuffer(BufferTarget.ArrayBuffer, VertexAttribPointerType.Float);
         }
@@ -111,18 +106,6 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public void Draw(ref RenderData renderData)
-        {
-            GL.BindVertexArray(VertexHandle);
-                        
-            DrawObject();
-
-            GL.BindVertexArray(0);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         protected virtual void PushObjectToGPU()
         {
             Buffer.UsageHint = UsageHint;
@@ -134,19 +117,6 @@ namespace Framework
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, IndicieHandle);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, Indicies.Length * sizeof(uint), Indicies, UsageHint);
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void DrawObject()
-        {
-            GL.ShadeModel(Shading);
-
-            if (IsIndexed)
-                GL.DrawElements(Primitive, Indicies.Length, DrawElementsType.UnsignedInt, 0);
-            else
-                GL.DrawArrays(Primitive, 0, Buffer.ArrayBuffer.Length);
         }
     }
 }

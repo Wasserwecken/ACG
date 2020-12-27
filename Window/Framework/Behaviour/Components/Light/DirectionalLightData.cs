@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Framework
 {
-    public class LightBase
+    public struct DirectionalLightData
     {
-        public TransformData Transform { get; set; }
-        public Vector4 Color { get; set; }
+        public Vector3 Color { get; set; }
+        public Vector3 Direction { get; set; }
     }
 }
