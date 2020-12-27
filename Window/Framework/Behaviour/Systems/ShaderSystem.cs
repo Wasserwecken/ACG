@@ -12,6 +12,7 @@ namespace Framework
         {
             GL.UseProgram(materialData.Shader.Handle);
 
+
             if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Time.DELTA, out var timeDeltaUniform))
                 GL.Uniform1(timeDeltaUniform.Layout, renderData.TimeDelta);
 
@@ -21,11 +22,21 @@ namespace Framework
             if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.View.POSITION, out var viewPositionUniform))
                 GL.Uniform3(viewPositionUniform.Layout, renderData.ViewPosition);
 
-            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.WORLD, out var localUniform))
-                renderData.LocalToWorldLayout = localUniform.Layout;
 
-            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.PROJECTION, out var projectionUniform))
-                renderData.LocalToProjectionLayout = projectionUniform.Layout;
+            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.PROJECTION, out var projectionSpaceUniform))
+                renderData.LocalToProjectionSpaceLayout = projectionSpaceUniform.Layout;
+
+            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.VIEW, out var viewSpaceUniform))
+                renderData.LocalToViewSpaceLayout = viewSpaceUniform.Layout;
+            
+            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.VIEW_ROTATION, out var viewRotationSpaceUniform))
+                renderData.LocalToViewRotationSpaceLayout = viewRotationSpaceUniform.Layout;
+
+            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.WORLD, out var worldSpaceUniform))
+                renderData.LocalToWorldSpaceLayout = worldSpaceUniform.Layout;
+            
+            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.WORLD_ROTATION, out var worldRotationSpaceUniform))
+                renderData.LocalToWorldRotationSpaceLayout = worldRotationSpaceUniform.Layout;
         }
     }
 }

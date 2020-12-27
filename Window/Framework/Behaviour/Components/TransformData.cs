@@ -9,67 +9,67 @@ namespace Framework
     {
         public static TransformData Default => new TransformData()
         {
-            _translationSpace = Matrix4.CreateTranslation(0, 0, 0),
-            _rotationSpace = Matrix4.Identity,
-            _scaleSpace = Matrix4.Identity
+            TranslationSpace = Matrix4.CreateTranslation(0, 0, 0),
+            RotationSpace = Matrix3.Identity,
+            ScaleSpace = Matrix4.Identity
         };
 
 
-        public Matrix4 Space => _rotationSpace * _scaleSpace * _translationSpace;
+        public Matrix4 Space => new Matrix4(RotationSpace) * ScaleSpace * TranslationSpace;
 
         public Vector3 Position
         {
-            get => _translationSpace.Row3.Xyz;
-            set => _translationSpace = Matrix4.CreateTranslation(value);
+            get => TranslationSpace.Row3.Xyz;
+            set => TranslationSpace = Matrix4.CreateTranslation(value);
         }
 
         public Vector3 Scale
         {
-            get => _scaleSpace.Diagonal.Xyz;
-            set => _scaleSpace = Matrix4.CreateScale(value);
+            get => ScaleSpace.Diagonal.Xyz;
+            set => ScaleSpace = Matrix4.CreateScale(value);
         }
 
         public Vector3 Right
         {
-            get => _rotationSpace.Row0.Xyz;
+            get => RotationSpace.Row0;
             set
             {
                 var right = value.Normalized();
                 var forward = Vector3.Cross(right, Vector3.UnitY).Normalized();
                 var up = Vector3.Cross(forward, right).Normalized();
 
-                _rotationSpace = CreateRotationMatrix(right, up, forward);
+                RotationSpace = CreateRotationMatrix(right, up, forward);
             }
         }
 
         public Vector3 Up
         {
-            get => _rotationSpace.Row1.Xyz;
+            get => RotationSpace.Row1;
             set
             {
                 var up = value.Normalized();
                 var forward = Vector3.Cross(Vector3.UnitX, up).Normalized();
                 var right = Vector3.Cross(up, forward).Normalized();
-                _rotationSpace = CreateRotationMatrix(right, up, forward);
+                RotationSpace = CreateRotationMatrix(right, up, forward);
             }
         }
 
         public Vector3 Forward
         {
-            get => _rotationSpace.Row2.Xyz;
+            get => RotationSpace.Row2;
             set
             {
                 var forward = value.Normalized();
                 var right = Vector3.Cross(Vector3.UnitY, forward).Normalized();
                 var up = Vector3.Cross(forward, right).Normalized();
 
-                _rotationSpace = CreateRotationMatrix(right, up, forward);
+                RotationSpace = CreateRotationMatrix(right, up, forward);
             }
         }
 
-        private Matrix4 _translationSpace;
-        private Matrix4 _rotationSpace;
-        private Matrix4 _scaleSpace;
+        public Matrix4 TranslationSpace { get; set; }
+        public Matrix3 RotationSpace { get; set; }
+        public Matrix4 ScaleSpace { get; set; }
 
         /// <summary>
         /// 
@@ -83,13 +83,13 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        private Matrix4 CreateRotationMatrix(Vector3 right, Vector3 up, Vector3 forward)
+        private Matrix3 CreateRotationMatrix(Vector3 right, Vector3 up, Vector3 forward)
         {
-            var matrix = Matrix4.Identity;
+            var matrix = Matrix3.Identity;
             
-            matrix.Row0.Xyz = right;
-            matrix.Row1.Xyz = up;
-            matrix.Row2.Xyz = forward;
+            matrix.Row0 = right;
+            matrix.Row1 = up;
+            matrix.Row2 = forward;
 
             return matrix;
         }

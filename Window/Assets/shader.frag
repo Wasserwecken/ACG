@@ -1,22 +1,30 @@
 ﻿#version 330
-in vec3 VertexNormalLocal;
-in vec3 VertexNormalProjection;
-in vec4 VertexColor;
-in vec2 VertexUV;
-in vec4 PositionLocal;
-in vec4 PositionWorld;
 
+in VertexOut
+{
+    vec2 UV;
+    vec3 NormalLocal;
+    vec3 NormalWorld;
+    vec3 NormalView;
+    vec4 PositionLocal;
+    vec4 PositionView;
+    vec4 PositionWorld;
+} vertexOut;
 
-uniform mat4 LocalToWord;
-uniform mat4 LocalToProjection;
+uniform vec3 ViewPosition;
 uniform float TimeTotal;
 uniform float TimeDelta;
-uniform vec3 ViewPosition;
+
+uniform mat4 LocalToWorldSpace;
+uniform mat4 LocalToViewSpace;
+uniform mat4 LocalToProjectionSpace;
+uniform mat3 LocalToWorldRotationSpace;
+uniform mat3 LocalToViewRotationSpace;
 
 
-uniform vec3 LightAmbientColor = vec3(0.1);
-uniform vec3 LightDirectionalColor = vec3(0.5, 0.5, 0.4);
-uniform vec3 LightDirectionalDirection = vec3(1.0, -1.0, 1.0);
+uniform vec3 LightAmbientColor;
+uniform vec3 LightDirectionalColor;
+uniform vec3 LightDirectionalDirection;
 uniform vec3 LightPointColor;
 uniform vec3 LightPointPosition;
 uniform vec3 LightPointDirection;
@@ -37,8 +45,8 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float smoothness, ve
 
 void main()
 {
-    vec3 viewDirection = normalize(ViewPosition - PositionWorld.xyz);
-    vec3 surfaceNormal = normalize(VertexNormalProjection);
+    vec3 viewDirection = vec3(0.0, 0.0, 1.0);
+    vec3 surfaceNormal = normalize(vertexOut.NormalView);
     vec3 halfwayDirection = normalize(viewDirection + surfaceNormal);
 
     vec3 surfaceDiffuse = vec3(0.5);

@@ -18,11 +18,15 @@ namespace Framework
         Texture2D tex1, tex2;
 
 
-        PerspectiveCameraData _cameraData;
-        MaterialData _materialData;
+        PerspectiveCameraData _camera;
+
+        AmbientLightData _ambientLight;
+        DirectionalLightData _directionalLight;
+
+        MaterialData _material;
 
         TransformData meshTransform;
-        VertexData meshData;
+        VertexData _mesh;
 
 
 
@@ -48,7 +52,7 @@ namespace Framework
             meshTransform = TransformData.Default;
             var meshObject = Load3DHelper.Load("Assets/ape.obj")[0];
             meshObject.PushToGPU();
-            meshData = new VertexData(meshObject);
+            _mesh = new VertexData(meshObject);
 
 
 
@@ -62,18 +66,20 @@ namespace Framework
 
 
 
-            _materialData = new MaterialData(
+            _material = new MaterialData(
                 new ShaderProgram(
                     new ShaderSource(ShaderType.VertexShader, "Assets/shader.vert"),
                     new ShaderSource(ShaderType.FragmentShader, "Assets/shader.frag")
             ));
-            _materialData.SetUniform("texture1", tex1);
-            _materialData.SetUniform("texture2", tex2);
+            _material.SetUniform("texture1", tex1);
+            _material.SetUniform("texture2", tex2);
 
 
+            _ambientLight = AmbientLightData.Default;
+            _directionalLight = DirectionalLightData.Default;
 
 
-            _cameraData = new PerspectiveCameraData()
+            _camera = new PerspectiveCameraData()
             {
                 FieldOfView = 60f,
                 ClearColor = new Vector4(0.3f),
@@ -110,11 +116,14 @@ namespace Framework
                 TimeTotal = _timeTotal
             };
 
-            PerspectiveCameraSystem.Use(_cameraData, ref renderData);
-            ShaderSystem.Use(_materialData, ref renderData);
-            MaterialSystem.Use(_materialData);
+            PerspectiveCameraSystem.Use(_camera, ref renderData);
 
-            VertexSystem.Draw(meshTransform, meshData, renderData);
+            ShaderSystem.Use(_material, ref renderData);
+            LightSystem.Use(_ambientLight, _material);
+            LightSystem.Use(_directionalLight, _material);
+
+            MaterialSystem.Use(_material);
+            VertexSystem.Draw(meshTransform, _mesh, renderData);
 
 
             //indicator.Material.Data.Shader.Use(ref renderData);

@@ -12,10 +12,24 @@ namespace Framework
             GL.BindVertexArray(vertexData.ObjectData.VertexHandle);
             GL.ShadeModel(vertexData.Shading);
 
-            var localToWorld = transformData.Space;
-            GL.UniformMatrix4(renderData.LocalToWorldLayout, false, ref localToWorld);
-            var localToProjection = localToWorld * renderData.WorldToProjection;
-            GL.UniformMatrix4(renderData.LocalToProjectionLayout, false, ref localToProjection);
+
+            var localToWorldSpace = transformData.Space;
+            GL.UniformMatrix4(renderData.LocalToWorldSpaceLayout, false, ref localToWorldSpace);
+
+            var localToWorldRotationSpace = transformData.RotationSpace;
+            GL.UniformMatrix3(renderData.LocalToWorldRotationSpaceLayout, false, ref localToWorldRotationSpace);
+
+
+            var localToViewSpace = transformData.Space * renderData.WorldToViewSpace;
+            GL.UniformMatrix4(renderData.LocalToViewSpaceLayout, false, ref localToViewSpace);
+
+            var localToViewRotationSpace = transformData.RotationSpace * renderData.WorldToViewRotationSpace;
+            GL.UniformMatrix3(renderData.LocalToViewRotationSpaceLayout, false, ref localToViewRotationSpace);
+
+
+            var localToProjectionSpace = localToWorldSpace * renderData.WorldToProjectionSpace;
+            GL.UniformMatrix4(renderData.LocalToProjectionSpaceLayout, false, ref localToProjectionSpace);
+
 
             if (vertexData.ObjectData.IsIndexed)
                 GL.DrawElements(vertexData.Primitive, vertexData.ObjectData.Indicies.Length, DrawElementsType.UnsignedInt, 0);

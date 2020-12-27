@@ -21,7 +21,9 @@ namespace Framework
             );
 
             renderData.ViewPosition = cameraData.Transform.Position;
-            renderData.WorldToProjection = cameraData.Transform.Space * projectionSpace;
+            renderData.WorldToProjectionSpace = cameraData.Transform.Space * projectionSpace;
+            renderData.WorldToViewSpace = cameraData.Transform.Space;
+            renderData.WorldToViewRotationSpace = cameraData.Transform.RotationSpace;
         }
     }
 }
