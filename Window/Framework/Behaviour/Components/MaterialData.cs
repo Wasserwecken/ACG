@@ -24,7 +24,7 @@ namespace Framework
             UniformTextures = new Dictionary<int, Texture>()
         };
 
-        public ShaderProgram Shader { get; set; }
+        public ShaderProgramAsset Shader { get; set; }
         public bool IsTransparent { get; set; }
         public bool IsCulling { get; set; }
         public bool IsDepthTesting { get; set; }
@@ -41,7 +41,7 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public MaterialData(ShaderProgram shader)
+        public MaterialData(ShaderProgramAsset shader)
         {
             this = Default;
             Shader = shader;
@@ -57,12 +57,12 @@ namespace Framework
         /// </summary>
         private void TrySetUniform<TValue>(string name, TValue value, IDictionary<int, TValue> uniforms)
         {
-            if (Shader.GetUniform(name, out var uniform))
+            if (Shader.GetLayout(name, out var layout))
             {
-                if (uniforms.ContainsKey(uniform.Layout))
-                    uniforms[uniform.Layout] = value;
+                if (uniforms.ContainsKey(layout))
+                    uniforms[layout] = value;
                 else
-                    uniforms.Add(uniform.Layout, value);
+                    uniforms.Add(layout, value);
             }
         }
     }

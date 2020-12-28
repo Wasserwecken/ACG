@@ -8,35 +8,34 @@ namespace Framework
 {
     public class ShaderSystem
     {
-        public static void Use(MaterialData materialData, ref RenderData renderData)
+        public static void Use(ShaderProgramAsset shader, ref RenderData renderData)
         {
-            GL.UseProgram(materialData.Shader.Handle);
+            GL.UseProgram(shader.Handle);
+
+            if (shader.GetLayout(Definitions.Shader.Uniforms.Time.DELTA, out var timeDeltaLayout))
+                GL.Uniform1(timeDeltaLayout, renderData.TimeDelta);
+
+            if (shader.GetLayout(Definitions.Shader.Uniforms.Time.TOTAL, out var timeTotalLayout))
+                GL.Uniform1(timeTotalLayout, renderData.TimeTotal);
+
+            if (shader.GetLayout(Definitions.Shader.Uniforms.View.POSITION, out var viewPositionLayout))
+                GL.Uniform3(viewPositionLayout, renderData.ViewPosition);
 
 
-            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Time.DELTA, out var timeDeltaUniform))
-                GL.Uniform1(timeDeltaUniform.Layout, renderData.TimeDelta);
+            if (shader.GetLayout(Definitions.Shader.Uniforms.Space.PROJECTION, out var projectionSpaceLayout))
+                renderData.LocalToProjectionSpaceLayout = projectionSpaceLayout;
 
-            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Time.TOTAL, out var timeTotalUniform))
-                GL.Uniform1(timeTotalUniform.Layout, renderData.TimeTotal);
-
-            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.View.POSITION, out var viewPositionUniform))
-                GL.Uniform3(viewPositionUniform.Layout, renderData.ViewPosition);
-
-
-            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.PROJECTION, out var projectionSpaceUniform))
-                renderData.LocalToProjectionSpaceLayout = projectionSpaceUniform.Layout;
-
-            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.VIEW, out var viewSpaceUniform))
-                renderData.LocalToViewSpaceLayout = viewSpaceUniform.Layout;
+            if (shader.GetLayout(Definitions.Shader.Uniforms.Space.VIEW, out var viewSpaceLayout))
+                renderData.LocalToViewSpaceLayout = viewSpaceLayout;
             
-            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.VIEW_ROTATION, out var viewRotationSpaceUniform))
-                renderData.LocalToViewRotationSpaceLayout = viewRotationSpaceUniform.Layout;
+            if (shader.GetLayout(Definitions.Shader.Uniforms.Space.VIEW_ROTATION, out var viewRotationSpaceLayout))
+                renderData.LocalToViewRotationSpaceLayout = viewRotationSpaceLayout;
 
-            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.WORLD, out var worldSpaceUniform))
-                renderData.LocalToWorldSpaceLayout = worldSpaceUniform.Layout;
+            if (shader.GetLayout(Definitions.Shader.Uniforms.Space.WORLD, out var worldSpaceLayout))
+                renderData.LocalToWorldSpaceLayout = worldSpaceLayout;
             
-            if (materialData.Shader.GetUniform(Definitions.Shader.Uniforms.Space.WORLD_ROTATION, out var worldRotationSpaceUniform))
-                renderData.LocalToWorldRotationSpaceLayout = worldRotationSpaceUniform.Layout;
+            if (shader.GetLayout(Definitions.Shader.Uniforms.Space.WORLD_ROTATION, out var worldRotationSpaceLayout))
+                renderData.LocalToWorldRotationSpaceLayout = worldRotationSpaceLayout;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿#version 330
+﻿#version 430 core
 
 in VertexOut
 {
@@ -21,10 +21,10 @@ uniform mat4 LocalToProjectionSpace;
 uniform mat3 LocalToWorldRotationSpace;
 uniform mat3 LocalToViewRotationSpace;
 
-
 uniform vec3 LightAmbientColor;
-uniform vec3 LightDirectionalColor;
-uniform vec3 LightDirectionalDirection;
+uniform int LightDirectionalCount;
+uniform vec3 LightDirectionalColor[3];
+uniform vec3 LightDirectionalDirection[3];
 uniform vec3 LightPointColor;
 uniform vec3 LightPointPosition;
 uniform vec3 LightPointDirection;
@@ -54,8 +54,13 @@ void main()
     
 
     vec3 surfaceColor = surfaceDiffuse * LightAmbientColor;
-    surfaceColor += blinn_phong(surfaceDiffuse, surfaceSpecular, 32.0, surfaceNormal, halfwayDirection, -LightDirectionalDirection, LightDirectionalColor);
+    for(int i = 0; i <  LightDirectionalCount; i++)
+    {
+        vec3 lightDirection = -LightDirectionalDirection[i];
+        vec3 lightColor = LightDirectionalColor[i];
+        surfaceColor += blinn_phong(surfaceDiffuse, surfaceSpecular, 32.0, surfaceNormal, halfwayDirection, lightDirection, lightColor);
+    }
 
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
-    OutputColor = vec4(corrected, 1.0);
+    OutputColor = vec4(vertexOut.NormalLocal, 1.0);
 }

@@ -64,6 +64,7 @@ namespace Framework
 
                     public static class Directional
                     {
+                        public const string COUNT = "LightDirectionalCount";
                         public const string COLOR = "LightDirectionalColor";
                         public const string DIRECTION = "LightDirectionalDirection";
                     }

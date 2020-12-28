@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 
 namespace Framework
 {
-    public class ShaderUniform
+    public struct ShaderAttributeInfo
     {
-        public ActiveUniformType Type { get; private set; }
+        public ActiveAttribType Type { get; private set; }
         public int Layout { get; private set; }
         public string Name { get; private set; }
         public int Length { get; private set; }
@@ -16,7 +13,7 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public ShaderUniform(ActiveUniformType type, int layout, string name, int length, int size)
+        public ShaderAttributeInfo(ActiveAttribType type, int layout, string name, int length, int size)
         {
             Type = type;
             Layout = layout;

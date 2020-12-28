@@ -9,7 +9,7 @@
     <PackageReference Include="CjClutter.ObjLoader" Version="1.0.0" />
     <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="7.22.2.2" />
     <PackageReference Include="Magick.NET.Core" Version="5.2.2" />
-    <PackageReference Include="OpenTK" Version="4.3.0" />
+    <PackageReference Include="OpenTK" Version="4.4.0" />
   </ItemGroup>
 
   <ItemGroup>

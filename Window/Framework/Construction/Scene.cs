@@ -40,12 +40,12 @@ namespace Framework
 
             _watchDelta = new Stopwatch();
 
-            var inidcatorMat = new MaterialData(
-                new ShaderProgram(
-                    new ShaderSource(ShaderType.VertexShader, "Assets/Transform.vert"),
-                    new ShaderSource(ShaderType.FragmentShader, "Assets/Transform.frag")
-                )
-            );
+            //var inidcatorMat = new MaterialData(
+            //    new ShaderProgram(
+            //        new ShaderSource(ShaderType.VertexShader, "Assets/Transform.vert"),
+            //        new ShaderSource(ShaderType.FragmentShader, "Assets/Transform.frag")
+            //    )
+            //);
 
 
 
@@ -64,13 +64,11 @@ namespace Framework
             tex2.PushToGPU();
 
 
-
-
-            _material = new MaterialData(
-                new ShaderProgram(
-                    new ShaderSource(ShaderType.VertexShader, "Assets/shader.vert"),
-                    new ShaderSource(ShaderType.FragmentShader, "Assets/shader.frag")
-            ));
+            var shader = ShaderProgramFactory.Create(
+                new ShaderSource(ShaderType.VertexShader, "Assets/shader.vert"),
+                new ShaderSource(ShaderType.FragmentShader, "Assets/shader.frag")
+            );
+            _material = new MaterialData(shader);
             _material.SetUniform("texture1", tex1);
             _material.SetUniform("texture2", tex2);
 
@@ -116,11 +114,14 @@ namespace Framework
                 TimeTotal = _timeTotal
             };
 
+            var lightData = new LightData();
+            lightData.SetAmbient(_ambientLight);
+            lightData.SetDirectional(_directionalLight);
+
             PerspectiveCameraSystem.Use(_camera, ref renderData);
 
-            ShaderSystem.Use(_material, ref renderData);
-            LightSystem.Use(_ambientLight, _material);
-            LightSystem.Use(_directionalLight, _material);
+            ShaderSystem.Use(_material.Shader, ref renderData);
+            LightSystem.Use(lightData, _material);
 
             MaterialSystem.Use(_material);
             VertexSystem.Draw(meshTransform, _mesh, renderData);

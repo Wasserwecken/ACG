@@ -4,14 +4,12 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Framework
 {
-    public class ShaderSource : IDisposable
+    public class ShaderSource
     {
         public ShaderType Type { get; private set; }
         public string Path { get; private set; }
         public int Handle { get; private set; }
         public string Content { get; private set; }
-        public string Log { get; private set; }
-        public bool IsValid => Log == string.Empty;
 
         /// <summary>
         /// 
@@ -28,7 +26,7 @@ namespace Framework
             GL.GetShaderInfoLog(Handle, out var log);
 
             if (log != string.Empty)
-                Log = $"{Type}:\n {log}";
+                Console.WriteLine($"{Type}: {log}");
         }
 
         /// <summary>
@@ -43,17 +41,7 @@ namespace Framework
                 return reader.ReadToEnd();
             }
             else
-            {
                 return string.Empty;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Dispose()
-        {
-
         }
     }
 }
