@@ -11,16 +11,6 @@ in VertexOut
     vec4 PositionWorld;
 } vertexOut;
 
-uniform vec3 ViewPosition;
-uniform float TimeTotal;
-uniform float TimeDelta;
-
-uniform mat4 LocalToWorldSpace;
-uniform mat4 LocalToViewSpace;
-uniform mat4 LocalToProjectionSpace;
-uniform mat3 LocalToWorldRotationSpace;
-uniform mat3 LocalToViewRotationSpace;
-
 uniform vec3 LightAmbientColor;
 uniform int LightDirectionalCount;
 uniform vec3 LightDirectionalColor[3];
@@ -62,5 +52,5 @@ void main()
     }
 
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
-    OutputColor = vec4(vertexOut.NormalLocal, 1.0);
+    OutputColor = vec4(corrected, 1.0);
 }

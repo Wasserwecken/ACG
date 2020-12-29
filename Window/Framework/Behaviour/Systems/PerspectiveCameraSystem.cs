@@ -8,7 +8,7 @@ namespace Framework
 {
     public class PerspectiveCameraSystem
     {
-        public static void Use(PerspectiveCameraData cameraData, ref RenderData renderData)
+        public static void Use(PerspectiveCameraData cameraData, ref SpaceData spaceData)
         {
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
             GL.Clear(cameraData.ClearMask);
@@ -20,10 +20,7 @@ namespace Framework
                 cameraData.FarClipping
             );
 
-            renderData.ViewPosition = cameraData.Transform.Position;
-            renderData.WorldToProjectionSpace = cameraData.Transform.Space * projectionSpace;
-            renderData.WorldToViewSpace = cameraData.Transform.Space;
-            renderData.WorldToViewRotationSpace = cameraData.Transform.RotationSpace;
+            spaceData.LocalToProjection = spaceData.LocalToView * projectionSpace;
         }
     }
 }

@@ -7,18 +7,21 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Framework
 {
-    public class ShaderStorageBuffer<TBlockType> where TBlockType : struct
+    public class ShaderUniformBlock<TBlockType> where TBlockType : struct
     {
         public static int BlockSize = Marshal.SizeOf(typeof(TBlockType));
         public int Handle { get; set; }
-        public TBlockType Data { get; set; }
+        public BufferUsageHint UsageHint { get; set; }
+        public TBlockType Data;
 
         /// <summary>
         /// 
         /// </summary>
-        public ShaderStorageBuffer(TBlockType data)
+        public ShaderUniformBlock(BufferUsageHint usageHint)
         {
-            Data = data;
+            Handle = -1;
+            Data = default;
+            UsageHint = usageHint;
         }
 
         /// <summary>
@@ -26,11 +29,12 @@ namespace Framework
         /// </summary>
         public void PushToGPU()
         {
-            var data = Data;
+            if (Handle < 0)
+                Handle = GL.GenBuffer();
 
-            Handle = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.UniformBuffer, Handle);
-            GL.BufferData(BufferTarget.UniformBuffer, BlockSize, ref data, BufferUsageHint.DynamicDraw);
+            GL.BufferData(BufferTarget.UniformBuffer, BlockSize, ref Data, UsageHint);
+            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
         }
     }
 }

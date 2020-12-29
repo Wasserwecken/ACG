@@ -4,8 +4,9 @@ using System.Text;
 
 namespace Framework
 {
-    public struct GlobalUniformData
+    public struct TimeData
     {
-        ShaderStorageBuffer<TimeStorageBlock> TimeBlock { get; set; }
+        public float Total;
+        public float Delta;
     }
 }

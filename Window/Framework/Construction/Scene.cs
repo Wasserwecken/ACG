@@ -9,25 +9,16 @@ namespace Framework
 {
     public class Scene
     {
-        private Stopwatch _watchTotal;
-        private Stopwatch _watchDelta;
-
-        private float _timeDelta { get; set; }
-        private float _timeTotal => (float)_watchTotal.Elapsed.TotalSeconds;
-
         Texture2D tex1, tex2;
 
 
+        GlobalUniformData _globalUniform;
         PerspectiveCameraData _camera;
-
         AmbientLightData _ambientLight;
         DirectionalLightData _directionalLight;
-
         MaterialData _material;
-
-        TransformData meshTransform;
+        TransformData _transform;
         VertexData _mesh;
-
 
 
         /// <summary>
@@ -35,11 +26,6 @@ namespace Framework
         /// </summary>
         public Scene()
         {
-            _watchTotal = new Stopwatch();
-            _watchTotal.Start();
-
-            _watchDelta = new Stopwatch();
-
             //var inidcatorMat = new MaterialData(
             //    new ShaderProgram(
             //        new ShaderSource(ShaderType.VertexShader, "Assets/Transform.vert"),
@@ -48,8 +34,15 @@ namespace Framework
             //);
 
 
+            _globalUniform = new GlobalUniformData()
+            {
+                TimeBlock = new ShaderUniformBlock<TimeData>(BufferUsageHint.DynamicDraw),
+                SpaceBlock = new ShaderUniformBlock<SpaceData>(BufferUsageHint.DynamicDraw)
+            };
+            _globalUniform.TimeBlock.PushToGPU();
 
-            meshTransform = TransformData.Default;
+
+            _transform = TransformData.Default;
             var meshObject = Load3DHelper.Load("Assets/ape.obj")[0];
             meshObject.PushToGPU();
             _mesh = new VertexData(meshObject);
@@ -94,13 +87,14 @@ namespace Framework
         /// </summary>
         public void Update()
         {
-            _timeDelta = (float)_watchDelta.Elapsed.TotalSeconds;
-            _watchDelta.Restart();
-
-
-            //meshTransform.Forward = new Vector3(1f, 0f, 1f);
-            meshTransform.Forward = new Vector3(MathF.Sin(_timeTotal), -.2f, MathF.Cos(_timeTotal));
-            //meshTransform = TransformData.Default;
+            TimeSystem.Update(ref _globalUniform.TimeBlock.Data);
+            _globalUniform.TimeBlock.PushToGPU();
+            
+            _transform.Forward = new Vector3(
+                MathF.Sin(_globalUniform.TimeBlock.Data.Total),
+                -.2f,
+                MathF.Cos(_globalUniform.TimeBlock.Data.Total)
+            );
         }
 
         /// <summary>
@@ -108,23 +102,21 @@ namespace Framework
         /// </summary>
         public void Draw()
         {
-            var renderData = new RenderData()
-            {
-                TimeDelta = _timeDelta,
-                TimeTotal = _timeTotal
-            };
-
+            var renderData = new RenderData();
             var lightData = new LightData();
+
             lightData.SetAmbient(_ambientLight);
             lightData.SetDirectional(_directionalLight);
 
-            PerspectiveCameraSystem.Use(_camera, ref renderData);
+            SpaceSystem.Update(_transform, _camera.Transform, ref _globalUniform.SpaceBlock.Data);
+            PerspectiveCameraSystem.Use(_camera, ref _globalUniform.SpaceBlock.Data);
+            _globalUniform.SpaceBlock.PushToGPU();
 
-            ShaderSystem.Use(_material.Shader, ref renderData);
+            ShaderSystem.Use(_material.Shader, ref _globalUniform, ref renderData);
             LightSystem.Use(lightData, _material);
 
             MaterialSystem.Use(_material);
-            VertexSystem.Draw(meshTransform, _mesh, renderData);
+            VertexSystem.Draw(_transform, _mesh, _globalUniform, renderData);
 
 
             //indicator.Material.Data.Shader.Use(ref renderData);

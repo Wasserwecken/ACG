@@ -16,8 +16,9 @@ namespace Framework
             AnalyseAttributes(handle, out var attributes);
             AnalyseUniforms(handle, out var uniforms);
             AnalyseStorageBlocks(handle, out var storageBlocks);
+            AnalyseUniformBlocks(handle, out var uniformBlocks);
 
-            return new ShaderProgramAsset(handle, attributes, uniforms, storageBlocks);
+            return new ShaderProgramAsset(handle, attributes, uniforms, uniformBlocks, storageBlocks);
         }
 
         /// <summary>
@@ -67,19 +68,34 @@ namespace Framework
                 uniforms[i] = new ShaderUniformInfo(type, GL.GetUniformLocation(handle, name), name, length, size);
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void AnalyseStorageBlocks(int handle, out ShaderUniformBlockInfo[] storageBlocks)
+        {
+            GL.GetProgramInterface(handle, ProgramInterface.ShaderStorageBlock, ProgramInterfaceParameter.ActiveResources, out var storageBlockCount);
+            storageBlocks = new ShaderUniformBlockInfo[storageBlockCount];
+            for (int i = 0; i < storageBlockCount; i++)
+            {
+                GL.GetProgramResourceName(handle, ProgramInterface.ShaderStorageBlock, i, 255, out _, out var name);
+                var index = GL.GetProgramResourceIndex(handle, ProgramInterface.ShaderStorageBlock, name);
+                storageBlocks[i] = new ShaderUniformBlockInfo(index, name);
+            }
+        }        
         
         /// <summary>
         /// 
         /// </summary>
-        private static void AnalyseStorageBlocks(int handle, out ShaderStorageBlockInfo[] storageBlocks)
+        private static void AnalyseUniformBlocks(int handle, out ShaderUniformBlockInfo[] uniformBlocks)
         {
-            GL.GetProgramInterface(handle, ProgramInterface.ShaderStorageBlock, ProgramInterfaceParameter.ActiveResources, out var storageBlockCount);
-            storageBlocks = new ShaderStorageBlockInfo[storageBlockCount];
-            for (int i = 0; i < storageBlockCount; i++)
+            GL.GetProgramInterface(handle, ProgramInterface.UniformBlock, ProgramInterfaceParameter.ActiveResources, out var uniformBlockCount);
+            uniformBlocks = new ShaderUniformBlockInfo[uniformBlockCount];
+            for (int i = 0; i < uniformBlockCount; i++)
             {
-                GL.GetProgramResourceName(handle, ProgramInterface.ShaderStorageBlock, i, 255, out var nameLength, out var name);
-                var location = GL.GetProgramResourceIndex(handle, ProgramInterface.ShaderStorageBlock, name);
-                storageBlocks[i] = new ShaderStorageBlockInfo(location, name);
+                GL.GetProgramResourceName(handle, ProgramInterface.UniformBlock, i, 255, out _, out var name);
+                var index = GL.GetProgramResourceIndex(handle, ProgramInterface.UniformBlock, name);
+                uniformBlocks[i] = new ShaderUniformBlockInfo(index, name);
             }
         }
     }

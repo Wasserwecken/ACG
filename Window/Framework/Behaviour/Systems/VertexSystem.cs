@@ -7,28 +7,14 @@ namespace Framework
 {
     public class VertexSystem
     {
-        public static void Draw(TransformData transformData, VertexData vertexData, RenderData renderData)
+        public static void Draw(TransformData transformData, VertexData vertexData, GlobalUniformData globalUniformData, RenderData renderData)
         {
             GL.BindVertexArray(vertexData.ObjectData.VertexHandle);
             GL.ShadeModel(vertexData.Shading);
 
 
-            var localToWorldSpace = transformData.Space;
-            GL.UniformMatrix4(renderData.LocalToWorldSpaceLayout, false, ref localToWorldSpace);
-
-            var localToWorldRotationSpace = transformData.RotationSpace;
-            GL.UniformMatrix3(renderData.LocalToWorldRotationSpaceLayout, false, ref localToWorldRotationSpace);
-
-
-            var localToViewSpace = transformData.Space * renderData.WorldToViewSpace;
-            GL.UniformMatrix4(renderData.LocalToViewSpaceLayout, false, ref localToViewSpace);
-
-            var localToViewRotationSpace = transformData.RotationSpace * renderData.WorldToViewRotationSpace;
-            GL.UniformMatrix3(renderData.LocalToViewRotationSpaceLayout, false, ref localToViewRotationSpace);
-
-
-            var localToProjectionSpace = localToWorldSpace * renderData.WorldToProjectionSpace;
-            GL.UniformMatrix4(renderData.LocalToProjectionSpaceLayout, false, ref localToProjectionSpace);
+            if (renderData.SpaceBlockLayout >= 0)
+                GL.BindBufferBase(BufferRangeTarget.UniformBuffer, renderData.SpaceBlockLayout, globalUniformData.SpaceBlock.Handle);
 
 
             if (vertexData.ObjectData.IsIndexed)

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Framework
 {
-    public struct ShaderStorageBlockInfo
+    public struct ShaderUniformBlockInfo
     {
         public int Layout { get; set; }
         public string Name { get; set; }
@@ -12,7 +12,7 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public ShaderStorageBlockInfo(int layout, string name)
+        public ShaderUniformBlockInfo(int layout, string name)
         {
             Layout = layout;
             Name = name;
