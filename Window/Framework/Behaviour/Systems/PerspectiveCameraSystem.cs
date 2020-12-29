@@ -8,19 +8,25 @@ namespace Framework
 {
     public class PerspectiveCameraSystem
     {
-        public static void Use(PerspectiveCameraData cameraData, ref SpaceData spaceData)
+        public static void Use(TransformData transform, PerspectiveCameraData camera, ref RenderData render)
         {
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            GL.Clear(cameraData.ClearMask);
+            GL.Clear(camera.ClearMask);
 
             var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(
-                MathHelper.DegreesToRadians(cameraData.FieldOfView),
-                cameraData.AspectRatio,
-                cameraData.NearClipping,
-                cameraData.FarClipping
+                MathHelper.DegreesToRadians(camera.FieldOfView),
+                camera.AspectRatio,
+                camera.NearClipping,
+                camera.FarClipping
             );
 
-            spaceData.LocalToProjection = spaceData.LocalToView * projectionSpace;
+
+            render.SpaceBlock.Data.LocalToWorld = transform.Space;
+            render.SpaceBlock.Data.LocalToView = transform.Space;
+            render.SpaceBlock.Data.LocalToProjection = transform.Space * projectionSpace;
+
+            //render.SpaceBlock.Data.LocalToWorldRotation = worldTransformData.RotationSpace;
+            //render.SpaceBlock.Data.LocalToViewRotation = worldTransformData.RotationSpace * viewTransformData.RotationSpace;
         }
     }
 }

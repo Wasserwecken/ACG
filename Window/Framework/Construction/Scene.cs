@@ -11,8 +11,8 @@ namespace Framework
     {
         Texture2D tex1, tex2;
 
-
-        GlobalUniformData _globalUniform;
+        RenderData _renderData;
+        TransformData _cameraTransform;
         PerspectiveCameraData _camera;
         AmbientLightData _ambientLight;
         DirectionalLightData _directionalLight;
@@ -34,12 +34,11 @@ namespace Framework
             //);
 
 
-            _globalUniform = new GlobalUniformData()
+            _renderData = new RenderData()
             {
                 TimeBlock = new ShaderUniformBlock<TimeData>(BufferUsageHint.DynamicDraw),
                 SpaceBlock = new ShaderUniformBlock<SpaceData>(BufferUsageHint.DynamicDraw)
             };
-            _globalUniform.TimeBlock.PushToGPU();
 
 
             _transform = TransformData.Default;
@@ -69,7 +68,7 @@ namespace Framework
             _ambientLight = AmbientLightData.Default;
             _directionalLight = DirectionalLightData.Default;
 
-
+            _cameraTransform = new TransformData(new Vector3(0f, 0f, -3f));
             _camera = new PerspectiveCameraData()
             {
                 FieldOfView = 60f,
@@ -87,13 +86,12 @@ namespace Framework
         /// </summary>
         public void Update()
         {
-            TimeSystem.Update(ref _globalUniform.TimeBlock.Data);
-            _globalUniform.TimeBlock.PushToGPU();
+            TimeSystem.Update(ref _renderData.TimeBlock.Data);
             
             _transform.Forward = new Vector3(
-                MathF.Sin(_globalUniform.TimeBlock.Data.Total),
+                MathF.Sin(_renderData.TimeBlock.Data.Total),
                 -.2f,
-                MathF.Cos(_globalUniform.TimeBlock.Data.Total)
+                MathF.Cos(_renderData.TimeBlock.Data.Total)
             );
         }
 
@@ -102,21 +100,13 @@ namespace Framework
         /// </summary>
         public void Draw()
         {
-            var renderData = new RenderData();
-            var lightData = new LightData();
+            _renderData.TimeBlock.PushToGPU();
 
-            lightData.SetAmbient(_ambientLight);
-            lightData.SetDirectional(_directionalLight);
-
-            SpaceSystem.Update(_transform, _camera.Transform, ref _globalUniform.SpaceBlock.Data);
-            PerspectiveCameraSystem.Use(_camera, ref _globalUniform.SpaceBlock.Data);
-            _globalUniform.SpaceBlock.PushToGPU();
-
-            ShaderSystem.Use(_material.Shader, ref _globalUniform, ref renderData);
-            LightSystem.Use(lightData, _material);
-
+            //SpaceSystem.Update(_transform, _camera.Transform, ref _renderData.SpaceBlock.Data);
+            PerspectiveCameraSystem.Use(_cameraTransform, _camera, ref _renderData);
+            ShaderSystem.Use(_material.Shader, ref _renderData);
             MaterialSystem.Use(_material);
-            VertexSystem.Draw(_transform, _mesh, _globalUniform, renderData);
+            VertexSystem.Draw(_transform, _mesh, _renderData);
 
 
             //indicator.Material.Data.Shader.Use(ref renderData);
