@@ -8,15 +8,17 @@ namespace Framework
 {
     public class ShaderSystem
     {
-        public static void Use(ShaderProgramAsset shader, UniformBlockRegister renderData)
+        public static void Use(ShaderProgramAsset shader, UniformRegister uniformRegister)
         {
             GL.UseProgram(shader.Handle);
 
-            if (shader.GetLayout("TimeBlock", out var timeBlockLayout))
-                GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, timeBlockLayout, renderData.TimeBlock.Handle);
+            foreach (var block in uniformRegister.StorageBlocks)
+                if (shader.GetLayout(block.Name, out var blockLayout))
+                    GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, blockLayout, block.Handle);
 
-            if (shader.GetLayout("SpaceBlock", out var spaceBlockLayout))
-                renderData.SpaceBlockLayout = spaceBlockLayout;
+            foreach (var block in uniformRegister.UniformBlocks)
+                if (shader.GetLayout(block.Name, out var blockLayout))
+                    GL.BindBufferBase(BufferRangeTarget.UniformBuffer, blockLayout, block.Handle);
         }
     }
 }

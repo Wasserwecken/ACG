@@ -7,19 +7,21 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Framework
 {
-    public class ShaderUniformBlock<TBlockType> where TBlockType : struct
+    public class UniformBlock<TBlockType> : IUniformBlock where TBlockType : struct
     {
         public static int BlockSize = Marshal.SizeOf(typeof(TBlockType));
-        public int Handle { get; set; }
+        public int Handle { get; private set; }
+        public string Name { get; private set; }
         public BufferUsageHint UsageHint { get; set; }
         public TBlockType Data;
 
         /// <summary>
         /// 
         /// </summary>
-        public ShaderUniformBlock(BufferUsageHint usageHint)
+        public UniformBlock(string name, BufferUsageHint usageHint)
         {
             Handle = -1;
+            Name = name;
             Data = default;
             UsageHint = usageHint;
         }

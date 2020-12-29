@@ -7,15 +7,10 @@ namespace Framework
 {
     public class VertexSystem
     {
-        public static void Draw(TransformData transformData, VertexData vertexData, UniformBlockRegister renderData)
+        public static void Draw(TransformData transformData, VertexData vertexData, UniformRegister renderData)
         {
             GL.BindVertexArray(vertexData.ObjectData.VertexHandle);
             GL.ShadeModel(vertexData.Shading);
-
-
-            if (renderData.SpaceBlockLayout >= 0)
-                GL.BindBufferBase(BufferRangeTarget.UniformBuffer, renderData.SpaceBlockLayout, renderData.SpaceBlock.Handle);
-
 
             if (vertexData.ObjectData.IsIndexed)
                 GL.DrawElements(vertexData.Primitive, vertexData.ObjectData.Indicies.Length, DrawElementsType.UnsignedInt, 0);

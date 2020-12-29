@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Framework
 {
-    public static class SpaceSystem
+    public static class RenderSpaceSystem
     {
         public static void Update(TransformData objectTransform, ViewSpaceData viewSpace, ref RenderSpaceData space)
         {
