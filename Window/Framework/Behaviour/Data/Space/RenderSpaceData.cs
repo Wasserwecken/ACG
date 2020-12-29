@@ -5,9 +5,13 @@ using System.Text;
 
 namespace Framework
 {
-    public struct ObjectSpaceData
+    public struct RenderSpaceData
     {
         public Matrix4 LocalToWorld;
+        public Matrix4 LocalToView;
+        public Matrix4 LocalToProjection;
+
         public Matrix3 LocalToWorldRotation;
+        public Matrix3 LocalToViewRotation;
     }
 }

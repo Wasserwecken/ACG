@@ -6,10 +6,10 @@ using OpenTK.Mathematics;
 
 namespace Framework
 {
-    public struct RenderData
+    public class UniformBlockRegister
     {
         public ShaderUniformBlock<TimeData> TimeBlock;
-        public ShaderUniformBlock<SpaceData> SpaceBlock;
+        public ShaderUniformBlock<RenderSpaceData> SpaceBlock;
         public int SpaceBlockLayout { get; set; }
     }
 }

@@ -26,18 +26,18 @@ out VertexOut
     vec4 PositionLocal;
     vec4 PositionView;
     vec4 PositionWorld;
-} vertexOut;
+} _vertex;
 
 void main(void)
 {
-    vertexOut.UV = BufferUV;
+    _vertex.UV = BufferUV;
 
-    vertexOut.NormalLocal = BufferNormal;
-    vertexOut.NormalWorld = _space.LocalToWorldRotation * BufferNormal;
-    vertexOut.NormalView = _space.LocalToViewRotation * BufferNormal;
+    _vertex.NormalLocal = BufferNormal;
+    _vertex.NormalWorld = _space.LocalToWorldRotation * BufferNormal;
+    _vertex.NormalView = _space.LocalToViewRotation * BufferNormal;
 
-    vertexOut.PositionLocal = vec4(BufferVertex, 1.0);
-    vertexOut.PositionWorld = _space.LocalToWorld * vertexOut.PositionLocal;
-    vertexOut.PositionView = _space.LocalToView * vertexOut.PositionLocal;
-    gl_Position = _space.LocalToProjection * vertexOut.PositionLocal;
+    _vertex.PositionLocal = vec4(BufferVertex, 1.0);
+    _vertex.PositionWorld = _space.LocalToWorld * _vertex.PositionLocal;
+    _vertex.PositionView = _space.LocalToView * _vertex.PositionLocal;
+    gl_Position = _space.LocalToProjection * _vertex.PositionLocal;
 }

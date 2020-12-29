@@ -6,13 +6,15 @@ namespace Framework
 {
     public static class SpaceSystem
     {
-        public static void Update(TransformData worldTransform, TransformData viewTransform, ref SpaceData space)
+        public static void Update(TransformData objectTransform, ViewSpaceData viewSpace, ref RenderSpaceData space)
         {
-            space.LocalToWorld = worldTransform.Space;
-            space.LocalToView = space.LocalToWorld * viewTransform.Space;
+            space.LocalToWorld = objectTransform.Space;
+            space.LocalToWorldRotation = objectTransform.RotationSpace;
 
-            space.LocalToWorldRotation = worldTransform.RotationSpace;
-            space.LocalToViewRotation = worldTransform.RotationSpace * viewTransform.RotationSpace;
+            space.LocalToView = space.LocalToWorld * viewSpace.WorldToView;
+            space.LocalToViewRotation = space.LocalToWorldRotation * viewSpace.WorldToViewRotation;
+
+            space.LocalToProjection = space.LocalToWorld * viewSpace.WorldToProjection;
         }
     }
 }

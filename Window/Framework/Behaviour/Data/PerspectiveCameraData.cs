@@ -8,7 +8,6 @@ namespace Framework
 {
     public struct PerspectiveCameraData
     {
-        public TransformData Transform { get; set; }
         public Vector4 ClearColor { get; set; }
         public ClearBufferMask ClearMask { get; set; }
         public float NearClipping { get; set; }

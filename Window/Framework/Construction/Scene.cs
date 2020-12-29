@@ -11,13 +11,13 @@ namespace Framework
     {
         Texture2D tex1, tex2;
 
-        RenderData _renderData;
+        UniformBlockRegister _uniformBlockRegister;
         TransformData _cameraTransform;
         PerspectiveCameraData _camera;
         AmbientLightData _ambientLight;
         DirectionalLightData _directionalLight;
         MaterialData _material;
-        TransformData _transform;
+        TransformData _meshTransform;
         VertexData _mesh;
 
 
@@ -26,22 +26,14 @@ namespace Framework
         /// </summary>
         public Scene()
         {
-            //var inidcatorMat = new MaterialData(
-            //    new ShaderProgram(
-            //        new ShaderSource(ShaderType.VertexShader, "Assets/Transform.vert"),
-            //        new ShaderSource(ShaderType.FragmentShader, "Assets/Transform.frag")
-            //    )
-            //);
-
-
-            _renderData = new RenderData()
+            _uniformBlockRegister = new UniformBlockRegister()
             {
                 TimeBlock = new ShaderUniformBlock<TimeData>(BufferUsageHint.DynamicDraw),
-                SpaceBlock = new ShaderUniformBlock<SpaceData>(BufferUsageHint.DynamicDraw)
+                SpaceBlock = new ShaderUniformBlock<RenderSpaceData>(BufferUsageHint.DynamicDraw)
             };
 
 
-            _transform = TransformData.Default;
+            _meshTransform = TransformData.Default;
             var meshObject = Load3DHelper.Load("Assets/ape.obj")[0];
             meshObject.PushToGPU();
             _mesh = new VertexData(meshObject);
@@ -74,7 +66,6 @@ namespace Framework
                 FieldOfView = 60f,
                 ClearColor = new Vector4(0.3f),
                 ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit,
-                Transform = new TransformData(new Vector3(0f, 0f, -3f)),
                 AspectRatio = 800 / (float)600,
                 NearClipping = 0.1f,
                 FarClipping = 100f,
@@ -86,12 +77,12 @@ namespace Framework
         /// </summary>
         public void Update()
         {
-            TimeSystem.Update(ref _renderData.TimeBlock.Data);
+            TimeSystem.Update(ref _uniformBlockRegister.TimeBlock.Data);
             
-            _transform.Forward = new Vector3(
-                MathF.Sin(_renderData.TimeBlock.Data.Total),
+            _meshTransform.Forward = new Vector3(
+                MathF.Sin(_uniformBlockRegister.TimeBlock.Data.Total),
                 -.2f,
-                MathF.Cos(_renderData.TimeBlock.Data.Total)
+                MathF.Cos(_uniformBlockRegister.TimeBlock.Data.Total)
             );
         }
 
@@ -100,19 +91,19 @@ namespace Framework
         /// </summary>
         public void Draw()
         {
-            _renderData.TimeBlock.PushToGPU();
+            _uniformBlockRegister.TimeBlock.PushToGPU();
 
-            //SpaceSystem.Update(_transform, _camera.Transform, ref _renderData.SpaceBlock.Data);
-            PerspectiveCameraSystem.Use(_cameraTransform, _camera, ref _renderData);
-            ShaderSystem.Use(_material.Shader, ref _renderData);
+            var viewSpace = new ViewSpaceData();
+
+            PerspectiveCameraSystem.Use(_cameraTransform, _camera, ref viewSpace);
+            ShaderSystem.Use(_material.Shader, _uniformBlockRegister);
             MaterialSystem.Use(_material);
-            VertexSystem.Draw(_transform, _mesh, _renderData);
 
+            SpaceSystem.Update(_meshTransform, viewSpace, ref _uniformBlockRegister.SpaceBlock.Data);
 
-            //indicator.Material.Data.Shader.Use(ref renderData);
-            //indicator.Material.Use(ref renderData);
-            //indicator.Material.SetProjectionSpace(meshTransform.Space * renderData.WorldToProjection);
-            //indicator.Draw(ref renderData);
+            _uniformBlockRegister.SpaceBlock.PushToGPU();
+
+            VertexSystem.Draw(_meshTransform, _mesh, _uniformBlockRegister);
         }
     }
 }

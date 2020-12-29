@@ -9,7 +9,7 @@ in VertexOut
     vec4 PositionLocal;
     vec4 PositionView;
     vec4 PositionWorld;
-} vertexOut;
+} _vertex;
 
 uniform vec3 LightAmbientColor;
 uniform int LightDirectionalCount;
@@ -36,7 +36,7 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float smoothness, ve
 void main()
 {
     vec3 viewDirection = vec3(0.0, 0.0, 1.0);
-    vec3 surfaceNormal = normalize(vertexOut.NormalView);
+    vec3 surfaceNormal = normalize(_vertex.NormalView);
     vec3 halfwayDirection = normalize(viewDirection + surfaceNormal);
 
     vec3 surfaceDiffuse = vec3(0.5);
@@ -52,5 +52,5 @@ void main()
     }
 
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
-    OutputColor = vec4(corrected, 1.0);
+    OutputColor = vec4(_vertex.NormalLocal, 1.0);
 }

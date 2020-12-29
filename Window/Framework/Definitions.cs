@@ -29,46 +29,7 @@ namespace Framework
 
             public static class Uniforms
             {
-                public static class Time
-                {
-                    public const string TOTAL = "TimeTotal";
-                    public const string DELTA = "TimeDelta";
-                }
 
-                public static class Space
-                {
-                    public const string WORLD = "LocalToWorldSpace";
-                    public const string WORLD_ROTATION = "LocalToWorldRotationSpace";
-                    public const string VIEW = "LocalToViewSpace";
-                    public const string VIEW_ROTATION = "LocalToViewRotationSpace";
-                    public const string PROJECTION = "LocalToProjectionSpace";
-                }
-
-                public static class Normal
-                {
-                    public const string WORLD = "NormalToWorld";
-                    public const string PROJECTION = "NormalToView";
-                }
-
-                public static class View
-                {
-                    public const string POSITION = "ViewPositon";
-                }
-
-                public static class Light
-                {
-                    public static class Ambient
-                    {
-                        public const string COLOR = "LightAmbientColor";
-                    }
-
-                    public static class Directional
-                    {
-                        public const string COUNT = "LightDirectionalCount";
-                        public const string COLOR = "LightDirectionalColor";
-                        public const string DIRECTION = "LightDirectionalDirection";
-                    }
-                }
             }
         }
 
