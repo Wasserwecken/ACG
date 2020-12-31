@@ -20,7 +20,6 @@ namespace Framework
         TransformData _cameraTransform;
         PerspectiveCameraData _camera;
         AmbientLightData _ambientLight;
-        DirectionalLightData _directionalLight;
         MaterialData _material;
         TransformData _meshTransform;
         VertexData _mesh;
@@ -46,7 +45,13 @@ namespace Framework
             _meshTransform = TransformData.Default;
             var meshObject = Load3DHelper.Load("Assets/ape.obj")[0];
             meshObject.PushToGPU();
-            _mesh = new VertexData(meshObject);
+            _mesh = new VertexData()
+            {
+                ObjectData = meshObject,
+                Primitive = PrimitiveType.Triangles,
+                Shading = ShadingModel.Smooth,
+                UsageHint = BufferUsageHint.StaticDraw
+            };
 
 
 
