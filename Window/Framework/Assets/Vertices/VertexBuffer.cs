@@ -6,10 +6,7 @@ namespace Framework
     public class VertexBuffer
     {
         public int BufferHandle { get; private set; }
-
-        public BufferTarget Target { get; private set; }
         public BufferUsageHint UsageHint { get; set; }
-
         public int StrideSize { get; private set; }
         public byte[] ArrayBuffer { get; private set; }
         public List<VertexAttribute> Attributes { get; private set; }
@@ -18,9 +15,8 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public VertexBuffer(BufferTarget target, VertexAttribPointerType attribPointerType)
+        public VertexBuffer(VertexAttribPointerType attribPointerType)
         {
-            Target = target;
             UsageHint = BufferUsageHint.StaticDraw;
             Attributes = new List<VertexAttribute>();
         }
@@ -72,8 +68,8 @@ namespace Framework
         {
             BufferHandle = GL.GenBuffer();
             
-            GL.BindBuffer(Target, BufferHandle);
-            GL.BufferData(Target, ArrayBuffer.Length, ArrayBuffer, UsageHint);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, BufferHandle);
+            GL.BufferData(BufferTarget.ArrayBuffer, ArrayBuffer.Length, ArrayBuffer, UsageHint);
 
             var offset = 0;
             foreach (var attribute in Attributes)
@@ -83,7 +79,7 @@ namespace Framework
                 offset += attribute.PairSize;
             }
 
-            GL.BindBuffer(Target, 0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
     }
 }

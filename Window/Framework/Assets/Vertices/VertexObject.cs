@@ -10,6 +10,7 @@ namespace Framework
         public int VertexHandle { get; protected set; }
         public VertexBuffer Buffer { get; protected set; }
         public BufferUsageHint UsageHint { get; set; }
+        public PolygonMode Mode { get; set; }
 
         public int IndicieHandle { get; protected set; }
         public bool IsIndexed => Indicies.Length > 0;
@@ -22,8 +23,9 @@ namespace Framework
         public VertexObject()
         {
             Indicies = new uint[0];
+            Mode = PolygonMode.Fill;
             UsageHint = BufferUsageHint.StaticDraw;
-            Buffer = new VertexBuffer(BufferTarget.ArrayBuffer, VertexAttribPointerType.Float);
+            Buffer = new VertexBuffer(VertexAttribPointerType.Float);
         }
 
         /// <summary>
@@ -110,6 +112,8 @@ namespace Framework
         {
             Buffer.UsageHint = UsageHint;
             Buffer.PushToGPU();
+
+            GL.PolygonMode(MaterialFace.FrontAndBack, Mode);
 
             if (IsIndexed)
             {
