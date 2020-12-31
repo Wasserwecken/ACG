@@ -3,21 +3,31 @@
 in VertexOut
 {
     vec2 UV;
-    vec3 NormalLocal;
-    vec3 NormalWorld;
-    vec3 NormalView;
+    vec4 NormalLocal;
+    vec4 NormalWorld;
+    vec4 NormalView;
     vec4 PositionLocal;
     vec4 PositionView;
     vec4 PositionWorld;
 } _vertex;
 
+struct DirectionalLight
+{
+ vec3 Color;
+ vec3 Direction;
+};
+
+struct PointLight
+{
+ vec3 Color;
+ vec3 Position;
+};
+
+layout (std430) buffer DirectionalLightData {
+    DirectionalLight _directionalLights[];
+};
+
 uniform vec3 LightAmbientColor;
-uniform int LightDirectionalCount;
-uniform vec3 LightDirectionalColor[3];
-uniform vec3 LightDirectionalDirection[3];
-uniform vec3 LightPointColor;
-uniform vec3 LightPointPosition;
-uniform vec3 LightPointDirection;
 
 uniform sampler2D texture1;
 uniform sampler2D texture2;
@@ -35,22 +45,21 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float smoothness, ve
 
 void main()
 {
+    vec3 surfaceNormal = normalize(vec3(_vertex.NormalView));
     vec3 viewDirection = vec3(0.0, 0.0, 1.0);
-    vec3 surfaceNormal = normalize(_vertex.NormalView);
-    vec3 halfwayDirection = normalize(viewDirection + surfaceNormal);
 
     vec3 surfaceDiffuse = vec3(0.5);
     vec3 surfaceSpecular = vec3(0.9, 0.7, 0.5);
-    
 
     vec3 surfaceColor = surfaceDiffuse * LightAmbientColor;
-    for(int i = 0; i <  LightDirectionalCount; i++)
+    for(int i = 0; i <  _directionalLights.length(); i++)
     {
-        vec3 lightDirection = -LightDirectionalDirection[i];
-        vec3 lightColor = LightDirectionalColor[i];
-        surfaceColor += blinn_phong(surfaceDiffuse, surfaceSpecular, 32.0, surfaceNormal, halfwayDirection, lightDirection, lightColor);
+        vec3 lightColor = _directionalLights[i].Color;
+        vec3 lightDirection = -_directionalLights[i].Direction;
+        vec3 halfwayDirection = normalize(lightDirection + viewDirection);
+        surfaceColor += blinn_phong(surfaceDiffuse, surfaceSpecular, 128.0, surfaceNormal, halfwayDirection, lightDirection, lightColor);
     }
 
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
-    OutputColor = vec4(_vertex.NormalWorld, 1.0);
+    OutputColor = vec4(corrected, 1.0);
 }

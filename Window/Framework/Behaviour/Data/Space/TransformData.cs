@@ -10,12 +10,12 @@ namespace Framework
         public static TransformData Default => new TransformData()
         {
             TranslationSpace = Matrix4.CreateTranslation(0, 0, 0),
-            RotationSpace = Matrix3.Identity,
+            RotationSpace = Matrix4.Identity,
             ScaleSpace = Matrix4.Identity
         };
 
 
-        public Matrix4 Space => new Matrix4(RotationSpace) * ScaleSpace * TranslationSpace;
+        public Matrix4 Space => RotationSpace * ScaleSpace * TranslationSpace;
 
         public Vector3 Position
         {
@@ -29,34 +29,9 @@ namespace Framework
             set => ScaleSpace = Matrix4.CreateScale(value);
         }
 
-        public Vector3 Right
-        {
-            get => RotationSpace.Row0;
-            set
-            {
-                var right = value.Normalized();
-                var forward = Vector3.Cross(right, Vector3.UnitY).Normalized();
-                var up = Vector3.Cross(forward, right).Normalized();
-
-                RotationSpace = CreateRotationMatrix(right, up, forward);
-            }
-        }
-
-        public Vector3 Up
-        {
-            get => RotationSpace.Row1;
-            set
-            {
-                var up = value.Normalized();
-                var forward = Vector3.Cross(Vector3.UnitX, up).Normalized();
-                var right = Vector3.Cross(up, forward).Normalized();
-                RotationSpace = CreateRotationMatrix(right, up, forward);
-            }
-        }
-
         public Vector3 Forward
         {
-            get => RotationSpace.Row2;
+            get => RotationSpace.Row2.Xyz;
             set
             {
                 var forward = value.Normalized();
@@ -68,7 +43,7 @@ namespace Framework
         }
 
         public Matrix4 TranslationSpace { get; set; }
-        public Matrix3 RotationSpace { get; set; }
+        public Matrix4 RotationSpace { get; set; }
         public Matrix4 ScaleSpace { get; set; }
 
         /// <summary>
@@ -83,13 +58,13 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        private Matrix3 CreateRotationMatrix(Vector3 right, Vector3 up, Vector3 forward)
+        private Matrix4 CreateRotationMatrix(Vector3 right, Vector3 up, Vector3 forward)
         {
-            var matrix = Matrix3.Identity;
+            var matrix = Matrix4.Identity;
             
-            matrix.Row0 = right;
-            matrix.Row1 = up;
-            matrix.Row2 = forward;
+            matrix.Row0.Xyz = right;
+            matrix.Row1.Xyz = up;
+            matrix.Row2.Xyz = forward;
 
             return matrix;
         }

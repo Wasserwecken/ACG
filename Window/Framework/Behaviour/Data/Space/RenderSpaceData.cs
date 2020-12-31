@@ -11,7 +11,7 @@ namespace Framework
         public Matrix4 LocalToView;
         public Matrix4 LocalToProjection;
 
-        public Matrix3 LocalToWorldRotation;
-        public Matrix3 LocalToViewRotation;
+        public Matrix4 LocalToWorldRotation;
+        public Matrix4 LocalToViewRotation;
     }
 }

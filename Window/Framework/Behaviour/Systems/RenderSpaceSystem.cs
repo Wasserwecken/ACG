@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK.Mathematics;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -12,7 +13,7 @@ namespace Framework
             space.LocalToWorldRotation = objectTransform.RotationSpace;
 
             space.LocalToView = space.LocalToWorld * viewSpace.WorldToView;
-            space.LocalToViewRotation = space.LocalToWorldRotation * viewSpace.WorldToViewRotation;
+            space.LocalToViewRotation = objectTransform.RotationSpace * viewSpace.WorldToViewRotation;
 
             space.LocalToProjection = space.LocalToWorld * viewSpace.WorldToProjection;
         }

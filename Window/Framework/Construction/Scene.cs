@@ -12,6 +12,7 @@ namespace Framework
         Texture2D tex1, tex2;
 
         UniformBlock<TimeData> _timeUniformBlock;
+        UniformBlockArray<DirectionalLightData> _directionalLightBlock;
         UniformBlock<RenderSpaceData> _renderSpaceUniformBlock;
         UniformRegister _uniformBlockRegister;
 
@@ -33,9 +34,13 @@ namespace Framework
 
             _timeUniformBlock = new UniformBlock<TimeData>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _renderSpaceUniformBlock = new UniformBlock<RenderSpaceData>(BufferRangeTarget.UniformBuffer, BufferUsageHint.DynamicDraw);
-            _uniformBlockRegister = new UniformRegister(
-                new IUniformBlock[] { _timeUniformBlock, _renderSpaceUniformBlock }
-            );
+            _directionalLightBlock = new UniformBlockArray<DirectionalLightData>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _uniformBlockRegister = new UniformRegister(new IUniformBlock[]
+            {
+                _timeUniformBlock,
+                _renderSpaceUniformBlock,
+                _directionalLightBlock
+            });
 
 
             _meshTransform = TransformData.Default;
@@ -63,7 +68,12 @@ namespace Framework
 
 
             _ambientLight = AmbientLightData.Default;
-            _directionalLight = DirectionalLightData.Default;
+            _directionalLightBlock.Data = new DirectionalLightData[]
+            {
+                new DirectionalLightData() {Color = new Vector4(0.6f, 0.6f, 0.6f, 0f), Direction = new Vector4(1f, -1f, -1f, 0f) },
+                new DirectionalLightData() {Color = new Vector4(0.2f, 0f, 0f, 0f), Direction = new Vector4(-1f, -1f, -1f, 0f) }
+            };
+            _directionalLightBlock.PushToGPU();
 
             _cameraTransform = new TransformData(new Vector3(0f, 0f, -3f));
             _camera = new PerspectiveCameraData()
@@ -83,12 +93,13 @@ namespace Framework
         public void Update()
         {
             TimeSystem.Update(ref _timeUniformBlock.Data);
-            
+
             _meshTransform.Forward = new Vector3(
                 MathF.Sin(_timeUniformBlock.Data.Total),
                 -.2f,
                 MathF.Cos(_timeUniformBlock.Data.Total)
             );
+
         }
 
         /// <summary>
