@@ -7,7 +7,7 @@ namespace Framework
 {
     public class VertexSystem
     {
-        public static void Draw(TransformData transformData, VertexData vertexData, UniformRegister renderData)
+        public static void Draw(VertexData vertexData)
         {
             GL.BindVertexArray(vertexData.ObjectData.VertexHandle);
             GL.ShadeModel(vertexData.Shading);

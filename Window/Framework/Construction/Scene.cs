@@ -15,6 +15,7 @@ namespace Framework
         UniformBlock<RenderSpaceData> _renderSpaceUniformBlock;
         UniformRegister _uniformBlockRegister;
 
+        ViewSpaceData _viewSpace;
         TransformData _cameraTransform;
         PerspectiveCameraData _camera;
         AmbientLightData _ambientLight;
@@ -30,11 +31,10 @@ namespace Framework
         public Scene()
         {
 
-            _timeUniformBlock = new UniformBlock<TimeData>("TimeBlock", BufferUsageHint.DynamicDraw);
-            _renderSpaceUniformBlock = new UniformBlock<RenderSpaceData>("SpaceBlock", BufferUsageHint.DynamicDraw);
+            _timeUniformBlock = new UniformBlock<TimeData>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _renderSpaceUniformBlock = new UniformBlock<RenderSpaceData>(BufferRangeTarget.UniformBuffer, BufferUsageHint.DynamicDraw);
             _uniformBlockRegister = new UniformRegister(
-                new IUniformBlock[] { _timeUniformBlock },
-                new IUniformBlock[] { _renderSpaceUniformBlock}
+                new IUniformBlock[] { _timeUniformBlock, _renderSpaceUniformBlock }
             );
 
 
@@ -96,17 +96,16 @@ namespace Framework
         /// </summary>
         public void Draw()
         {
-            var viewSpace = new ViewSpaceData();
             _timeUniformBlock.PushToGPU();
 
-            PerspectiveCameraSystem.Use(_cameraTransform, _camera, ref viewSpace);
+            PerspectiveCameraSystem.Use(_cameraTransform, _camera, ref _viewSpace);
             ShaderSystem.Use(_material.Shader, _uniformBlockRegister);
             MaterialSystem.Use(_material);
 
-            RenderSpaceSystem.Update(_meshTransform, viewSpace, ref _renderSpaceUniformBlock.Data);
+            RenderSpaceSystem.Update(_meshTransform, _viewSpace, ref _renderSpaceUniformBlock.Data);
             _renderSpaceUniformBlock.PushToGPU();
 
-            VertexSystem.Draw(_meshTransform, _mesh, _uniformBlockRegister);
+            VertexSystem.Draw(_mesh);
         }
     }
 }

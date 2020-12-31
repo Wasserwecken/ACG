@@ -52,5 +52,5 @@ void main()
     }
 
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
-    OutputColor = vec4(_vertex.NormalLocal, 1.0);
+    OutputColor = vec4(_vertex.NormalWorld, 1.0);
 }

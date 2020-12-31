@@ -9,8 +9,7 @@ namespace Framework
         public int Handle { get; }
         public ShaderAttributeInfo[] Attributes { get; }
         public ShaderUniformInfo[] Uniforms { get; }
-        public ShaderUniformBlockInfo[] StorageBlocks { get; }
-        public ShaderUniformBlockInfo[] UniformBlocks { get; }
+        public ShaderUniformBlockInfo[] Blocks { get; }
 
         private readonly Dictionary<string, int> _nameToLayout;
 
@@ -21,16 +20,14 @@ namespace Framework
             int handle,
             ShaderAttributeInfo[] attributes,
             ShaderUniformInfo[] uniforms,
-            ShaderUniformBlockInfo[] uniformBlocks,
-            ShaderUniformBlockInfo[] storageBlocks)
+            ShaderUniformBlockInfo[] blocks)
         {
             _nameToLayout = new Dictionary<string, int>();
             
             Handle = handle;
             Attributes = attributes;
             Uniforms = uniforms;
-            UniformBlocks = uniformBlocks;
-            StorageBlocks = storageBlocks;
+            Blocks = blocks;
 
             foreach (var attribute in attributes)
                 _nameToLayout.Add(attribute.Name, attribute.Layout);
@@ -38,11 +35,8 @@ namespace Framework
             foreach (var uniform in uniforms)
                 _nameToLayout.Add(uniform.Name, uniform.Layout);
 
-            foreach (var uniformBlock in uniformBlocks)
+            foreach (var uniformBlock in Blocks)
                 _nameToLayout.Add(uniformBlock.Name, uniformBlock.Layout);
-
-            foreach (var storageBlock in storageBlocks)
-                _nameToLayout.Add(storageBlock.Name, storageBlock.Layout);
         }
 
         /// <summary>

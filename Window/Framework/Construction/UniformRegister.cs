@@ -8,17 +8,14 @@ namespace Framework
 {
     public class UniformRegister
     {
-        public int SpaceBlockLayout { get; set; }
-        public readonly List<IUniformBlock> StorageBlocks;
-        public readonly List<IUniformBlock> UniformBlocks;
+        public readonly List<IUniformBlock> Blocks;
 
         /// <summary>
         /// 
         /// </summary>
-        public UniformRegister(IUniformBlock[] storageBlocks, IUniformBlock[] uniformBlock)
+        public UniformRegister(IUniformBlock[] initialBlocks)
         {
-            StorageBlocks = new List<IUniformBlock>(storageBlocks);
-            UniformBlocks = new List<IUniformBlock>(uniformBlock);
+            Blocks = new List<IUniformBlock>(initialBlocks);
         }
     }
 }

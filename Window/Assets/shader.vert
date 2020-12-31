@@ -4,12 +4,12 @@ layout (location = 0) in vec3 BufferVertex;
 layout (location = 1) in vec3 BufferNormal;
 layout (location = 2) in vec2 BufferUV;
 
-layout (std430) buffer TimeBlock {
+layout (std430) buffer TimeData {
  float Total;
  float Delta;
 } _time;
 
-uniform SpaceBlock {
+uniform RenderSpaceData {
     mat4 LocalToWorld;
     mat4 LocalToView;
     mat4 LocalToProjection;

@@ -12,13 +12,9 @@ namespace Framework
         {
             GL.UseProgram(shader.Handle);
 
-            foreach (var block in uniformRegister.StorageBlocks)
+            foreach (var block in uniformRegister.Blocks)
                 if (shader.GetLayout(block.Name, out var blockLayout))
-                    GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, blockLayout, block.Handle);
-
-            foreach (var block in uniformRegister.UniformBlocks)
-                if (shader.GetLayout(block.Name, out var blockLayout))
-                    GL.BindBufferBase(BufferRangeTarget.UniformBuffer, blockLayout, block.Handle);
+                    GL.BindBufferBase(block.Target, blockLayout, block.Handle);
         }
     }
 }

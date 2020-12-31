@@ -12,17 +12,19 @@ namespace Framework
         public static int BlockSize = Marshal.SizeOf(typeof(TBlockType));
         public int Handle { get; private set; }
         public string Name { get; private set; }
+        public BufferRangeTarget Target { get; private set; }
         public BufferUsageHint UsageHint { get; set; }
         public TBlockType Data;
 
         /// <summary>
         /// 
         /// </summary>
-        public UniformBlock(string name, BufferUsageHint usageHint)
+        public UniformBlock(BufferRangeTarget target, BufferUsageHint usageHint)
         {
             Handle = -1;
-            Name = name;
+            Name = typeof(TBlockType).Name;
             Data = default;
+            Target = target;
             UsageHint = usageHint;
         }
 
@@ -34,9 +36,9 @@ namespace Framework
             if (Handle < 0)
                 Handle = GL.GenBuffer();
 
-            GL.BindBuffer(BufferTarget.UniformBuffer, Handle);
-            GL.BufferData(BufferTarget.UniformBuffer, BlockSize, ref Data, UsageHint);
-            GL.BindBuffer(BufferTarget.UniformBuffer, 0);
+            GL.BindBuffer((BufferTarget)Target, Handle);
+            GL.BufferData((BufferTarget)Target, BlockSize, ref Data, UsageHint);
+            GL.BindBuffer((BufferTarget)Target, 0);
         }
     }
 }
