@@ -23,6 +23,9 @@ namespace Framework
             viewSpace.WorldToView = transform.Space;
             viewSpace.WorldToViewRotation = transform.RotationSpace;
             viewSpace.WorldToProjection = viewSpace.WorldToView * projectionSpace;
+
+            viewSpace.ViewPosition = transform.Position;
+            viewSpace.ViewDirection = transform.Forward;
         }
     }
 }

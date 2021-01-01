@@ -8,5 +8,7 @@ namespace Framework
     {
         public float Total;
         public float Delta;
+        public float TotalSin;
+        public float TotalSin01;
     }
 }

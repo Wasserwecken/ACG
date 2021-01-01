@@ -82,6 +82,7 @@ namespace Framework
             {
                 GL.GetProgramResourceName(handle, ProgramInterface.ShaderStorageBlock, storageId, 255, out _, out var name);
                 var layout = GL.GetProgramResourceIndex(handle, ProgramInterface.ShaderStorageBlock, name);
+                GL.ShaderStorageBlockBinding(handle, layout, layout);
                 blocks[blockId] = new ShaderUniformBlockInfo(layout, name, BufferTarget.ShaderStorageBuffer);
             }
 

@@ -13,13 +13,14 @@ namespace Framework
 
         UniformBlock<TimeData> _timeUniformBlock;
         UniformBlockArray<DirectionalLightData> _directionalLightBlock;
+        UniformBlockArray<PointLightData> _pointLightBlock;
+        UniformBlockArray<SpotLightData> _spotLightBlock;
         UniformBlock<RenderSpaceData> _renderSpaceUniformBlock;
         UniformRegister _uniformBlockRegister;
 
         ViewSpaceData _viewSpace;
         TransformData _cameraTransform;
         PerspectiveCameraData _camera;
-        AmbientLightData _ambientLight;
         MaterialData _material;
         TransformData _meshTransform;
         VertexData _mesh;
@@ -30,15 +31,25 @@ namespace Framework
         /// </summary>
         public Scene()
         {
+            Console.WriteLine(GL.GetString(StringName.Version));
+            Console.WriteLine(GL.GetString(StringName.ShadingLanguageVersion));
+            Console.WriteLine(GL.GetString(StringName.Extensions));
+            Console.WriteLine(GL.GetString(StringName.Renderer));
+            Console.WriteLine(GL.GetString(StringName.Vendor));
+
 
             _timeUniformBlock = new UniformBlock<TimeData>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _renderSpaceUniformBlock = new UniformBlock<RenderSpaceData>(BufferRangeTarget.UniformBuffer, BufferUsageHint.DynamicDraw);
             _directionalLightBlock = new UniformBlockArray<DirectionalLightData>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _pointLightBlock = new UniformBlockArray<PointLightData>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _spotLightBlock = new UniformBlockArray<SpotLightData>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _uniformBlockRegister = new UniformRegister(new IUniformBlock[]
             {
                 _timeUniformBlock,
                 _renderSpaceUniformBlock,
-                _directionalLightBlock
+                _directionalLightBlock,
+                _pointLightBlock,
+                _spotLightBlock
             });
 
 
@@ -72,13 +83,25 @@ namespace Framework
             _material.SetUniform("texture2", tex2);
 
 
-            _ambientLight = AmbientLightData.Default;
             _directionalLightBlock.Data = new DirectionalLightData[]
             {
-                new DirectionalLightData() {Color = new Vector4(0.6f, 0.6f, 0.6f, 0f), Direction = new Vector4(1f, -1f, -1f, 0f) },
-                new DirectionalLightData() {Color = new Vector4(0.2f, 0f, 0f, 0f), Direction = new Vector4(-1f, -1f, -1f, 0f) }
+                new DirectionalLightData() {Color = new Vector4(0.6f, 0.6f, 0.6f, 0.02f), Direction = new Vector4(1f, -1f, -1f, 0f) },
+                new DirectionalLightData() {Color = new Vector4(0.2f, 0f, 0f, 0.02f), Direction = new Vector4(-1f, -1f, -1f, 0f) }
             };
             _directionalLightBlock.PushToGPU();
+
+            _pointLightBlock.Data = new PointLightData[]
+            {
+                new PointLightData() {Color = new Vector4(0f, 0f, 5f, 0.02f), Position = new Vector4(1f, 3f, -1f, 0f) },
+                new PointLightData() {Color = new Vector4(0f, 0f, 5f, 0.02f), Position = new Vector4(-1f, 3f, -1f, 0f) }
+            };
+            _pointLightBlock.PushToGPU();
+
+            _spotLightBlock.Data = new SpotLightData[]
+            {
+                new SpotLightData() {Color = new Vector4(0f, 1f, 0f, 0.02f), Position = new Vector4(1f, -1f, 1f, MathF.Cos(MathHelper.DegreesToRadians(30))), Direction = new Vector4(-1f, 1f, -1f, MathF.Cos(MathHelper.DegreesToRadians(12))) },
+            };
+            _spotLightBlock.PushToGPU();
 
             _cameraTransform = new TransformData(new Vector3(0f, 0f, -3f));
             _camera = new PerspectiveCameraData()
@@ -104,7 +127,6 @@ namespace Framework
                 -.2f,
                 MathF.Cos(_timeUniformBlock.Data.Total)
             );
-
         }
 
         /// <summary>

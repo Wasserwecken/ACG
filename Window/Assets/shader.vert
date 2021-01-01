@@ -7,6 +7,8 @@ layout (location = 2) in vec2 BufferUV;
 layout (std430) buffer TimeData {
  float Total;
  float Delta;
+ float TotalSin;
+ float TotalSin01;
 } _time;
 
 layout (std140) uniform RenderSpaceData {
@@ -15,6 +17,9 @@ layout (std140) uniform RenderSpaceData {
     mat4 LocalToProjection;
     mat4 LocalToWorldRotation;
     mat4 LocalToViewRotation;
+    mat4 WorldToView;
+    vec3 ViewPosition;
+    vec3 ViewDirection;
 } _space;
 
 out VertexOut

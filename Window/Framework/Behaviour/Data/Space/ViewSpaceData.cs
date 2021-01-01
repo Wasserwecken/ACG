@@ -10,5 +10,7 @@ namespace Framework
         public Matrix4 WorldToView;
         public Matrix4 WorldToProjection;
         public Matrix4 WorldToViewRotation;
+        public Vector3 ViewPosition;
+        public Vector3 ViewDirection;
     }
 }

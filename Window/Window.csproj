@@ -16,6 +16,9 @@
     <None Update="Assets\ape.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\sphere.obj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\Transform.frag">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
