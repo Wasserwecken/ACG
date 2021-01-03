@@ -8,38 +8,38 @@ namespace Framework
 {
     public class MaterialSystem
     {
-        public static void Use(MaterialData materialData)
+        public static void Use(MaterialAsset material)
         {
-            GL.FrontFace(materialData.FaceDirection);
+            GL.FrontFace(material.FaceDirection);
 
-            if (materialData.IsDepthTesting)
+            if (material.IsDepthTesting)
                 GL.Enable(EnableCap.DepthTest);
 
-            if (materialData.IsCulling)
+            if (material.IsCulling)
             {
                 GL.Enable(EnableCap.CullFace);
-                GL.CullFace(materialData.CullingMode);
+                GL.CullFace(material.CullingMode);
             }
 
-            if (materialData.IsTransparent)
+            if (material.IsTransparent)
             {
                 GL.Enable(EnableCap.Blend);
-                GL.BlendFunc(materialData.SourceBlend, materialData.DestinationBlend);
+                GL.BlendFunc(material.SourceBlend, material.DestinationBlend);
             }
             else
                 GL.Disable(EnableCap.Blend);
 
 
-            foreach (var uniform in materialData.UniformTextures)
+            foreach (var uniform in material.UniformTextures)
                 UpdateTextureUniform(uniform.Key, uniform.Value);
 
-            foreach (var uniform in materialData.UniformFloats)
+            foreach (var uniform in material.UniformFloats)
                 GL.Uniform1(uniform.Key, uniform.Value);
 
-            foreach (var uniform in materialData.UniformVec3s)
+            foreach (var uniform in material.UniformVec3s)
                 GL.Uniform3(uniform.Key, uniform.Value);
 
-            foreach (var uniform in materialData.UniformMat4s)
+            foreach (var uniform in material.UniformMat4s)
             {
                 var matrix = uniform.Value;
                 GL.UniformMatrix4(uniform.Key, false, ref matrix);

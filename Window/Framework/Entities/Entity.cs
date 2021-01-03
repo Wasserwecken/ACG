@@ -7,7 +7,9 @@ namespace Framework
     public class Entity
     {
         public string Name { get; set; }
+        public List<Entity> Children { get; }
         private readonly List<IEntityComponent> _components;
+
 
         /// <summary>
         /// 
@@ -25,6 +27,7 @@ namespace Framework
         public Entity(string name, IEnumerable<IEntityComponent> initialComponents)
         {
             Name = name;
+            Children = new List<Entity>();
 
             if (initialComponents != null)
                 _components = new List<IEntityComponent>(initialComponents);

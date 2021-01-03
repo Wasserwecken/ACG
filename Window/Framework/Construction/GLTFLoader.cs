@@ -10,6 +10,8 @@ namespace Framework
 {
     public class GLTFLoader
     {
+
+
         public static void Load()
         {
             var glTF = ModelRoot.Load("./Assets/acg.glb");

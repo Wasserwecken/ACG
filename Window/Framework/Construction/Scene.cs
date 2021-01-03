@@ -21,7 +21,6 @@ namespace Framework
         ViewSpaceData _viewSpace;
         TransformComponent _cameraTransform;
         PerspectiveCameraComponent _camera;
-        MaterialData _material;
         TransformComponent _meshTransform;
 
         /// <summary>
@@ -35,7 +34,7 @@ namespace Framework
             Console.WriteLine(GL.GetString(StringName.Renderer));
             Console.WriteLine(GL.GetString(StringName.Vendor));
 
-            GLTFLoader.Load();
+            GLTF2System.Foo("./Assets/acg.glb");
 
             _timeUniformBlock = new ShaderBlock<ShaderTime>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _renderSpaceUniformBlock = new ShaderBlock<RenderSpaceData>(BufferRangeTarget.UniformBuffer, BufferUsageHint.DynamicDraw);
@@ -69,9 +68,6 @@ namespace Framework
                 ShaderSourceSystem.Create(ShaderType.VertexShader, "Assets/shader.vert"),
                 ShaderSourceSystem.Create(ShaderType.FragmentShader, "Assets/shader.frag")
             );
-            _material = new MaterialData(shader);
-            _material.SetUniform("texture1", tex1);
-            _material.SetUniform("texture2", tex2);
 
             _cameraTransform = new TransformComponent(new Vector3(0f, 0f, -3f));
             _camera = new PerspectiveCameraComponent()
@@ -107,8 +103,8 @@ namespace Framework
             _timeUniformBlock.PushToGPU();
 
             PerspectiveCameraSystem.Use(_cameraTransform, _camera, ref _viewSpace);
-            ShaderSystem.Use(_material.Shader, _uniformBlockRegister);
-            MaterialSystem.Use(_material);
+            //ShaderSystem.Use(_material.Shader, _uniformBlockRegister);
+            //MaterialSystem.Use(_material);
 
             RenderSpaceSystem.Update(_meshTransform, _viewSpace, ref _renderSpaceUniformBlock.Data);
             _renderSpaceUniformBlock.PushToGPU();
