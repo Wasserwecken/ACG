@@ -5,10 +5,9 @@ using System.Text;
 
 namespace Framework
 {
-    public struct SpotLightData
+    public struct PointLightComponent
     {
-        public Vector4 Color;
-        public Vector4 Position;
-        public Vector4 Direction;
+        public Vector3 Color;
+        public float AmbientFactor;
     }
 }

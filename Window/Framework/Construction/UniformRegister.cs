@@ -8,14 +8,14 @@ namespace Framework
 {
     public class UniformRegister
     {
-        public readonly List<IUniformBlock> Blocks;
+        public readonly List<IShaderBlock> Blocks;
 
         /// <summary>
         /// 
         /// </summary>
-        public UniformRegister(IUniformBlock[] initialBlocks)
+        public UniformRegister(IShaderBlock[] initialBlocks)
         {
-            Blocks = new List<IUniformBlock>(initialBlocks);
+            Blocks = new List<IShaderBlock>(initialBlocks);
         }
     }
 }

@@ -57,7 +57,7 @@ namespace Framework
         /// </summary>
         private void TrySetUniform<TValue>(string name, TValue value, IDictionary<int, TValue> uniforms)
         {
-            if (Shader.GetLayout(name, out var layout))
+            if (Shader.IdentifierToLayout.TryGetValue(name, out var layout))
             {
                 if (uniforms.ContainsKey(layout))
                     uniforms[layout] = value;

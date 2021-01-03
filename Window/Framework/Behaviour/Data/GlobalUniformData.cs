@@ -6,7 +6,7 @@ namespace Framework
 {
     public struct GlobalUniformData
     {
-        public UniformBlock<TimeData> TimeBlock;
-        public UniformBlock<RenderSpaceData> SpaceBlock;
+        public ShaderBlock<ShaderTime> TimeBlock;
+        public ShaderBlock<RenderSpaceData> SpaceBlock;
     }
 }

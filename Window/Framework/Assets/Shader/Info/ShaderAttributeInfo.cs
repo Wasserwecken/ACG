@@ -1,24 +1,24 @@
 ﻿using OpenTK.Graphics.OpenGL;
+using System.Diagnostics;
 
 namespace Framework
 {
+    [DebuggerDisplay("Layout: {Layout}, Type: {Type}, Name: {Name}")]
     public struct ShaderAttributeInfo
     {
-        public ActiveAttribType Type { get; private set; }
         public int Layout { get; private set; }
+        public ActiveAttribType Type { get; private set; }
         public string Name { get; private set; }
-        public int Length { get; private set; }
         public int Size { get; private set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public ShaderAttributeInfo(ActiveAttribType type, int layout, string name, int length, int size)
+        public ShaderAttributeInfo(int layout, ActiveAttribType type, string name, int size)
         {
-            Type = type;
             Layout = layout;
+            Type = type;
             Name = name;
-            Length = length;
             Size = size;
         }
     }

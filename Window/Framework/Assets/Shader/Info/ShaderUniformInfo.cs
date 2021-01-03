@@ -1,27 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using OpenTK.Graphics.OpenGL;
 
 namespace Framework
 {
+    [DebuggerDisplay("Layout: {Layout}, Type: {Type}, Name: {Name}")]
     public struct ShaderUniformInfo
     {
-        public ActiveUniformType Type { get; private set; }
         public int Layout { get; private set; }
+        public ActiveUniformType Type { get; private set; }
         public string Name { get; private set; }
-        public int Length { get; private set; }
         public int Size { get; private set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public ShaderUniformInfo(ActiveUniformType type, int layout, string name, int length, int size)
+        public ShaderUniformInfo(int layout, ActiveUniformType type, string name, int size)
         {
-            Type = type;
             Layout = layout;
+            Type = type;
             Name = name;
-            Length = length;
             Size = size;
         }
     }

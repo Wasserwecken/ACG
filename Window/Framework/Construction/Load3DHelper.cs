@@ -9,14 +9,14 @@ namespace Framework
 {
     public static class Load3DHelper
     {
-        public static List<MeshObject> Load(string path)
+        public static List<VertexObjectAsset> Load(string path)
         {
             var objLoaderFactory = new ObjLoaderFactory();
             var objLoader = objLoaderFactory.Create();
             var fileStream = new FileStream(path, FileMode.Open);
             var loadResult = objLoader.Load(fileStream);
 
-            var meshs = new List<MeshObject>();
+            var meshs = new List<VertexObjectAsset>();
             foreach(var group in loadResult.Groups)
             {
                 var uniqueIds = new Dictionary<FaceVertex, uint>();
@@ -63,14 +63,12 @@ namespace Framework
                     }
                 }
 
-                var mesh = new MeshObject();
-                mesh.AddVertices(verticies.ToArray());
-                mesh.AddNormals(normals.ToArray());
-                mesh.AddUV(uvs.ToArray());
-                mesh.AddIndicies(indicies.ToArray());
-                mesh.Prepare();
+                //mesh.AddVertices(verticies.ToArray());
+                //mesh.AddNormals(normals.ToArray());
+                //mesh.AddUV(uvs.ToArray());
+                //mesh.AddIndicies(indicies.ToArray());
+                //mesh.Prepare();
 
-                meshs.Add(mesh);
             }
 
             return meshs;

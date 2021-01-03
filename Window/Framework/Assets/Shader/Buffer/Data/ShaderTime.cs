@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Framework
 {
-    public struct TimeData
+    public struct ShaderTime
     {
         public float Total;
         public float Delta;

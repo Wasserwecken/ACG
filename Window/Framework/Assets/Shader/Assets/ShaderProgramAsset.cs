@@ -1,50 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace Framework
 {
+    [DebuggerDisplay("Handle: {Handle}, Name: {Name}, Attributes: {Attributes.Length}, Uniforms: {Uniforms.Length}, Blocks: {Blocks.Length}")]
     public class ShaderProgramAsset
     {
         public int Handle { get; }
+        public string Name { get; }
         public ShaderAttributeInfo[] Attributes { get; }
         public ShaderUniformInfo[] Uniforms { get; }
         public ShaderUniformBlockInfo[] Blocks { get; }
-
-        private readonly Dictionary<string, int> _nameToLayout;
+        public Dictionary<string, int> IdentifierToLayout { get; }
 
         /// <summary>
         /// 
         /// </summary>
         public ShaderProgramAsset(
+            string name,
             int handle,
             ShaderAttributeInfo[] attributes,
             ShaderUniformInfo[] uniforms,
             ShaderUniformBlockInfo[] blocks)
         {
-            _nameToLayout = new Dictionary<string, int>();
-            
+            IdentifierToLayout = new Dictionary<string, int>();
+
+            Name = name;
             Handle = handle;
             Attributes = attributes;
             Uniforms = uniforms;
             Blocks = blocks;
 
             foreach (var attribute in attributes)
-                _nameToLayout.Add(attribute.Name, attribute.Layout);
+                IdentifierToLayout.Add(attribute.Name, attribute.Layout);
 
             foreach (var uniform in uniforms)
-                _nameToLayout.Add(uniform.Name, uniform.Layout);
+                IdentifierToLayout.Add(uniform.Name, uniform.Layout);
 
             foreach (var uniformBlock in Blocks)
-                _nameToLayout.Add(uniformBlock.Name, uniformBlock.Layout);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool GetLayout(string name, out int layout)
-        {
-            return _nameToLayout.TryGetValue(name, out layout);
+                IdentifierToLayout.Add(uniformBlock.Name, uniformBlock.Layout);
         }
     }
 }

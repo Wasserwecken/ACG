@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Framework
 {
-    public struct PerspectiveCameraData
+    public struct PerspectiveCameraComponent : IEntityComponent
     {
         public Vector4 ClearColor { get; set; }
         public ClearBufferMask ClearMask { get; set; }

@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Framework
 {
-    public struct TransformData
+    public struct TransformComponent : IEntityComponent
     {
-        public static TransformData Default => new TransformData()
+        public static TransformComponent Default => new TransformComponent()
         {
             TranslationSpace = Matrix4.CreateTranslation(0, 0, 0),
             RotationSpace = Matrix4.Identity,
@@ -49,7 +49,7 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public TransformData(Vector3 position)
+        public TransformComponent(Vector3 position)
         {
             this = Default;
             Position = position;

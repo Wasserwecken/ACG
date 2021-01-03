@@ -7,7 +7,7 @@ namespace Framework
 {
     public static class RenderSpaceSystem
     {
-        public static void Update(TransformData objectTransform, ViewSpaceData viewSpace, ref RenderSpaceData space)
+        public static void Update(TransformComponent objectTransform, ViewSpaceData viewSpace, ref RenderSpaceData space)
         {
             space.LocalToWorld = objectTransform.Space;
             space.LocalToWorldRotation = objectTransform.RotationSpace;

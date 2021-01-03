@@ -5,7 +5,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Framework
 {
-    public interface IUniformBlock
+    public interface IShaderBlock
     {
         public int Handle { get; }
         public string Name { get; }

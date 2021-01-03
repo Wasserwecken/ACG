@@ -25,7 +25,7 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public static void Update(ref TimeData timeData)
+        public static void Update(ref ShaderTime timeData)
         {
             timeData.Total = _totalWatch.ElapsedMilliseconds / 1000f;
             timeData.Delta = _deltaWatch.ElapsedMilliseconds / 1000f;

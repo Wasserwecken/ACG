@@ -5,25 +5,25 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Framework
 {
-    public static class ShaderProgramFactory
+    public static class ShaderProgramSystem
     {
         /// <summary>
         /// 
         /// </summary>
-        public static ShaderProgramAsset Create(params ShaderSource[] shaders)
+        public static ShaderProgramAsset Create(string name, params ShaderSourceAsset[] shaders)
         {
             CreateProgram(shaders, out var handle);
             AnalyseAttributes(handle, out var attributes);
             AnalyseUniforms(handle, out var uniforms);
             AnalyseBlocks(handle, out var blocks);
 
-            return new ShaderProgramAsset(handle, attributes, uniforms, blocks);
+            return new ShaderProgramAsset(name, handle, attributes, uniforms, blocks);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private static void CreateProgram(ShaderSource[] shaders, out int handle)
+        private static void CreateProgram(ShaderSourceAsset[] shaders, out int handle)
         {
             handle = GL.CreateProgram();
             foreach (var shader in shaders)
@@ -48,8 +48,8 @@ namespace Framework
 
             for (int i = 0; i < attributeCount; i++)
             {
-                GL.GetActiveAttrib(handle, i, 255, out int length, out int size, out var type, out var name);
-                attributes[i] = new ShaderAttributeInfo(type, GL.GetAttribLocation(handle, name), name, length, size);
+                GL.GetActiveAttrib(handle, i, 255, out _, out int size, out var type, out var name);
+                attributes[i] = new ShaderAttributeInfo(GL.GetAttribLocation(handle, name), type, name, size);
             }
         }
 
@@ -58,14 +58,19 @@ namespace Framework
         /// </summary>
         private static void AnalyseUniforms(int handle, out ShaderUniformInfo[] uniforms)
         {
-            GL.GetProgram(handle, GetProgramParameterName.ActiveUniforms, out int uniformCount);
-            uniforms = new ShaderUniformInfo[uniformCount];
+            GL.GetProgramInterface(handle, ProgramInterface.Uniform, ProgramInterfaceParameter.ActiveResources, out var uniformCount);
+            var validUniforms = new List<ShaderUniformInfo>();
 
             for (int i = 0; i < uniformCount; i++)
             {
-                GL.GetActiveUniform(handle, i, 255, out int length, out int size, out var type, out var name);
-                uniforms[i] = new ShaderUniformInfo(type, GL.GetUniformLocation(handle, name), name, length, size);
+                GL.GetActiveUniform(handle, i, 255, out _, out int size, out var type, out var name);
+                var layout = GL.GetUniformLocation(handle, name);
+
+                if (layout > -1)
+                    validUniforms.Add(new ShaderUniformInfo(layout, type, name, size));
             }
+
+            uniforms = validUniforms.ToArray();
         }
 
         /// <summary>
@@ -83,14 +88,14 @@ namespace Framework
                 GL.GetProgramResourceName(handle, ProgramInterface.ShaderStorageBlock, storageId, 255, out _, out var name);
                 var layout = GL.GetProgramResourceIndex(handle, ProgramInterface.ShaderStorageBlock, name);
                 GL.ShaderStorageBlockBinding(handle, layout, layout);
-                blocks[blockId] = new ShaderUniformBlockInfo(layout, name, BufferTarget.ShaderStorageBuffer);
+                blocks[blockId] = new ShaderUniformBlockInfo(layout, BufferTarget.ShaderStorageBuffer, name);
             }
 
             for (int uniformId = 0; uniformId < uniformBlockCount; uniformId++, blockId++)
             {
                 GL.GetProgramResourceName(handle, ProgramInterface.UniformBlock, uniformId, 255, out _, out var name);
                 var layout = GL.GetProgramResourceIndex(handle, ProgramInterface.UniformBlock, name);
-                blocks[blockId] = new ShaderUniformBlockInfo(layout, name, BufferTarget.UniformBuffer);
+                blocks[blockId] = new ShaderUniformBlockInfo(layout, BufferTarget.UniformBuffer, name);
             }
         }
     }

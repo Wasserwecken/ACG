@@ -8,7 +8,7 @@ namespace Framework
 {
     public class PerspectiveCameraSystem
     {
-        public static void Use(TransformData transform, PerspectiveCameraData camera, ref ViewSpaceData viewSpace)
+        public static void Use(TransformComponent transform, PerspectiveCameraComponent camera, ref ViewSpaceData viewSpace)
         {
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
             GL.Clear(camera.ClearMask);
