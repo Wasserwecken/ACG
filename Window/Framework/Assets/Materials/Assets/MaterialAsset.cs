@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace Framework
 {
+    [DebuggerDisplay("Name: {Name}, Shader: {Shader.Name}")]
     public class MaterialAsset
     {
         public ShaderProgramAsset Shader { get; }
+        public string Name { get; set; }
         public bool IsTransparent { get; set; }
         public bool IsCulling { get; set; }
         public bool IsDepthTesting { get; set; }
@@ -25,8 +28,9 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public MaterialAsset(ShaderProgramAsset shader)
+        public MaterialAsset(string name, ShaderProgramAsset shader)
         {
+            Name = name;
             Shader = shader;
 
             IsTransparent = false;

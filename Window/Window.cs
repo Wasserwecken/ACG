@@ -11,7 +11,7 @@ namespace Window
     {
         private GameWindowSettings _gameSettings;
         private NativeWindowSettings _nativeSettings;
-        private Scene _scene;
+        private TestScene _scene;
 
         /// <summary>
         /// 
@@ -32,7 +32,7 @@ namespace Window
         {
             base.OnLoad();
 
-            _scene = new Scene();
+            _scene = new TestScene();
         }
 
         /// <summary>

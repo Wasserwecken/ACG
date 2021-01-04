@@ -5,9 +5,11 @@ using System.Text;
 
 namespace Framework
 {
-    public struct PointLightComponent
+    public struct SpotLightComponent : IEntityComponent
     {
         public Vector3 Color;
         public float AmbientFactor;
+        public float OuterAngle;
+        public float InnerAngle;
     }
 }

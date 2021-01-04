@@ -46,6 +46,8 @@
 
   <ItemGroup>
     <Folder Include="Framework\Assets\Texture\Systems\" />
+    <Folder Include="Framework\Components\Sheduler\" />
+    <Folder Include="Framework\Systems\" />
   </ItemGroup>
 
 </Project>

@@ -7,8 +7,9 @@ namespace Framework
     /// <summary>
     /// 
     /// </summary>
-    public struct VertexRenderComponent : IEntityComponent
+    public struct PrimitiveRenderComponent : IEntityComponent
     {
-        public Dictionary<VertexPrimitiveAsset, MaterialAsset> PrimitivesWithMaterials;
+        public VertexPrimitiveAsset Primitive;
+        public MaterialAsset Material;
     }
 }

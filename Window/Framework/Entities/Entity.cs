@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace Framework
 {
+    [DebuggerDisplay("Name: {Name}, Children: {Children.Count}, LocalPosition: {LocalTransform.Position}")]
     public class Entity
     {
         public string Name { get; set; }
         public List<Entity> Children { get; }
-        private readonly List<IEntityComponent> _components;
-
+        public TransformComponent WorldTransform { get; set; }
+        public TransformComponent LocalTransform { get; set; }
+        public readonly List<IEntityComponent> Components;
 
         /// <summary>
         /// 
@@ -30,17 +33,9 @@ namespace Framework
             Children = new List<Entity>();
 
             if (initialComponents != null)
-                _components = new List<IEntityComponent>(initialComponents);
+                Components = new List<IEntityComponent>(initialComponents);
             else
-                _components = new List<IEntityComponent>();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void AddComponent(IEntityComponent component)
-        {
-            _components.Add(component);
+                Components = new List<IEntityComponent>();
         }
 
         /// <summary>
@@ -50,7 +45,7 @@ namespace Framework
         {
             var results = new List<IEntityComponent>();
 
-            foreach (var component in _components)
+            foreach (var component in Components)
                 if (component is TComponentType)
                     results.Add(component);
 

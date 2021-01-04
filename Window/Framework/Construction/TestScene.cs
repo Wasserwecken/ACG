@@ -7,26 +7,19 @@ using OpenTK.Mathematics;
 
 namespace Framework
 {
-    public class Scene
+    public class TestScene
     {
-        Texture2D tex1, tex2;
-
         ShaderBlock<ShaderTime> _timeUniformBlock;
         ShaderBlockArray<DirectionalLightComponent> _directionalLightBlock;
         ShaderBlockArray<PointLightComponent> _pointLightBlock;
         ShaderBlockArray<SpotLightComponent> _spotLightBlock;
-        ShaderBlock<RenderSpaceData> _renderSpaceUniformBlock;
+        ShaderBlock<ShaderSpaceData> _renderSpaceUniformBlock;
         UniformRegister _uniformBlockRegister;
-
-        ViewSpaceData _viewSpace;
-        TransformComponent _cameraTransform;
-        PerspectiveCameraComponent _camera;
-        TransformComponent _meshTransform;
 
         /// <summary>
         /// 
         /// </summary>
-        public Scene()
+        public TestScene()
         {
             Console.WriteLine(GL.GetString(StringName.Version));
             Console.WriteLine(GL.GetString(StringName.ShadingLanguageVersion));
@@ -34,10 +27,10 @@ namespace Framework
             Console.WriteLine(GL.GetString(StringName.Renderer));
             Console.WriteLine(GL.GetString(StringName.Vendor));
 
-            GLTF2System.Foo("./Assets/acg.glb");
+            var scene = GLTF2System.CreateScene("./Assets/acg.glb");
 
             _timeUniformBlock = new ShaderBlock<ShaderTime>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
-            _renderSpaceUniformBlock = new ShaderBlock<RenderSpaceData>(BufferRangeTarget.UniformBuffer, BufferUsageHint.DynamicDraw);
+            _renderSpaceUniformBlock = new ShaderBlock<ShaderSpaceData>(BufferRangeTarget.UniformBuffer, BufferUsageHint.DynamicDraw);
             _directionalLightBlock = new ShaderBlockArray<DirectionalLightComponent>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _pointLightBlock = new ShaderBlockArray<PointLightComponent>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _spotLightBlock = new ShaderBlockArray<SpotLightComponent>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
@@ -49,36 +42,6 @@ namespace Framework
                 _pointLightBlock,
                 _spotLightBlock
             });
-
-
-            _meshTransform = TransformComponent.Default;
-            var meshObject = Load3DHelper.Load("Assets/ape.obj")[0];
-
-
-
-
-            tex1 = new Texture2D("Assets/wall.jpg");
-            tex1.PushToGPU();
-
-            tex2 = new Texture2D("Assets/awesomeface.png");
-            tex2.PushToGPU();
-
-
-            var shader = ShaderProgramSystem.Create( "Lit",
-                ShaderSourceSystem.Create(ShaderType.VertexShader, "Assets/shader.vert"),
-                ShaderSourceSystem.Create(ShaderType.FragmentShader, "Assets/shader.frag")
-            );
-
-            _cameraTransform = new TransformComponent(new Vector3(0f, 0f, -3f));
-            _camera = new PerspectiveCameraComponent()
-            {
-                FieldOfView = 60f,
-                ClearColor = new Vector4(0.3f),
-                ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit,
-                AspectRatio = 800 / (float)600,
-                NearClipping = 0.1f,
-                FarClipping = 100f,
-            };
         }
 
         /// <summary>
@@ -87,12 +50,6 @@ namespace Framework
         public void Update()
         {
             TimeSystem.Update(ref _timeUniformBlock.Data);
-
-            _meshTransform.Forward = new Vector3(
-                MathF.Sin(_timeUniformBlock.Data.Total),
-                -.2f,
-                MathF.Cos(_timeUniformBlock.Data.Total)
-            );
         }
 
         /// <summary>
@@ -102,11 +59,13 @@ namespace Framework
         {
             _timeUniformBlock.PushToGPU();
 
-            PerspectiveCameraSystem.Use(_cameraTransform, _camera, ref _viewSpace);
+
+
+            //PerspectiveCameraSystem.Use(_cameraTransform, _camera, ref _viewSpace);
             //ShaderSystem.Use(_material.Shader, _uniformBlockRegister);
             //MaterialSystem.Use(_material);
-
-            RenderSpaceSystem.Update(_meshTransform, _viewSpace, ref _renderSpaceUniformBlock.Data);
+            //RenderSpaceSystem.Update(_meshTransform, _viewSpace, ref _renderSpaceUniformBlock.Data);
+            
             _renderSpaceUniformBlock.PushToGPU();
 
         }

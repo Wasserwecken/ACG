@@ -9,23 +9,19 @@ namespace Framework
     public class ShaderSourceAsset
     {
         public ShaderType Type { get; }
-        public int Handle { get; }
         public string FilePath { get; }
-        public string Content { get; }
+        public int Handle { get; set; }
+        public string Content { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
         public ShaderSourceAsset(
             ShaderType type,
-            int handle,
-            string filePath,
-            string content)
+            string filePath)
         {
             Type = type;
-            Handle = handle;
             FilePath = filePath;
-            Content = content;
         }
     }
 }

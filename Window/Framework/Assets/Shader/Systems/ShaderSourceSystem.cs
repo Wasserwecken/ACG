@@ -8,60 +8,42 @@ namespace Framework
 {
     public static class ShaderSourceSystem
     {
-        private static readonly Dictionary<string, ShaderSourceAsset> _sources;
-
         /// <summary>
         /// 
         /// </summary>
-        static ShaderSourceSystem()
+        public static void Load(ShaderSourceAsset shaderSource)
         {
-            _sources = new Dictionary<string, ShaderSourceAsset>();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static ShaderSourceAsset Create(ShaderType type, string filePath)
-        {
-            if (_sources.TryGetValue(filePath, out var source))
-                return source;
-            else
-            {
-                var content = ReadFile(filePath);
-                var shaderSource = new ShaderSourceAsset(type, GL.CreateShader(type), filePath, content);
-                CompileShaderSource(shaderSource);
-
-                _sources.Add(filePath, shaderSource);
-                return shaderSource;
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private static string ReadFile(string path)
-        {
-            var file = new FileInfo(path);
+            var file = new FileInfo(shaderSource.FilePath);
             if (file.Exists)
             {
-                using var reader = new StreamReader(path);
-                return reader.ReadToEnd();
+                using var reader = new StreamReader(shaderSource.FilePath);
+                shaderSource.Content = reader.ReadToEnd();
             }
             else
-                return string.Empty;
+                shaderSource.Content = string.Empty;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public static void CompileShaderSource(ShaderSourceAsset shaderSource)
+        public static void Compile(ShaderSourceAsset shaderSource)
         {
+            shaderSource.Handle = GL.CreateShader(shaderSource.Type);
             GL.ShaderSource(shaderSource.Handle, shaderSource.Content);
             GL.CompileShader(shaderSource.Handle);
             GL.GetShaderInfoLog(shaderSource.Handle, out var log);
 
             if (log != string.Empty)
                 Console.WriteLine($"{shaderSource.Type}: {log}");
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void LoadAndCompile(ShaderSourceAsset shaderSource)
+        {
+            Load(shaderSource);
+            Compile(shaderSource);
         }
     }
 }
