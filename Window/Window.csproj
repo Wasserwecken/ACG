@@ -21,6 +21,12 @@
     <None Update="Assets\ape.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Assets\cube.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\foo.glb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Assets\sphere.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -46,8 +52,6 @@
 
   <ItemGroup>
     <Folder Include="Framework\Assets\Texture\Systems\" />
-    <Folder Include="Framework\Components\Sheduler\" />
-    <Folder Include="Framework\Systems\" />
   </ItemGroup>
 
 </Project>

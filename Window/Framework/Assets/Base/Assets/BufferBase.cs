@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using OpenTK.Graphics.OpenGL;
 
@@ -12,7 +13,7 @@ namespace Framework
         public int Handle { get; set; }
         public string Name { get; }
         public int ElementSize { get; }
-        public int ElementCount { get; set; }
+        public int ElementCount => Data.Length / ElementSize;
         public BufferUsageHint UsageHint { get; set; }
         public byte[] Data { get; set; }
 
@@ -25,6 +26,16 @@ namespace Framework
             ElementSize = elementSize;
             UsageHint = usageHint;
             Data = new byte[0];
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SetData<TType>(TType[] data)
+        {
+            var typeSize = Marshal.SizeOf<TType>();
+            Data = new byte[data.Length * typeSize];
+            System.Buffer.BlockCopy(data, 0, Data, 0, Data.Length);
         }
     }
 }

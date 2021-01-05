@@ -7,12 +7,12 @@ namespace Framework
 {
     public static class RenderSpaceSystem
     {
-        public static void Update(TransformComponent objectTransform, ViewSpaceData viewSpace, ref ShaderSpaceData space)
+        public static void Update(WorldTransformComponent objectTransform, ViewSpaceData viewSpace, ref ShaderSpaceData space)
         {
             space.LocalToWorld = objectTransform.Space;
-            space.LocalToWorldRotation = objectTransform.RotationSpace;
+            space.LocalToWorldRotation = objectTransform.Space.ClearScale().ClearTranslation();
             space.LocalToView = space.LocalToWorld * viewSpace.WorldToView;
-            space.LocalToViewRotation = objectTransform.RotationSpace * viewSpace.WorldToViewRotation;
+            space.LocalToViewRotation = space.LocalToWorldRotation * viewSpace.WorldToViewRotation;
             space.LocalToProjection = space.LocalToWorld * viewSpace.WorldToProjection;
 
             space.WorldToView = viewSpace.WorldToView;

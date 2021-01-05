@@ -34,7 +34,7 @@ namespace Framework
             Shader = shader;
 
             IsTransparent = false;
-            IsCulling = true;
+            IsCulling = false;
             IsDepthTesting = true;
             CullingMode = CullFaceMode.Back;
             FaceDirection = FrontFaceDirection.Ccw;

@@ -13,8 +13,7 @@ namespace Framework
         /// </summary>
         public static void Update(ArrayBufferAsset buffer)
         {
-            buffer.ElementCount = buffer.Attributes[0].ElementCount;
-            buffer.Data = new byte[buffer.ElementCount * buffer.ElementSize];
+            buffer.Data = new byte[buffer.Attributes[0].ElementCount * buffer.ElementSize];
 
             for (int i = 0; i < buffer.ElementCount; i++)
             {
@@ -46,7 +45,7 @@ namespace Framework
                 offset += attribute.ElementSize;
             }
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            //GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
     }
 }

@@ -11,6 +11,7 @@ namespace Framework
     public static class GLTF2System
     {
         private static ShaderProgramAsset _defaultShader;
+        private static MaterialAsset _defaultMaterial;
         private static ModelRoot _gltfRoot;
         private static readonly Dictionary<Material, MaterialAsset> _materials;
         private static readonly Dictionary<MeshPrimitive, PrimitiveRenderComponent> _primitiveComponents;
@@ -25,6 +26,7 @@ namespace Framework
             _defaultShader = new ShaderProgramAsset("DefaultLit");
             var _defaultFragment = new ShaderSourceAsset(ShaderType.FragmentShader, "./Assets/shader.frag");
             var _defaultVertex = new ShaderSourceAsset(ShaderType.VertexShader, "./Assets/shader.vert");
+            _defaultMaterial = new MaterialAsset("Default", _defaultShader);
 
             ShaderSourceSystem.LoadAndCompile(_defaultVertex);
             ShaderSourceSystem.LoadAndCompile(_defaultFragment);
@@ -39,7 +41,7 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public static Entity CreateScene(string filePath)
+        public static List<Entity> CreateSceneEntities(string filePath)
         {
             _gltfRoot = ModelRoot.Load(filePath);
             GenerateMaterials();
@@ -80,19 +82,16 @@ namespace Framework
                     var vertexAttributes = new List<VertexAttributeAsset>();
                     foreach (var glTFaccessor in glTFprimitive.VertexAccessors)
                     {
-                        var attributeAsset = new VertexAttributeAsset(
-                            glTFaccessor.Key,
-                            glTFaccessor.Value.LogicalIndex,
-                            glTFaccessor.Value.Format.ByteSize,
-                            glTFaccessor.Value.Format.Normalized,
-                            (VertexAttribPointerType)glTFaccessor.Value.Format.Encoding
-                        );
+                        if (!Definitions.Buffer.Attributes.TryGetValue(glTFaccessor.Key, out var attributeAsset))
+                            attributeAsset = new VertexAttributeAsset(
+                                glTFaccessor.Key,
+                                glTFaccessor.Value.LogicalIndex,
+                                glTFaccessor.Value.Format.ByteSize,
+                                glTFaccessor.Value.Format.Normalized,
+                                (VertexAttribPointerType)glTFaccessor.Value.Format.Encoding
+                            );
 
-                        VertexAttributeSystem.Update(
-                            attributeAsset,
-                            glTFaccessor.Value.SourceBufferView.Content.ToArray()
-                        );
-
+                        attributeAsset.SetData(glTFaccessor.Value.SourceBufferView.Content.ToArray());
                         vertexAttributes.Add(attributeAsset);
                     }
 
@@ -100,7 +99,7 @@ namespace Framework
                     ArrayBufferSystem.Update(arrayBuffer);
 
                     var indicieBuffer = new IndicieBufferAsset(BufferUsageHint.StaticDraw);
-                    IndicieBufferSystem.Update(glTFprimitive.GetIndices().ToArray(), indicieBuffer);
+                    indicieBuffer.SetData(glTFprimitive.GetIndices().ToArray());
 
                     var primitive = new VertexPrimitiveAsset(arrayBuffer, indicieBuffer) { Mode = PolygonMode.Fill, Type = (OpenTK.Graphics.OpenGL.PrimitiveType)glTFprimitive.DrawPrimitiveType };
                     VertexPrimitiveSystem.PushToGPU(primitive);
@@ -108,7 +107,7 @@ namespace Framework
                     _primitiveComponents.Add(glTFprimitive, new PrimitiveRenderComponent()
                     {
                         Primitive = primitive,
-                        Material = glTFprimitive.Material != null ? _materials[glTFprimitive.Material] : null
+                        Material = glTFprimitive.Material != null ? _materials[glTFprimitive.Material] : _defaultMaterial
                     });
                 }
             }
@@ -132,7 +131,8 @@ namespace Framework
                         FarClipping = glTFperspective.ZFar,
                         FieldOfView = glTFperspective.VerticalFOV,
                         ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit,
-                        ClearColor = new Vector4(0.3f)
+                        ClearColor = new Vector4(0.3f),
+                        AspectRatio = 1f
                     });
                 }
             }
@@ -181,47 +181,51 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        private static Entity GenerateSceneEntity(Scene scene)
+        private static List<Entity> GenerateSceneEntity(Scene scene)
         {
+            var entities = new List<Entity>();
             var sceneEntity = new Entity("scene");
 
+            entities.Add(sceneEntity);
             foreach(var gltfNode in scene.VisualChildren)
             {
-                var entitiy = GenerateEntity(gltfNode);
-                sceneEntity.Children.Add(entitiy);
+                var entitiy = GenerateEntity(gltfNode, entities);
+                entitiy.AddComponent(new ParentEntityComponent() { Parent = sceneEntity });
+                sceneEntity.AddComponent(new ChildEntityComponent() { Child = entitiy });
             }
 
-            return sceneEntity;
+            return entities;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private static Entity GenerateEntity(Node gltfEntity)
+        private static Entity GenerateEntity(Node gltfEntity, List<Entity> entities)
         {
-            var entity = new Entity()
-            {
-                Name = gltfEntity.Name,
-                LocalTransform = new TransformComponent() { Space = gltfEntity.LocalMatrix.ToOpenTK() },
-                WorldTransform = new TransformComponent() { Space = gltfEntity.WorldMatrix.ToOpenTK() },
-            };
+            var newEntity = new Entity(gltfEntity.Name);
+            entities.Add(newEntity);
 
-            
+            newEntity.AddComponent(new WorldTransformComponent() { Space = gltfEntity.WorldMatrix.ToOpenTK() });
+
             if (gltfEntity.Camera != null && _cameras.TryGetValue(gltfEntity.Camera, out var camera))
-                entity.Components.Add(camera);
+                newEntity.AddComponent(camera);
 
             if (gltfEntity.Mesh != null)
                 foreach (var gltfPrimitive in gltfEntity.Mesh.Primitives)
                     if (_primitiveComponents.TryGetValue(gltfPrimitive, out var renderComponent))
-                        entity.Components.Add(renderComponent);
+                        newEntity.AddComponent(renderComponent);
 
             if (gltfEntity.PunctualLight != null && _lights.TryGetValue(gltfEntity.PunctualLight, out var lightComponent))
-                entity.Components.Add(lightComponent);
+                newEntity.AddComponent(lightComponent);
 
-            foreach(var gltfChild in gltfEntity.VisualChildren)
-                entity.Children.Add(GenerateEntity(gltfChild));
+            foreach (var gltfChild in gltfEntity.VisualChildren)
+            {
+                var childEntity = GenerateEntity(gltfChild, entities);
+                childEntity.AddComponent(new ParentEntityComponent() { Parent = newEntity });
+                newEntity.AddComponent(new ChildEntityComponent() { Child = childEntity });
+            }
 
-            return entity;
+            return newEntity;
         }
     }
 }

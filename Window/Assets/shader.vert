@@ -2,7 +2,7 @@
 
 layout (location = 0) in vec3 BufferVertex;
 layout (location = 1) in vec3 BufferNormal;
-layout (location = 2) in vec2 BufferUV;
+layout (location = 3) in vec2 BufferUV;
 
 layout (std430) buffer TimeData {
  float Total;

@@ -15,12 +15,11 @@ namespace Framework
             primitive.Handle = GL.GenVertexArray();
             GL.BindVertexArray(primitive.Handle);
 
-            GL.PolygonMode(MaterialFace.FrontAndBack, primitive.Mode);
-            
             ArrayBufferSystem.PushToGPU(primitive.ArrayBuffer);
             if (primitive.IndicieBuffer != null)
                 IndicieBufferSystem.PushToGPU(primitive.IndicieBuffer);
 
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
         }
 
@@ -30,9 +29,10 @@ namespace Framework
         public static void Draw(VertexPrimitiveAsset primitive)
         {
             GL.BindVertexArray(primitive.Handle);
+            GL.PolygonMode(MaterialFace.FrontAndBack, primitive.Mode);
 
             if (primitive.IndicieBuffer != null)
-                GL.DrawElements(primitive.Type, primitive.IndicieBuffer.ElementCount, DrawElementsType.UnsignedInt, primitive.IndicieBuffer.Data);
+                GL.DrawElements(primitive.Type, primitive.IndicieBuffer.ElementCount, DrawElementsType.UnsignedInt, 0);
             else
                 GL.DrawArrays(primitive.Type, 0, primitive.ArrayBuffer.ElementCount);
         }

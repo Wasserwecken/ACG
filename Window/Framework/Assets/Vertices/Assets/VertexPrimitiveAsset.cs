@@ -28,6 +28,9 @@ namespace Framework
         {
             ArrayBuffer = arrayBuffer;
             IndicieBuffer = indicieBuffer;
+
+            Mode = PolygonMode.Fill;
+            Type = PrimitiveType.Triangles;
         }
     }
 }

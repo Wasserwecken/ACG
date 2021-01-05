@@ -3,6 +3,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
 using System.Diagnostics;
 
 namespace Window
@@ -31,7 +32,6 @@ namespace Window
         protected override void OnLoad()
         {
             base.OnLoad();
-
             _scene = new TestScene();
         }
 

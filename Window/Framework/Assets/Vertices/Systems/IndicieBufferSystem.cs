@@ -10,15 +10,6 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public static void Update(uint[] indicies, IndicieBufferAsset buffer)
-        {
-            buffer.Data = new byte[indicies.Length * buffer.ElementSize];
-            System.Buffer.BlockCopy(indicies, 0, buffer.Data, 0, buffer.ElementSize * indicies.Length);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         public static void PushToGPU(IndicieBufferAsset buffer)
         {
             buffer.Handle = GL.GenBuffer();

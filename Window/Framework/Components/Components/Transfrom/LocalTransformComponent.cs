@@ -7,9 +7,9 @@ using System.Text;
 namespace Framework
 {
     [DebuggerDisplay("Position: {Position}, Forward: {Forward}, Scale: {Scale}")]
-    public struct TransformComponent : IEntityComponent
+    public struct LocalTransformComponent : IEntityComponent
     {
-        public static TransformComponent Default => new TransformComponent()
+        public static LocalTransformComponent Default => new LocalTransformComponent()
         {
             _translationScaleSpace = Matrix4.Identity,
             _rotationSpace = Matrix4.Identity,
@@ -88,7 +88,7 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public TransformComponent(Vector3 position)
+        public LocalTransformComponent(Vector3 position)
         {
             this = Default;
             Position = position;
