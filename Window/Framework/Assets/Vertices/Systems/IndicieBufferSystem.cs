@@ -7,14 +7,14 @@ namespace Framework
 {
     public static class IndicieBufferSystem
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        public static void PushToGPU(IndicieBufferAsset buffer)
-        {
-            buffer.Handle = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, buffer.Handle);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, buffer.Data.Length, buffer.Data, buffer.UsageHint);
-        }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //public static void PushToGPU(IndicieBufferAsset buffer)
+        //{
+        //    buffer.Handle = GL.GenBuffer();
+        //    GL.BindBuffer(BufferTarget.ElementArrayBuffer, buffer.Handle);
+        //    GL.BufferData(BufferTarget.ElementArrayBuffer, buffer.Data.Length, buffer.Data, buffer.UsageHint);
+        //}
     }
 }

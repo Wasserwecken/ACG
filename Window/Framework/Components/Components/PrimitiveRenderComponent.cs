@@ -11,5 +11,11 @@ namespace Framework
     {
         public VertexPrimitiveAsset Primitive;
         public MaterialAsset Material;
+
+        public PrimitiveRenderComponent(VertexPrimitiveAsset primitive, MaterialAsset material)
+        {
+            Primitive = primitive;
+            Material = material;
+        }
     }
 }

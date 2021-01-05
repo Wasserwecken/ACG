@@ -13,6 +13,7 @@ namespace Framework
         public int Handle { get; set; }
         public string Name { get; }
         public int ElementSize { get; }
+        public BufferTarget Target { get; }
         public int ElementCount => Data.Length / ElementSize;
         public BufferUsageHint UsageHint { get; set; }
         public byte[] Data { get; set; }
@@ -20,11 +21,12 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public BufferBase(string name, int elementSize, BufferUsageHint usageHint)
+        public BufferBase(string name, int elementSize, BufferTarget target, BufferUsageHint usageHint)
         {
             Name = name;
             ElementSize = elementSize;
             UsageHint = usageHint;
+            Target = target;
             Data = new byte[0];
         }
 

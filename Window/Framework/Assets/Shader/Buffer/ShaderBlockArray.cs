@@ -34,7 +34,6 @@ namespace Framework
 
             GL.BindBuffer((BufferTarget)Target, Handle);
             GL.BufferData((BufferTarget)Target, BlockSize * Data.Length, Data, UsageHint);
-            GL.BindBuffer((BufferTarget)Target, 0);
         }
     }
 }

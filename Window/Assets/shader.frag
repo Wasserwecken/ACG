@@ -30,7 +30,7 @@ struct SpotLight
  vec4 Direction;
 };
 
-layout (std430) buffer TimeData {
+layout (std430) buffer ShaderTime {
  float Total;
  float Delta;
  float TotalSin;
@@ -135,5 +135,5 @@ void main()
 //    vec3 surfaceColor = process_lights(surfaceDiffuse, surfaceSpecular, 128.0, surfaceNormal);
 //    vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
     
-    OutputColor = vec4(surfaceNormal, 1.0);
+    OutputColor = vec4(_vertex.UV, 0.0, 1.0);
 }

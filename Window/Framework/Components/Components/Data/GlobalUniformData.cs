@@ -7,6 +7,6 @@ namespace Framework
     public struct GlobalUniformData
     {
         public ShaderBlock<ShaderTime> TimeBlock;
-        public ShaderBlock<ShaderSpaceData> SpaceBlock;
+        public ShaderBlock<ShaderSpace> SpaceBlock;
     }
 }

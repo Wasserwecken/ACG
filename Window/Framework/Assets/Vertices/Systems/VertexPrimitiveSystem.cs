@@ -12,14 +12,17 @@ namespace Framework
         /// </summary>
         public static void PushToGPU(VertexPrimitiveAsset primitive)
         {
-            primitive.Handle = GL.GenVertexArray();
+            if (primitive.Handle <= 0)
+                primitive.Handle = GL.GenVertexArray();
+            
             GL.BindVertexArray(primitive.Handle);
 
+            ArrayBufferSystem.UpdateData(primitive.ArrayBuffer);
             ArrayBufferSystem.PushToGPU(primitive.ArrayBuffer);
-            if (primitive.IndicieBuffer != null)
-                IndicieBufferSystem.PushToGPU(primitive.IndicieBuffer);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            if (primitive.IndicieBuffer != null)
+                BufferBaseSystem.PushToGPU(primitive.IndicieBuffer);
+
             GL.BindVertexArray(0);
         }
 

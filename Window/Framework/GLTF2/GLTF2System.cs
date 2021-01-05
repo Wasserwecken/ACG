@@ -96,7 +96,6 @@ namespace Framework
                     }
 
                     var arrayBuffer = new ArrayBufferAsset(vertexAttributes.ToArray(), BufferUsageHint.StaticDraw);
-                    ArrayBufferSystem.Update(arrayBuffer);
 
                     var indicieBuffer = new IndicieBufferAsset(BufferUsageHint.StaticDraw);
                     indicieBuffer.SetData(glTFprimitive.GetIndices().ToArray());

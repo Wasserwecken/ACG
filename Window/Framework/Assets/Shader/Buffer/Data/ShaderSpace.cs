@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Framework
 {
-    public struct ShaderSpaceData
+    public struct ShaderSpace
     {
         public Matrix4 LocalToWorld;
         public Matrix4 LocalToView;

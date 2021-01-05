@@ -11,10 +11,9 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public static void Update(ArrayBufferAsset buffer)
+        public static void UpdateData(ArrayBufferAsset buffer)
         {
             buffer.Data = new byte[buffer.Attributes[0].ElementCount * buffer.ElementSize];
-
             for (int i = 0; i < buffer.ElementCount; i++)
             {
                 var bufferIndex = i * buffer.ElementSize;
@@ -32,10 +31,7 @@ namespace Framework
         /// </summary>
         public static void PushToGPU(ArrayBufferAsset buffer)
         {
-            buffer.Handle = GL.GenBuffer();
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, buffer.Handle);
-            GL.BufferData(BufferTarget.ArrayBuffer, buffer.Data.Length, buffer.Data, buffer.UsageHint);
+            BufferBaseSystem.PushToGPU(buffer);
 
             var offset = 0;
             foreach (var attribute in buffer.Attributes)
@@ -44,8 +40,6 @@ namespace Framework
                 GL.EnableVertexAttribArray(attribute.Layout);
                 offset += attribute.ElementSize;
             }
-
-            //GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
     }
 }

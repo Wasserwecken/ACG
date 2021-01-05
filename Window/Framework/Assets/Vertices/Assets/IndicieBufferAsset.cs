@@ -12,6 +12,6 @@ namespace Framework
         /// 
         /// </summary>
         public IndicieBufferAsset(BufferUsageHint usageHint)
-            : base("Indicies", sizeof(uint), usageHint) { }
+            : base("Indicies", sizeof(uint), BufferTarget.ElementArrayBuffer, usageHint) { }
     }
 }

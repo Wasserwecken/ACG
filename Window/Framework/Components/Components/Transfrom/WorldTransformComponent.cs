@@ -9,5 +9,13 @@ namespace Framework
     public struct WorldTransformComponent : IEntityComponent
     {
         public Matrix4 Space;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public WorldTransformComponent(Matrix4 space)
+        {
+            Space = space;
+        }
     }
 }

@@ -14,13 +14,13 @@ namespace Framework
             GL.Clear(camera.ClearMask);
 
             var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(
-                MathHelper.DegreesToRadians(camera.FieldOfView),
+                camera.FieldOfView,
                 camera.AspectRatio,
                 camera.NearClipping,
                 camera.FarClipping
             );
 
-            viewSpace.WorldToView = transform.Space;
+            viewSpace.WorldToView = transform.Space.Inverted();
             viewSpace.WorldToViewRotation = transform.Space.ClearScale().ClearTranslation();
             viewSpace.WorldToProjection = viewSpace.WorldToView * projectionSpace;
         }
