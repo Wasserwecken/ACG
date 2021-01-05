@@ -12,11 +12,11 @@ namespace Framework
     public class TestScene
     {
         ShaderBlock<ShaderTime> _timeUniformBlock;
-        ShaderBlockArray<DirectionalLightComponent> _directionalLightBlock;
-        ShaderBlockArray<PointLightComponent> _pointLightBlock;
-        ShaderBlockArray<SpotLightComponent> _spotLightBlock;
         ShaderBlock<ShaderSpace> _renderSpaceUniformBlock;
-        UniformRegister _uniformBlockRegister;
+        ShaderBlockArray<ShaderDirectionalLight> _directionalLightBlock;
+        ShaderBlockArray<ShaderPointLight> _pointLightBlock;
+        ShaderBlockArray<ShaderSpotLight> _spotLightBlock;
+        ShaderBlockRegister _shaderBlockRegister;
 
         List<Entity> _sceneEntities;
 
@@ -39,14 +39,14 @@ namespace Framework
 
 
 
-            _sceneEntities = GLTF2System.CreateSceneEntities("./Assets/cube.glb");
+            _sceneEntities = GLTF2System.CreateSceneEntities("./Assets/acg.glb");
 
             _timeUniformBlock = new ShaderBlock<ShaderTime>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _renderSpaceUniformBlock = new ShaderBlock<ShaderSpace>(BufferRangeTarget.UniformBuffer, BufferUsageHint.DynamicDraw);
-            _directionalLightBlock = new ShaderBlockArray<DirectionalLightComponent>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
-            _pointLightBlock = new ShaderBlockArray<PointLightComponent>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
-            _spotLightBlock = new ShaderBlockArray<SpotLightComponent>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
-            _uniformBlockRegister = new UniformRegister(new IShaderBlock[]
+            _directionalLightBlock = new ShaderBlockArray<ShaderDirectionalLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _pointLightBlock = new ShaderBlockArray<ShaderPointLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _spotLightBlock = new ShaderBlockArray<ShaderSpotLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _shaderBlockRegister = new ShaderBlockRegister(new IShaderBlock[]
             {
                 _timeUniformBlock,
                 _renderSpaceUniformBlock,
@@ -56,50 +56,23 @@ namespace Framework
             });
 
 
-            var s = new ShaderProgramAsset("DefaultLit");
-            var f = new ShaderSourceAsset(ShaderType.FragmentShader, "./Assets/shader.frag");
-            var v = new ShaderSourceAsset(ShaderType.VertexShader, "./Assets/shader.vert");
-            ShaderSourceSystem.LoadAndCompile(f);
-            ShaderSourceSystem.LoadAndCompile(v);
-            ShaderProgramSystem.CreateAndAnalyse(s, new ShaderSourceAsset[] { f, v });
-            var m = new MaterialAsset("Default", s);
 
 
+            var directionalLights = _sceneEntities.Where(e => e.HasComponents(typeof(WorldTransformComponent), typeof(DirectionalLightComponent))).ToArray();
+            var pointLights = _sceneEntities.Where(e => e.HasComponents(typeof(WorldTransformComponent), typeof(PointLightComponent))).ToArray();
+            var spotLights = _sceneEntities.Where(e => e.HasComponents(typeof(WorldTransformComponent), typeof(SpotLightComponent))).ToArray();
 
+            _directionalLightBlock.Data = new ShaderDirectionalLight[directionalLights.Length];
+            _pointLightBlock.Data = new ShaderPointLight[pointLights.Length];
+            _spotLightBlock.Data = new ShaderSpotLight[spotLights.Length];
 
-            var a = Definitions.Buffer.Attributes["POSITION"];
-            var b = new ArrayBufferAsset(new VertexAttributeAsset[] { a }, BufferUsageHint.StaticDraw);
-            var i = new IndicieBufferAsset(BufferUsageHint.StaticDraw);
-            a.SetData(new float[] { 0.5f,  0.5f, 0.0f, 0.5f, -0.5f, 0.0f, -0.5f, -0.5f, 0.0f, -0.5f,  0.5f, 0.0f });
-            i.SetData(new uint[] { 0, 1, 3, 1, 2, 3 });
-            var p = new VertexPrimitiveAsset(b, i);
-            VertexPrimitiveSystem.PushToGPU(p);
+            ShaderLightSystem.Copy(directionalLights, ref _directionalLightBlock.Data);
+            ShaderLightSystem.Copy(pointLights, ref _pointLightBlock.Data);
+            ShaderLightSystem.Copy(spotLights, ref _spotLightBlock.Data);
 
-
-
-
-            var entP = new Entity("p");
-            entP.AddComponent(new WorldTransformComponent(Matrix4.CreateTranslation(0f, 0f, -2f)));
-            entP.AddComponent(new PrimitiveRenderComponent(p, m));
-
-            var entC = new Entity("c");
-            entC.AddComponent(new WorldTransformComponent(Matrix4.CreateTranslation(0f, 0f, -1f)));
-            entC.AddComponent(new PerspectiveCameraComponent()
-            {
-                AspectRatio = 1f,
-                ClearColor = new Vector4(0.4f, 0.4f, 0.4f, 1f),
-                ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit,
-                FieldOfView = MathHelper.DegreesToRadians(90f),
-                NearClipping = 0.01f,
-                FarClipping = 100f
-            });
-
-
-
-
-            //_sceneEntities = new List<Entity>();
-            //_sceneEntities.Add(entP);
-            //_sceneEntities.Add(entC);
+            _directionalLightBlock.PushToGPU();
+            _pointLightBlock.PushToGPU();
+            _spotLightBlock.PushToGPU();
         }
 
         /// <summary>
@@ -132,7 +105,7 @@ namespace Framework
                     primitve.TryGetComponent<WorldTransformComponent>(out var primitiveTransform);
                     primitve.TryGetComponent<PrimitiveRenderComponent>(out var primitiveRender);
 
-                    ShaderSystem.Use(primitiveRender.Material.Shader, _uniformBlockRegister);
+                    ShaderSystem.Use(primitiveRender.Material.Shader, _shaderBlockRegister);
                     MaterialSystem.Use(primitiveRender.Material);
                     RenderSpaceSystem.Update(primitiveTransform, viewSpace, ref _renderSpaceUniformBlock.Data);
                     _renderSpaceUniformBlock.PushToGPU();

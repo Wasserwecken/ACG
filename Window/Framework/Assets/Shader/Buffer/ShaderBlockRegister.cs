@@ -6,14 +6,14 @@ using OpenTK.Mathematics;
 
 namespace Framework
 {
-    public class UniformRegister
+    public class ShaderBlockRegister
     {
         public readonly List<IShaderBlock> Blocks;
 
         /// <summary>
         /// 
         /// </summary>
-        public UniformRegister(IShaderBlock[] initialBlocks)
+        public ShaderBlockRegister(IShaderBlock[] initialBlocks)
         {
             Blocks = new List<IShaderBlock>(initialBlocks);
         }

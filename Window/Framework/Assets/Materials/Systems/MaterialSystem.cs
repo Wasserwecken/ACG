@@ -10,6 +10,7 @@ namespace Framework
     {
         public static void Use(MaterialAsset material)
         {
+            GL.ShadeModel(material.Model);
             GL.FrontFace(material.FaceDirection);
 
             if (material.IsDepthTesting)
@@ -20,6 +21,8 @@ namespace Framework
                 GL.Enable(EnableCap.CullFace);
                 GL.CullFace(material.CullingMode);
             }
+            else
+                GL.Disable(EnableCap.CullFace);
 
             if (material.IsTransparent)
             {

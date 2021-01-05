@@ -8,7 +8,7 @@ namespace Framework
 {
     public class ShaderSystem
     {
-        public static void Use(ShaderProgramAsset shader, UniformRegister uniformRegister)
+        public static void Use(ShaderProgramAsset shader, ShaderBlockRegister uniformRegister)
         {
             GL.UseProgram(shader.Handle);
 

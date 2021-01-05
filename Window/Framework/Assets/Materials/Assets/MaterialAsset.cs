@@ -15,6 +15,7 @@ namespace Framework
         public bool IsTransparent { get; set; }
         public bool IsCulling { get; set; }
         public bool IsDepthTesting { get; set; }
+        public ShadingModel Model { get; set; }
         public CullFaceMode CullingMode { get; set; }
         public FrontFaceDirection FaceDirection { get; set; }
         public BlendingFactor SourceBlend { get; set; }
@@ -34,8 +35,9 @@ namespace Framework
             Shader = shader;
 
             IsTransparent = false;
-            IsCulling = false;
+            IsCulling = true;
             IsDepthTesting = true;
+            Model = ShadingModel.Smooth;
             CullingMode = CullFaceMode.Back;
             FaceDirection = FrontFaceDirection.Ccw;
             SourceBlend = BlendingFactor.SrcAlpha;
