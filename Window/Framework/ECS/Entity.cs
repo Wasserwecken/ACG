@@ -60,13 +60,13 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public List<IEntityComponent> GetComponents<TComponentType>() where TComponentType : IEntityComponent
+        public List<TComponentType> GetComponents<TComponentType>() where TComponentType : IEntityComponent
         {
-            var results = new List<IEntityComponent>();
+            var results = new List<TComponentType>();
 
             foreach (var component in _components)
                 if (component is TComponentType)
-                    results.Add(component);
+                    results.Add((TComponentType)component);
 
             return results;
         }

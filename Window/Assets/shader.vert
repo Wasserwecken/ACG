@@ -2,7 +2,10 @@
 
 layout (location = 0) in vec3 BufferVertex;
 layout (location = 1) in vec3 BufferNormal;
-layout (location = 3) in vec2 BufferUV;
+layout (location = 2) in vec3 BufferTangent;
+layout (location = 3) in vec2 BufferUV0;
+layout (location = 4) in vec2 BufferUV1;
+layout (location = 5) in vec4 BufferColor;
 
 layout (std430) buffer ShaderTime {
  float Total;
@@ -24,7 +27,9 @@ layout (std140) uniform ShaderSpace {
 
 out VertexOut
 {
-    vec2 UV;
+    vec2 UV0;
+    vec2 UV1;
+    vec4 Color;
     vec4 NormalLocal;
     vec4 NormalWorld;
     vec4 NormalView;
@@ -35,7 +40,10 @@ out VertexOut
 
 void main(void)
 {
-    _vertex.UV = BufferUV;
+    _vertex.UV0 = BufferUV0;
+    _vertex.UV1 = BufferUV1;
+
+    _vertex.Color = BufferColor;
 
     _vertex.NormalLocal = vec4(BufferNormal, 1.0);
     _vertex.NormalWorld = _space.LocalToWorldRotation * _vertex.NormalLocal;

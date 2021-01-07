@@ -11,6 +11,8 @@ namespace Framework
 {
     public class TestScene
     {
+        public AspectRatioComponent _aspectRatio;
+
         ShaderBlock<ShaderTime> _timeUniformBlock;
         ShaderBlock<ShaderSpace> _renderSpaceUniformBlock;
         ShaderBlockArray<ShaderDirectionalLight> _directionalLightBlock;
@@ -98,18 +100,19 @@ namespace Framework
             {
                 camera.TryGetComponent<WorldTransformComponent>(out var cameraTransform);
                 camera.TryGetComponent<PerspectiveCameraComponent>(out var perspectiveCamera);
-                PerspectiveCameraSystem.Use(cameraTransform, perspectiveCamera, ref viewSpace);
+                PerspectiveCameraSystem.Use(cameraTransform, perspectiveCamera, _aspectRatio, ref viewSpace);
 
-                foreach(var primitve in primitives)
+                foreach(var primitive in primitives)
                 {
-                    primitve.TryGetComponent<WorldTransformComponent>(out var primitiveTransform);
-                    primitve.TryGetComponent<PrimitiveRenderComponent>(out var primitiveRender);
-
-                    ShaderSystem.Use(primitiveRender.Material.Shader, _shaderBlockRegister);
-                    MaterialSystem.Use(primitiveRender.Material);
-                    RenderSpaceSystem.Update(primitiveTransform, viewSpace, ref _renderSpaceUniformBlock.Data);
-                    _renderSpaceUniformBlock.PushToGPU();
-                    VertexPrimitiveSystem.Draw(primitiveRender.Primitive);
+                    primitive.TryGetComponent<WorldTransformComponent>(out var primitiveTransform);
+                    foreach(var primitiveRender in primitive.GetComponents<PrimitiveRenderComponent>())
+                    {
+                        ShaderSystem.Use(primitiveRender.Material.Shader, _shaderBlockRegister);
+                        MaterialSystem.Use(primitiveRender.Material);
+                        RenderSpaceSystem.Update(primitiveTransform, viewSpace, ref _renderSpaceUniformBlock.Data);
+                        _renderSpaceUniformBlock.PushToGPU();
+                        VertexPrimitiveSystem.Draw(primitiveRender.Primitive);
+                    }
                 }
             }
         }

@@ -1,7 +1,9 @@
 ﻿#version 430 core
 in VertexOut
 {
-    vec2 UV;
+    vec2 UV0;
+    vec2 UV1;
+    vec4 Color;
     vec4 NormalLocal;
     vec4 NormalWorld;
     vec4 NormalView;
@@ -30,14 +32,6 @@ struct SpotLight
  vec4 Direction;
 };
 
-layout (std430) buffer ShaderTime {
- float Total;
- float Delta;
- float TotalSin;
- float TotalSin01;
-} _time;
-
-
 layout (std430) buffer ShaderDirectionalLight {
     DirectionalLight _directionalLights[];
 };
@@ -50,6 +44,12 @@ layout (std430) buffer ShaderSpotLight {
     SpotLight _spotLights[];
 };
 
+layout (std430) buffer ShaderTime {
+ float Total;
+ float Delta;
+ float TotalSin;
+ float TotalSin01;
+} _time;
 
 layout (std140) uniform ShaderSpace {
     mat4 LocalToWorld;
@@ -62,11 +62,44 @@ layout (std140) uniform ShaderSpace {
     vec3 ViewDirection;
 } _space;
 
+struct MaterialSettings
+{
+    vec3 Albedo;
+    float Metallic;
+    float Roughness;
+    float Normal;
+    float Occlusion;
+    vec3 Emissive;
+};
 
-uniform sampler2D texture1;
-uniform sampler2D texture2;
-out vec4 OutputColor;
+layout (std140) uniform ShaderMaterialPBRSettings {
+    vec3 BaseColor;
+    float Metallic;
+    float Roughness;
+    float Occlusion;
+    float Emissive;
+    float Normal;
+} _materialInput;
 
+uniform sampler2D AlbedoMap;
+uniform sampler2D MetallicMap;
+uniform sampler2D RoughnessMap;
+uniform sampler2D NormalMap;
+uniform sampler2D OcclusionMap;
+uniform sampler2D EmissiveMap;
+
+
+MaterialSettings evaluate_prb_settings()
+{
+    return MaterialSettings(
+        texture(AlbedoMap, _vertex.UV0).xyz * _materialInput.BaseColor + vec3(0.6),
+        texture(MetallicMap, _vertex.UV0).x * _materialInput.Metallic,
+        texture(RoughnessMap, _vertex.UV0).x * _materialInput.Roughness + 8.0,
+        texture(NormalMap, _vertex.UV0).x * _materialInput.Normal,
+        texture(OcclusionMap, _vertex.UV0).x * _materialInput.Occlusion,
+        texture(EmissiveMap, _vertex.UV0).xyz * _materialInput.Emissive
+    );
+}
 
 vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float smoothness, vec3 normal, vec3 halfway, vec3 lightDirection, vec3 lightColor)
 {
@@ -83,7 +116,7 @@ vec3 process_lights(vec3 surfaceDiffuse, vec3 surfaceSpecular, float smoothness,
     for(int i = 0; i < _directionalLights.length(); i++)
     {
         vec3 lightColor = _directionalLights[i].Color.xyz;
-        vec3 lightDirection = -normalize(_directionalLights[i].Direction);
+        vec3 lightDirection = normalize(_directionalLights[i].Direction);
         vec3 halfwayDirection = normalize(lightDirection + _space.ViewDirection);
 
         result += blinn_phong(surfaceDiffuse, surfaceSpecular, smoothness, surfaceNormal, halfwayDirection, lightDirection, lightColor);
@@ -97,7 +130,7 @@ vec3 process_lights(vec3 surfaceDiffuse, vec3 surfaceSpecular, float smoothness,
         float lightDistance = length(lightDiff);
         vec3 lightDirection = normalize(lightDiff);
         vec3 halfwayDirection = normalize(lightDirection + _space.ViewDirection);
-        float attenuationSqrared = 1.0 / (1.0 + lightDistance * lightDistance);
+        float attenuationSqrared = 1.0 / (1.0 + (lightDistance * lightDistance));
         float attenuationLinear = 1.0 / (1.0 + lightDistance);
 
         result += blinn_phong(surfaceDiffuse, surfaceSpecular, smoothness, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuationSqrared;
@@ -111,12 +144,12 @@ vec3 process_lights(vec3 surfaceDiffuse, vec3 surfaceSpecular, float smoothness,
         float lightDistance = length(lightDiff);
         vec3 lightDirection = normalize(lightDiff);
         vec3 halfwayDirection = normalize(lightDirection + _space.ViewDirection);
-        float attenuationSqrared = 1.0 / (1.0 + lightDistance * lightDistance);
+        float attenuationSqrared = 1.0 / (1.0 + (lightDistance * lightDistance));
         float attenuationLinear = 1.0 / (1.0 + lightDistance);
 
         float outerAngle = _spotLights[i].Position.w;
         float innerAngle = _spotLights[i].Direction.w;
-        float theta = dot(lightDirection, -normalize(_spotLights[i].Direction.xyz));
+        float theta = dot(lightDirection, normalize(_spotLights[i].Direction.xyz));
         float epsilon = innerAngle - outerAngle;
         float spotIntensity = clamp((theta - outerAngle) / epsilon, 0.0, 1.0);   
 
@@ -127,13 +160,16 @@ vec3 process_lights(vec3 surfaceDiffuse, vec3 surfaceSpecular, float smoothness,
     return result;
 }
 
+
+out vec4 OutputColor;
+
 void main()
 {
-    vec3 surfaceNormal = normalize(vec3(_vertex.NormalView));
-    vec3 surfaceDiffuse = vec3(0.4, 0.4, 0.4);
-    vec3 surfaceSpecular = vec3(0.9, 0.7, 0.5);
+    MaterialSettings _material = evaluate_prb_settings();
 
-    vec3 surfaceColor = process_lights(surfaceDiffuse, surfaceSpecular, 128.0, surfaceNormal);
+    vec3 surfaceNormal = normalize(vec3(_vertex.NormalView));
+    vec3 surfaceColor = process_lights(_material.Albedo, _material.Albedo, _material.Roughness, surfaceNormal);
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
+
     OutputColor = vec4(corrected, 1.0);
 }

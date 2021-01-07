@@ -21,9 +21,6 @@
     <None Update="Assets\ape.obj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Assets\cube.glb">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Assets\foo.glb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

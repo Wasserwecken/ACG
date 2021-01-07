@@ -130,8 +130,7 @@ namespace Framework
                         FarClipping = glTFperspective.ZFar,
                         FieldOfView = glTFperspective.VerticalFOV,
                         ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit,
-                        ClearColor = new Vector4(0.3f),
-                        AspectRatio = 1f
+                        ClearColor = new Vector4(0.3f)
                     });
                 }
             }
@@ -160,7 +159,7 @@ namespace Framework
                         _lights.Add(glTFlight, new PointLightComponent()
                         {
                             Color = new Vector3(glTFlight.Color.X, glTFlight.Color.Y, glTFlight.Color.Z) * glTFlight.Intensity,
-                            AmbientFactor = 0.02f,
+                            AmbientFactor = 0.01f,
                         });
                         break;
 
@@ -168,7 +167,7 @@ namespace Framework
                         _lights.Add(glTFlight, new SpotLightComponent()
                         {
                             Color = new Vector3(glTFlight.Color.X, glTFlight.Color.Y, glTFlight.Color.Z) * glTFlight.Intensity,
-                            AmbientFactor = 0.02f,
+                            AmbientFactor = 0.01f,
                             OuterAngle = glTFlight.OuterConeAngle,
                             InnerAngle = glTFlight.InnerConeAngle,
                         });

@@ -12,8 +12,6 @@ namespace Framework
         public ClearBufferMask ClearMask { get; set; }
         public float NearClipping { get; set; }
         public float FarClipping { get; set; }
-        public float AspectRatio { get; set; }
-
         public float FieldOfView { get; set; }
     }
 }

@@ -93,6 +93,7 @@ namespace Framework
             {
                 GL.GetProgramResourceName(program.Handle, ProgramInterface.UniformBlock, uniformId, 255, out _, out var name);
                 var layout = GL.GetProgramResourceIndex(program.Handle, ProgramInterface.UniformBlock, name);
+                GL.UniformBlockBinding(program.Handle, layout, layout);
                 program.Blocks[blockId] = new ShaderUniformBlockInfo(layout, BufferTarget.UniformBuffer, name);
             }
         }

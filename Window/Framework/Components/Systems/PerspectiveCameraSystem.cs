@@ -8,14 +8,14 @@ namespace Framework
 {
     public class PerspectiveCameraSystem
     {
-        public static void Use(WorldTransformComponent transform, PerspectiveCameraComponent camera, ref ViewSpaceData viewSpace)
+        public static void Use(WorldTransformComponent transform, PerspectiveCameraComponent camera, AspectRatioComponent aspectRatio, ref ViewSpaceData viewSpace)
         {
             GL.ClearColor(camera.ClearColor.X, camera.ClearColor.Y, camera.ClearColor.Z, camera.ClearColor.W);
             GL.Clear(camera.ClearMask);
 
             var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(
                 camera.FieldOfView,
-                camera.AspectRatio,
+                aspectRatio.Ratio,
                 camera.NearClipping,
                 camera.FarClipping
             );
@@ -23,6 +23,9 @@ namespace Framework
             viewSpace.WorldToView = transform.Space.Inverted();
             viewSpace.WorldToViewRotation = transform.Space.ClearScale().ClearTranslation();
             viewSpace.WorldToProjection = viewSpace.WorldToView * projectionSpace;
+
+            viewSpace.ViewPosition = transform.Position;
+            viewSpace.ViewDirection = transform.Forward;
         }
     }
 }

@@ -70,6 +70,7 @@ namespace Window
             base.OnResize(e);
 
             GL.Viewport(0, 0, e.Width, e.Height);
+            _scene._aspectRatio = new AspectRatioComponent() { Width = e.Width, Height = e.Height, Ratio = (float)e.Width / e.Height };
         }
     }
 }
