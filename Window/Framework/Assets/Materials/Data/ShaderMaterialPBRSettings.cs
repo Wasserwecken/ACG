@@ -8,10 +8,10 @@ namespace Framework
     public struct ShaderMaterialPBRSettings
     {
         public Vector4 BaseColor;
+        public Vector4 Emissive;
         public float Metallic;
         public float Roughness;
-        public float Occlusion;
-        public float Emissive;
         public float Normal;
+        public float Occlusion;
     }
 }

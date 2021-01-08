@@ -65,20 +65,20 @@ layout (std140) uniform ShaderSpace {
 struct MaterialSettings
 {
     vec3 Albedo;
+    vec3 Emissive;
     float Metallic;
     float Roughness;
     float Normal;
     float Occlusion;
-    vec3 Emissive;
 };
 
-layout (std140) uniform ShaderMaterialPBRSettings {
-    vec3 BaseColor;
+layout (std430) buffer ShaderMaterialPBRSettings {
+    vec4 BaseColor;
+    vec4 Emissive;
     float Metallic;
     float Roughness;
-    float Occlusion;
-    float Emissive;
     float Normal;
+    float Occlusion;
 } _materialInput;
 
 uniform sampler2D AlbedoMap;
@@ -92,13 +92,22 @@ uniform sampler2D EmissiveMap;
 MaterialSettings evaluate_prb_settings()
 {
     return MaterialSettings(
-        texture(AlbedoMap, _vertex.UV0).xyz * _materialInput.BaseColor + vec3(0.6),
-        texture(MetallicMap, _vertex.UV0).x * _materialInput.Metallic,
-        texture(RoughnessMap, _vertex.UV0).x * _materialInput.Roughness + 8.0,
-        texture(NormalMap, _vertex.UV0).x * _materialInput.Normal,
-        texture(OcclusionMap, _vertex.UV0).x * _materialInput.Occlusion,
-        texture(EmissiveMap, _vertex.UV0).xyz * _materialInput.Emissive
+        _materialInput.BaseColor.xyz,
+        _materialInput.Emissive.xyz,
+        _materialInput.Metallic,
+        _materialInput.Roughness,
+        _materialInput.Normal,
+        _materialInput.Occlusion
     );
+
+//    return MaterialSettings(
+//        texture(AlbedoMap, _vertex.UV0).xyz + _materialInput.BaseColor.xyz,
+//        texture(EmissiveMap, _vertex.UV0).xyz * _materialInput.Emissive.xyz,
+//        texture(MetallicMap, _vertex.UV0).x * _materialInput.Metallic,
+//        texture(RoughnessMap, _vertex.UV0).x + _materialInput.Roughness,
+//        texture(NormalMap, _vertex.UV0).x * _materialInput.Normal,
+//        texture(OcclusionMap, _vertex.UV0).x * _materialInput.Occlusion
+//    );
 }
 
 vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float smoothness, vec3 normal, vec3 halfway, vec3 lightDirection, vec3 lightColor)
@@ -168,7 +177,7 @@ void main()
     MaterialSettings _material = evaluate_prb_settings();
 
     vec3 surfaceNormal = normalize(vec3(_vertex.NormalView));
-    vec3 surfaceColor = process_lights(_material.Albedo, _material.Albedo, _material.Roughness, surfaceNormal);
+    vec3 surfaceColor = process_lights(_material.Albedo, _material.Albedo, 500, surfaceNormal);
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
 
     OutputColor = vec4(corrected, 1.0);

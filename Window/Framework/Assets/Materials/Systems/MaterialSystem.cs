@@ -47,6 +47,10 @@ namespace Framework
                 var matrix = uniform.Value;
                 GL.UniformMatrix4(uniform.Key, false, ref matrix);
             }
+
+            material.Settings.PushToGPU();
+            if (material.Shader.IdentifierToLayout.TryGetValue(material.Settings.Name, out var settingsLayout))
+                GL.BindBufferBase(material.Settings.Target, settingsLayout, material.Settings.Handle);
         }
 
         /// <summary>

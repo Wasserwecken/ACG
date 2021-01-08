@@ -20,6 +20,7 @@ namespace Framework
         public FrontFaceDirection FaceDirection { get; set; }
         public BlendingFactor SourceBlend { get; set; }
         public BlendingFactor DestinationBlend { get; set; }
+        public ShaderBlock<ShaderMaterialPBRSettings> Settings;
 
         public Dictionary<int, float> UniformFloats;
         public Dictionary<int, Vector3> UniformVec3s;
@@ -47,6 +48,8 @@ namespace Framework
             UniformVec3s = new Dictionary<int, Vector3>();
             UniformMat4s = new Dictionary<int, Matrix4>();
             UniformTextures = new Dictionary<int, Texture>();
+
+            Settings = new ShaderBlock<ShaderMaterialPBRSettings>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
         }
 
         public void SetUniform(string name, float value) => TrySetUniform(name, value, UniformFloats);

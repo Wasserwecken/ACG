@@ -31,5 +31,18 @@ namespace Framework
                 matrix.M41, matrix.M42, matrix.M43, matrix.M44
             );
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static Vector4 ToOpenTK(this System.Numerics.Vector4 vector)
+        {
+            return new Vector4(
+                vector.X,
+                vector.Y,
+                vector.Z,
+                vector.W
+            );
+        }
     }
 }

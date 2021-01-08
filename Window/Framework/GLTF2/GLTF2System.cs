@@ -62,7 +62,34 @@ namespace Framework
             _materials.Clear();
             foreach (var gltfMaterial in _gltfRoot.LogicalMaterials)
             {
-                _materials.Add(gltfMaterial, new MaterialAsset(gltfMaterial.Name, _defaultShader));
+                var material = new MaterialAsset(gltfMaterial.Name, _defaultShader);
+                foreach(var channel in gltfMaterial.Channels)
+                {
+                    switch(channel.Key)
+                    {
+                        case "BaseColor":
+                            material.Settings.Data.BaseColor = channel.Parameter.ToOpenTK();
+                            break;
+
+                        case "MetallicRoughness":
+                            material.Settings.Data.Metallic = channel.Parameter.X;
+                            material.Settings.Data.Roughness = channel.Parameter.Y;
+                            break;
+
+                        case "Emissive":
+                            material.Settings.Data.Emissive = channel.Parameter.ToOpenTK();
+                            break;
+
+                        case "Normal":
+                            material.Settings.Data.Normal = channel.Parameter.X;
+                            break;
+
+                        case "Occlusion":
+                            material.Settings.Data.Occlusion = channel.Parameter.X;
+                            break;
+                    }
+                }
+                _materials.Add(gltfMaterial, material);
             }
         }
 
