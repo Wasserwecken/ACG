@@ -38,7 +38,7 @@ namespace Framework
 
 
 
-            _sceneEntities = GLTF2System.CreateSceneEntities("./Assets/acg.glb");
+            //_sceneEntities = GLTF2System.CreateSceneEntities("./Assets/acg.glb");
 
             _timeUniformBlock = new ShaderBlock<ShaderTime>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _renderSpaceUniformBlock = new ShaderBlock<ShaderSpace>(BufferRangeTarget.UniformBuffer, BufferUsageHint.DynamicDraw);
