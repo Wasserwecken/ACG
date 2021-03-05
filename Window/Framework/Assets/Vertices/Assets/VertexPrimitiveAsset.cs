@@ -18,8 +18,14 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public VertexPrimitiveAsset(ArrayBufferAsset arrayBuffer)
-            : this(arrayBuffer, null) { }
+        public VertexPrimitiveAsset(VertexAttributeAsset[] attributes, uint[] indicies, BufferUsageHint usageHint)
+            : this(new ArrayBufferAsset(usageHint, attributes), new IndicieBufferAsset(usageHint, indicies)) { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public VertexPrimitiveAsset()
+            : this(new ArrayBufferAsset(BufferUsageHint.StaticDraw), new IndicieBufferAsset(BufferUsageHint.StaticDraw)) { }
 
         /// <summary>
         /// 

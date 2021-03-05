@@ -18,7 +18,6 @@ namespace Framework
         ShaderBlockArray<ShaderDirectionalLight> _directionalLightBlock;
         ShaderBlockArray<ShaderPointLight> _pointLightBlock;
         ShaderBlockArray<ShaderSpotLight> _spotLightBlock;
-        ShaderBlockRegister _shaderBlockRegister;
 
         List<Entity> _sceneEntities;
 
@@ -32,12 +31,10 @@ namespace Framework
             Console.WriteLine(GL.GetString(StringName.Renderer));
             Console.WriteLine(GL.GetError());
 
+            var shader = Defaults.Shader.Program.MeshBlinnPhong;
+            var material = Defaults.Material.BlinnPhong;
+            var primitive = Defaults.Vertex.Primitive.Sphere;
 
-            var foo = Matrix4.CreateTranslation(new Vector3(1, 2, 3));
-            foo = Matrix4.CreateRotationY(MathHelper.DegreesToRadians(45)) * foo;
-
-            var bar = new LocalTransformComponent(new Vector3(1, 2, 3));
-            bar.Forward = new Vector3(1, 1, 1);
 
 
 
@@ -48,17 +45,6 @@ namespace Framework
             _directionalLightBlock = new ShaderBlockArray<ShaderDirectionalLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _pointLightBlock = new ShaderBlockArray<ShaderPointLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _spotLightBlock = new ShaderBlockArray<ShaderSpotLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
-            _shaderBlockRegister = new ShaderBlockRegister(new IShaderBlock[]
-            {
-                _timeUniformBlock,
-                _renderSpaceUniformBlock,
-                _directionalLightBlock,
-                _pointLightBlock,
-                _spotLightBlock
-            });
-
-
-
 
             var directionalLights = _sceneEntities.Where(e => e.HasComponents(typeof(WorldTransformComponent), typeof(DirectionalLightComponent))).ToArray();
             var pointLights = _sceneEntities.Where(e => e.HasComponents(typeof(WorldTransformComponent), typeof(PointLightComponent))).ToArray();
@@ -107,11 +93,11 @@ namespace Framework
                     primitive.TryGetComponent<WorldTransformComponent>(out var primitiveTransform);
                     foreach(var primitiveRender in primitive.GetComponents<PrimitiveRenderComponent>())
                     {
-                        ShaderSystem.Use(primitiveRender.Material.Shader, _shaderBlockRegister);
+                        //ShaderSystem.Use(primitiveRender.Material.Shader, _shaderBlockRegister);
                         MaterialSystem.Use(primitiveRender.Material);
                         RenderSpaceSystem.Update(primitiveTransform, viewSpace, ref _renderSpaceUniformBlock.Data);
                         _renderSpaceUniformBlock.PushToGPU();
-                        VertexPrimitiveSystem.Draw(primitiveRender.Primitive);
+                        VertexPrimitiveManager.Draw(primitiveRender.Primitive);
                     }
                 }
             }

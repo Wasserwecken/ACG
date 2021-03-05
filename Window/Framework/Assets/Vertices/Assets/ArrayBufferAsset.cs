@@ -14,8 +14,14 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public ArrayBufferAsset(VertexAttributeAsset[] attributes, BufferUsageHint usageHint)
-            : base("VertexArray", attributes.Sum(a => a.ElementSize), BufferTarget.ArrayBuffer, usageHint)
+        public ArrayBufferAsset(BufferUsageHint usageHint)
+            : this(usageHint, new VertexAttributeAsset[0]) { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ArrayBufferAsset(BufferUsageHint usageHint, VertexAttributeAsset[] attributes)
+            : base(usageHint, BufferTarget.ArrayBuffer, "VertexArray", attributes.Sum(a => a.ElementSize))
         {
             Attributes = attributes;
         }

@@ -7,7 +7,7 @@ using OpenTK.Graphics.OpenGL;
 namespace Framework
 {
     [DebuggerDisplay("Layout: {Layout}, Target: {Target}, Name: {Name}")]
-    public struct ShaderUniformBlockInfo
+    public struct ShaderBlockInfo
     {
         public int Layout { get; set; }
         public BufferTarget Target { get; set; }
@@ -16,7 +16,7 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public ShaderUniformBlockInfo(int layout, BufferTarget target, string name)
+        public ShaderBlockInfo(int layout, BufferTarget target, string name)
         {
             Layout = layout;
             Target = target;

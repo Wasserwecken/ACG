@@ -8,20 +8,17 @@ namespace Framework
     [DebuggerDisplay("Type: {Type}, Handle: {Handle}, FilePath: {FilePath}")]
     public class ShaderSourceAsset
     {
-        public ShaderType Type { get; }
-        public string FilePath { get; }
-        public int Handle { get; set; }
-        public string Content { get; set; }
+        public int Handle;
+        public ShaderType Type;
+        public string FilePath;
+        public string Content;
 
         /// <summary>
         /// 
         /// </summary>
-        public ShaderSourceAsset(
-            ShaderType type,
-            string filePath)
+        public ShaderSourceAsset()
         {
-            Type = type;
-            FilePath = filePath;
+            Handle = -1;
         }
     }
 }

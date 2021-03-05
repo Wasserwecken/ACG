@@ -11,7 +11,16 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
+        public IndicieBufferAsset(BufferUsageHint usageHint, uint[] indicies)
+            : this(usageHint)
+        {
+            Data = indicies.ToBytes();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public IndicieBufferAsset(BufferUsageHint usageHint)
-            : base("Indicies", sizeof(uint), BufferTarget.ElementArrayBuffer, usageHint) { }
+            : base(usageHint, BufferTarget.ElementArrayBuffer, "Indicies", sizeof(uint)) { }
     }
 }

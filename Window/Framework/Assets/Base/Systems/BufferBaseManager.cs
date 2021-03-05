@@ -5,7 +5,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Framework
 {
-    public static class BufferBaseSystem
+    public static class BufferBaseManager
     {
         /// <summary>
         /// 
@@ -17,7 +17,6 @@ namespace Framework
 
             GL.BindBuffer(buffer.Target, buffer.Handle);
             GL.BufferData(buffer.Target, buffer.Data.Length, buffer.Data, buffer.UsageHint);
-            //GL.BindBuffer(buffer.Target, 0);
         }
     }
 }

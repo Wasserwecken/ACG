@@ -1,13 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenTK.Graphics.OpenGL;
+using System.Runtime.InteropServices;
 using OpenTK.Mathematics;
 
 namespace Framework
 {
     public static class Extensions
-    {
+    {        
+        /// <summary>
+        /// 
+        /// </summary>
+        public static byte[] ToBytes<TType>(this TType[] data) where TType : struct
+        {
+            var typeSize = Marshal.SizeOf<TType>();
+            var result = new byte[data.Length * typeSize];
+            Buffer.BlockCopy(data, 0, result, 0, result.Length);
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static TType[] ToType<TType>(this byte[] data) where TType : struct
+        {
+            var typeSize = Marshal.SizeOf<TType>();
+            var result = new TType[data.Length / typeSize];
+            Buffer.BlockCopy(data, 0, result, 0, data.Length);
+
+            return result;
+        }
+
         /// <summary>
         /// 
         /// </summary>

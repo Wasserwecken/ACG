@@ -48,15 +48,15 @@ namespace Framework
                 GL.UniformMatrix4(uniform.Key, false, ref matrix);
             }
 
-            material.Settings.PushToGPU();
-            if (material.Shader.IdentifierToLayout.TryGetValue(material.Settings.Name, out var settingsLayout))
-                GL.BindBufferBase(material.Settings.Target, settingsLayout, material.Settings.Handle);
+            //material.Settings.PushToGPU();
+            //if (material.Shader.IdentifierToLayout.TryGetValue(material.Settings.Name, out var settingsLayout))
+            //    GL.BindBufferBase(material.Settings.Target, settingsLayout, material.Settings.Handle);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private static void UpdateTextureUniform(int layout, Texture texture)
+        private static void UpdateTextureUniform(int layout, TextureBase texture)
         {
             GL.Uniform1(layout, layout);
             GL.ActiveTexture(TextureUnit.Texture0 + layout);

@@ -8,19 +8,19 @@ namespace Framework
     [DebuggerDisplay("Handle: {Handle}, Name: {Name}, Attributes: {Attributes.Length}, Uniforms: {Uniforms.Length}, Blocks: {Blocks.Length}")]
     public class ShaderProgramAsset
     {
-        public int Handle { get; set; }
-        public string Name { get; }
-        public ShaderAttributeInfo[] Attributes { get; set; }
-        public ShaderUniformInfo[] Uniforms { get; set; }
-        public ShaderUniformBlockInfo[] Blocks { get; set; }
-        public Dictionary<string, int> IdentifierToLayout { get; set; }
+        public int Handle;
+        public string Name;
+        public ShaderAttributeInfo[] Attributes;
+        public ShaderUniformInfo[] Uniforms;
+        public ShaderBlockInfo[] Blocks;
+        public Dictionary<string, int> IdentifierToLayout;
 
         /// <summary>
         /// 
         /// </summary>
-        public ShaderProgramAsset(string name)
+        public ShaderProgramAsset()
         {
-            Name = name;
+            Handle = -1;
         }
     }
 }

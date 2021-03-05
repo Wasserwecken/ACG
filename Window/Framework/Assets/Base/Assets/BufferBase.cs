@@ -21,23 +21,13 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public BufferBase(string name, int elementSize, BufferTarget target, BufferUsageHint usageHint)
+        public BufferBase(BufferUsageHint usageHint, BufferTarget target, string name, int elementSize)
         {
             Name = name;
             ElementSize = elementSize;
             UsageHint = usageHint;
             Target = target;
             Data = new byte[0];
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void SetData<TType>(TType[] data)
-        {
-            var typeSize = Marshal.SizeOf<TType>();
-            Data = new byte[data.Length * typeSize];
-            System.Buffer.BlockCopy(data, 0, Data, 0, Data.Length);
         }
     }
 }

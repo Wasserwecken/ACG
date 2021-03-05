@@ -6,12 +6,12 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Framework
 {
-    public static class ArrayBufferSystem
+    public static class ArrayBufferManager
     {
         /// <summary>
         /// 
         /// </summary>
-        public static void UpdateData(ArrayBufferAsset buffer)
+        public static void UpdateBufferData(ArrayBufferAsset buffer)
         {
             buffer.Data = new byte[buffer.Attributes[0].ElementCount * buffer.ElementSize];
             for (int i = 0; i < buffer.ElementCount; i++)
@@ -31,7 +31,7 @@ namespace Framework
         /// </summary>
         public static void PushToGPU(ArrayBufferAsset buffer)
         {
-            BufferBaseSystem.PushToGPU(buffer);
+            BufferBaseManager.PushToGPU(buffer);
 
             var offset = 0;
             foreach (var attribute in buffer.Attributes)

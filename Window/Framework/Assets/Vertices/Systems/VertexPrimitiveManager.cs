@@ -5,7 +5,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Framework
 {
-    public static class VertexPrimitiveSystem
+    public static class VertexPrimitiveManager
     {
         /// <summary>
         /// 
@@ -17,11 +17,11 @@ namespace Framework
             
             GL.BindVertexArray(primitive.Handle);
 
-            ArrayBufferSystem.UpdateData(primitive.ArrayBuffer);
-            ArrayBufferSystem.PushToGPU(primitive.ArrayBuffer);
+            ArrayBufferManager.UpdateBufferData(primitive.ArrayBuffer);
+            ArrayBufferManager.PushToGPU(primitive.ArrayBuffer);
 
             if (primitive.IndicieBuffer != null)
-                BufferBaseSystem.PushToGPU(primitive.IndicieBuffer);
+                BufferBaseManager.PushToGPU(primitive.IndicieBuffer);
 
             GL.BindVertexArray(0);
         }
