@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using Framework.Assets.Textures;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
@@ -21,7 +22,7 @@ namespace Framework.Assets.Materials
         public Dictionary<string, float> UniformFloats;
         public Dictionary<string, Vector4> UniformVecs;
         public Dictionary<string, Matrix4> UniformMats;
-        //public Dictionary<int, TextureBase> UniformTextures;
+        public Dictionary<string, TextureBaseAsset> UniformTextures;
 
         /// <summary>
         /// 
@@ -42,14 +43,14 @@ namespace Framework.Assets.Materials
             UniformFloats = new Dictionary<string, float>();
             UniformVecs = new Dictionary<string, Vector4>();
             UniformMats = new Dictionary<string, Matrix4>();
-            //UniformTextures = new Dictionary<int, TextureBase>();
+            UniformTextures = new Dictionary<string, TextureBaseAsset>();
         }
 
         public void SetUniform(string name, float value) => SetUniform(name, value, UniformFloats);
         public void SetUniform(string name, Vector4 value) => SetUniform(name, value, UniformVecs);
         public void SetUniform(string name, Matrix4 value) => SetUniform(name, value, UniformMats);
-        //public void SetUniform(string name, TextureBase texture) => TrySetUniform(name, texture, UniformTextures);
-        
+        public void SetUniform(string name, TextureBaseAsset texture) => SetUniform(name, texture, UniformTextures);
+
         /// <summary>
         /// 
         /// </summary>

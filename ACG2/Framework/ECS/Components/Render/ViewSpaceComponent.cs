@@ -7,7 +7,7 @@ using System.Text;
 namespace Framework.ECS.Components.Render
 {
     [DebuggerDisplay("WorldToView: {WorldToView}, WorldToProjection: {WorldToProjection}")]
-    public struct ViewSpaceComponent : IComponent
+    public class ViewSpaceComponent : IComponent
     {
         public Matrix4 WorldToView;
         public Matrix4 WorldToProjection;

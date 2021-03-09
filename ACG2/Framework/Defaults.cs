@@ -5,6 +5,9 @@ using System.Text;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Verticies;
+using Framework.ECS;
+using Framework.ECS.Components.Render;
+using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2.Assets;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -20,7 +23,8 @@ namespace Framework
             {
                 public static ShaderSourceAsset VertexMesh { get; }
                 public static ShaderSourceAsset VertexSkybox { get; }
-                public static ShaderSourceAsset FragmentPBR { get; }
+                public static ShaderSourceAsset FragmentUnlit { get; }
+                public static ShaderSourceAsset FragmentLitPBR { get; }
                 public static ShaderSourceAsset FragmentSkybox { get; }
                 public static ShaderSourceAsset FragmentBlinnPhong { get; }
 
@@ -28,8 +32,9 @@ namespace Framework
                 {
                     VertexMesh = new ShaderSourceAsset(ShaderType.VertexShader, Path.Combine(Definitions.Directories.DefaultShader, "mesh.vert"));
                     VertexSkybox = new ShaderSourceAsset(ShaderType.VertexShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.vert"));
-                    
-                    FragmentPBR = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "pbr.frag"));
+
+                    FragmentUnlit = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "Unlit.frag"));
+                    FragmentLitPBR = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitPBR.frag"));
                     FragmentSkybox = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.frag"));
                     FragmentBlinnPhong = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "blinnphong.frag"));
                 }
@@ -37,12 +42,14 @@ namespace Framework
 
             public static class Program
             {
+                public static ShaderProgramAsset MeshUnlit { get; }
                 public static ShaderProgramAsset MeshPBR { get; }
                 public static ShaderProgramAsset MeshBlinnPhong { get; }
 
                 static Program()
                 {
-                    MeshPBR = new ShaderProgramAsset("MeshPBR", Source.VertexMesh, Source.FragmentPBR);
+                    MeshUnlit = new ShaderProgramAsset("MeshUnlit", Source.VertexMesh, Source.FragmentUnlit);
+                    MeshPBR = new ShaderProgramAsset("MeshLitPBR", Source.VertexMesh, Source.FragmentLitPBR);
                     MeshBlinnPhong = new ShaderProgramAsset("MeshBlinnPhong", Source.VertexMesh, Source.FragmentBlinnPhong);
                 }
             }
@@ -90,6 +97,29 @@ namespace Framework
                         }
                     }
                 }
+            }
+        }
+
+        public static class Entities
+        {
+            public static Entity Camera { get; }
+
+            static Entities()
+            {
+                Camera = new Entity("Camera");
+                Camera.Components.Add(new TransformComponent()
+                {
+                    Position = new Vector3(0, 0, -5),
+                    Forward = new Vector3(0, 0, 1)
+                });
+                Camera.Components.Add(new PerspectiveCameraComponent()
+                {
+                    ClearColor = new Vector4(0.2f),
+                    ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit,
+                    FarClipping = 100f,
+                    NearClipping = 0.01f,
+                    FieldOfView = 90f
+                });
             }
         }
     }

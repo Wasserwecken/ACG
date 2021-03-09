@@ -48,14 +48,33 @@ namespace Framework.ECS
         /// <summary>
         /// 
         /// </summary>
-        public bool HasComponents(params Type[] componentTypes)
+        public bool HasAllComponents(params Type[] requieredTypes)
         {
+            var componentTypes = new List<Type>();
             foreach (var component in Components)
-                foreach (var type in componentTypes)
-                    if (component.GetType() != type)
-                        return false;
+                componentTypes.Add(component.GetType());
+
+            foreach (var type in requieredTypes)
+                if (!componentTypes.Contains(type))
+                    return false;
 
             return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool HasAnyComponents(params Type[] requieredTypes)
+        {
+            var componentTypes = new List<Type>();
+            foreach (var component in Components)
+                componentTypes.Add(component.GetType());
+
+            foreach (var type in requieredTypes)
+                if (componentTypes.Contains(type))
+                    return true;
+
+            return false;
         }
     }
 }

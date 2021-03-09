@@ -1,5 +1,6 @@
 ﻿using Framework.Assets.Materials;
 using Framework.Assets.Shader;
+using Framework.Assets.Textures;
 using Framework.Assets.Verticies;
 using Framework.ECS.Components.Relation;
 using Framework.ECS.Components.Render;
@@ -14,6 +15,8 @@ namespace Framework.ECS.GLTF2
 {
     public static class GLTF2Loader
     {
+        private static Dictionary<Image, ImageAsset> _images;
+        private static Dictionary<Texture, TextureBaseAsset> _textures;
         private static Dictionary<Material, MaterialAsset> _materials;
         private static Dictionary<Mesh, MeshAsset> _meshs;
         private static Dictionary<PunctualLight, IComponent> _lights;
@@ -26,11 +29,17 @@ namespace Framework.ECS.GLTF2
             var _gltfRoot = ModelRoot.Load(filePath);
             _defaultShader = defaultShader;
 
+            _images = new Dictionary<Image, ImageAsset>();
+            foreach (var gltfImage in _gltfRoot.LogicalImages)
+                _images.Add(gltfImage, CreatorImageAsset.Create(gltfImage));
 
+            _textures = new Dictionary<Texture, TextureBaseAsset>();
+            foreach (var gltfTexture in _gltfRoot.LogicalTextures)
+                _textures.Add(gltfTexture, CreatorTextureAsset.Create(gltfTexture, _images));
 
             _materials = new Dictionary<Material, MaterialAsset>();
             foreach (var gltfMaterial in _gltfRoot.LogicalMaterials)
-                _materials.Add(gltfMaterial, CreatorMaterialAsset.Create(gltfMaterial));
+                _materials.Add(gltfMaterial, CreatorMaterialAsset.Create(gltfMaterial, _textures));
 
             _meshs = new Dictionary<Mesh, MeshAsset>();
             foreach (var gltfMesh in _gltfRoot.LogicalMeshes)
@@ -63,10 +72,10 @@ namespace Framework.ECS.GLTF2
             {
                 childEntity.Components.Add(new ParentComponent() { Parent = parentEntity });
 
-                if (parentEntity.TryGetComponent<ChildrenComponent>(out var childrenComponent))
+                if (parentEntity.TryGetComponent<ChildComponent>(out var childrenComponent))
                     childrenComponent.Children.Add(childEntity);
                 else
-                    parentEntity.Components.Add(new ChildrenComponent() { Children = new List<Entity>() { childEntity } });
+                    parentEntity.Components.Add(new ChildComponent() { Children = new List<Entity>() { childEntity } });
             }
         }
 

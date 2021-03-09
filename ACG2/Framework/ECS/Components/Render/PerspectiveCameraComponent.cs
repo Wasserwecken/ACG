@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace Framework.ECS.Components.Render
 {
     [DebuggerDisplay("FieldOfView: {FieldOfView}, Clipping: {NearClipping} - {FarClipping}")]
-    public struct PerspectiveCameraComponent : IComponent
+    public class PerspectiveCameraComponent : IComponent
     {
         public Vector4 ClearColor { get; set; }
         public ClearBufferMask ClearMask { get; set; }
