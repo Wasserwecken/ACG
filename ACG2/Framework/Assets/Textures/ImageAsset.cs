@@ -8,7 +8,7 @@ namespace Framework.Assets.Textures
         public string Name;
         public int Width;
         public int Height;
-        public byte[] Data;
+        public ushort[] Data;
         public PixelType PixelType { get; set; }
         public PixelFormat Format { get; set; }
         public PixelInternalFormat InternalFormat { get; set; }
@@ -21,7 +21,7 @@ namespace Framework.Assets.Textures
         {
             Name = name;
 
-            PixelType = PixelType.Byte;
+            PixelType = PixelType.UnsignedShort;
             Format = PixelFormat.Rgba;
             InternalFormat = (PixelInternalFormat)Format;
         }

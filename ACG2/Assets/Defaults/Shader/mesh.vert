@@ -14,7 +14,7 @@ layout (std430) buffer ShaderTime {
  float TotalSin01;
 } _time;
 
-layout (std140) uniform ShaderSpace {
+layout (std430) buffer ShaderRenderSpace {
     mat4 LocalToWorld;
     mat4 LocalToView;
     mat4 LocalToProjection;

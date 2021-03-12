@@ -18,7 +18,7 @@ namespace Framework.ECS.GLTF2.Assets
             image.SourceImage = new MagickImage(gltfImage.Content.Content.ToArray());
             image.Width = image.SourceImage.Width;
             image.Height = image.SourceImage.Height;
-            image.Data = image.SourceImage.ToByteArray();
+            image.Data = image.SourceImage.GetPixels().ToArray();
 
             if (image.SourceImage.ChannelCount == 4)
             {
@@ -28,7 +28,7 @@ namespace Framework.ECS.GLTF2.Assets
             else
             {
                 image.Format = PixelFormat.Rgb;
-                image.InternalFormat = PixelInternalFormat.Rgba;
+                image.InternalFormat = PixelInternalFormat.Rgb;
             }
 
             return image;

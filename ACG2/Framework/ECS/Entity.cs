@@ -48,6 +48,18 @@ namespace Framework.ECS
         /// <summary>
         /// 
         /// </summary>
+        public TType GetComponent<TType>() where TType : IComponent
+        {
+            foreach (var component in Components)
+                if (component is TType resultComponent)
+                    return resultComponent;
+
+            return default;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public bool HasAllComponents(params Type[] requieredTypes)
         {
             var componentTypes = new List<Type>();

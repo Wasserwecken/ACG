@@ -7,8 +7,8 @@ namespace Framework.ECS.Components.Scene
     public class TimeComponent : IComponent
     {
         public float Total { get; set; }
-        public float Delta { get; set; }
         public float TotalSin { get; set; }
-        public float TotalSin01 { get; set; }
+        public float DeltaFrame { get; set; }
+        public float DeltaFixed { get; set; }
     }
 }

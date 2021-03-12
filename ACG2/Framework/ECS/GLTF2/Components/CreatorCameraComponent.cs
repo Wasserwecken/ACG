@@ -18,7 +18,7 @@ namespace Framework.ECS.GLTF2.Components
                 {
                     NearClipping = glTFperspective.ZNear,
                     FarClipping = glTFperspective.ZFar,
-                    FieldOfView = glTFperspective.VerticalFOV,
+                    FieldOfView = MathHelper.RadiansToDegrees(glTFperspective.VerticalFOV),
                     ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit,
                     ClearColor = new Vector4(0.3f)
                 };

@@ -1,8 +1,6 @@
 ﻿using Framework;
-using Framework.Assets.Shader;
 using Framework.ECS;
-using Framework.ECS.Components;
-using Framework.ECS.Components.Relation;
+using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.GLTF2;
 using Framework.ECS.Systems;
@@ -21,13 +19,12 @@ namespace Window
     {
         private GameWindowSettings _gameSettings;
         private NativeWindowSettings _nativeSettings;
+        private readonly Stopwatch _totalWatch;
 
         private readonly List<IComponent> _sceneComponents;
         private readonly List<Entity> _sceneEntities;
 
-        private readonly Stopwatch _totalWatch;
-        private readonly Stopwatch _deltaWatch;
-
+        private readonly List<ISystem> _frameSystems;
         private readonly List<ISystem> _updateSystems;
 
         /// <summary>
@@ -46,13 +43,17 @@ namespace Window
 
             _totalWatch = new Stopwatch();
             _totalWatch.Start();
-            _deltaWatch = new Stopwatch();
-            _deltaWatch.Start();
 
             _updateSystems = new List<ISystem>()
             {
+            };
+
+            _frameSystems = new List<ISystem>()
+            {
                 new ParentChildSystem(),
-                new TransformSystem()
+                new TransformSystem(),
+                new LightSystem(),
+                new RenderSystem()
             };
         }
 
@@ -68,15 +69,17 @@ namespace Window
             Console.WriteLine(GL.GetString(StringName.Renderer));
             Console.WriteLine(GL.GetError());
 
+            //var scenePath = "./Assets/foo.glb";
+            var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
             //var scenePath = "./Assets/Samples/TextureCoordinateTest/glTF-Binary/TextureCoordinateTest.glb";
             //var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
-            var scenePath = "./Assets/foo.glb";
 
             _sceneComponents.Add(new AspectRatioComponent() { Width = _nativeSettings.Size.X, Height = _nativeSettings.Size.Y });
             _sceneComponents.Add(new TimeComponent());
 
-            _sceneEntities.Add(Defaults.Entities.Camera);
             _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Defaults.Shader.Program.MeshUnlit));
+            if (!_sceneEntities.Any(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent))))
+                _sceneEntities.Add(Defaults.Entities.Camera);
         }
 
         /// <summary>
@@ -90,10 +93,8 @@ namespace Window
 
             var timeComponent = (TimeComponent)_sceneComponents.First(component => component is TimeComponent);
             timeComponent.Total = _totalWatch.ElapsedMilliseconds / 1000f;
-            timeComponent.Delta = _deltaWatch.ElapsedMilliseconds / 1000f;
             timeComponent.TotalSin = MathF.Sin(timeComponent.Total);
-            timeComponent.TotalSin01 = timeComponent.TotalSin * 0.5f + 0.5f;
-            _deltaWatch.Restart();
+            timeComponent.DeltaFrame = (float)args.Time;
 
             foreach (var system in _updateSystems)
                 system.Update(_sceneEntities, _sceneComponents);
@@ -106,10 +107,13 @@ namespace Window
         {
             base.OnRenderFrame(args);
 
+            var timeComponent = (TimeComponent)_sceneComponents.First(component => component is TimeComponent);
+            timeComponent.Total = _totalWatch.ElapsedMilliseconds / 1000f;
+            timeComponent.TotalSin = MathF.Sin(timeComponent.Total);
+            timeComponent.DeltaFixed = (float)args.Time;
 
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            //_scene.Render();
+            foreach (var system in _frameSystems)
+                system.Update(_sceneEntities, _sceneComponents);
 
             Context.SwapBuffers();
         }

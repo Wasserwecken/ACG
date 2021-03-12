@@ -19,7 +19,7 @@ layout (std430) buffer ShaderTime {
  float TotalSin01;
 } _time;
 
-layout (std140) uniform ShaderSpace {
+layout (std430) buffer ShaderRenderSpace {
     mat4 LocalToWorld;
     mat4 LocalToView;
     mat4 LocalToProjection;
@@ -30,31 +30,28 @@ layout (std140) uniform ShaderSpace {
     vec3 ViewDirection;
 } _space;
 
-struct MaterialSettings
-{
-    vec3 Albedo;
-    vec3 Emissive;
-    float Metallic;
-    float Roughness;
-    float Normal;
-    float Occlusion;
-};
+uniform vec4 BaseColor;
+uniform vec4 MREO;
+uniform float Normal;
 
-uniform sampler2D AlbedoMap;
-uniform sampler2D MetallicMap;
-uniform sampler2D RoughnessMap;
-uniform sampler2D NormalMap;
-uniform sampler2D OcclusionMap;
+uniform sampler2D BaseColorMap;
+uniform sampler2D MetallicRoughnessMap;
 uniform sampler2D EmissiveMap;
+uniform sampler2D OcclusionMap;
+uniform sampler2D NormalMap;
 
 out vec4 OutputColor;
 
 
 void main()
 {
-    vec3 surfaceNormal = normalize(vec3(_vertex.NormalView));
+    vec4 color = texture(BaseColorMap, _vertex.UV0) * BaseColor;
+
+
+    vec3 surfaceNormal = abs(normalize(vec3(_vertex.NormalView)));
     vec3 surfaceColor = vec3(1.0);
-    vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
+    vec3 corrected = pow(surfaceNormal, vec3(0.454545454545));
 
     OutputColor = vec4(corrected, 1.0);
+    OutputColor = color;
 }

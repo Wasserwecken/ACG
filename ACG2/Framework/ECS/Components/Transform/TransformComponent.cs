@@ -9,12 +9,16 @@ namespace Framework.ECS.Components.Transform
     [DebuggerDisplay("Position: {Position}, Forward: {Forward}, Scale: {Scale}")]
     public class TransformComponent : IComponent
     {
+        /// <summary>
+        /// Parent in world space
+        /// </summary>
         public Matrix4 ParentSpace
         {
             get => _parentSpace;
             set
             {
                 _parentSpace = value;
+                _parentSpaceInverse = value.Inverted();
                 _isWorldOutdated = true;
             }
         }
@@ -23,20 +27,25 @@ namespace Framework.ECS.Components.Transform
         {
             get
             {
-                if (_isLocalOutdated || _isWorldOutdated)
-                {
-                    _worldSpace = ParentSpace * LocalSpace;
-                    _isWorldOutdated = false;
-                }
-
+                UpdateWorldSpace();
                 return _worldSpace;
             }
-            set
+            //set
+            //{
+            //    _worldSpace = value;
+            //    _worldSpaceInverse = _worldSpace.Inverted();
+            //    _localSpace = _worldSpaceInverse * _parentSpace;
+            //    _isWorldOutdated = false;
+            //    _isLocalOutdated = false;
+            //}
+        }
+
+        public Matrix4 WorldSpaceInverse
+        {
+            get
             {
-                _worldSpace = value;
-                _localSpace = _worldSpace.Inverted() * _parentSpace;
-                _isWorldOutdated = false;
-                _isLocalOutdated = false;
+                UpdateWorldSpace();
+                return _worldSpaceInverse;
             }
         }
 
@@ -65,13 +74,14 @@ namespace Framework.ECS.Components.Transform
 
         public Vector3 Position
         {
-            get => _localTranslationScaleSpace.Row3.Xyz;
+            get => (_localTranslationScaleSpace * ParentSpace).Row3.Xyz;
             set
             {
-                _localTranslationScaleSpace.Row3.X = value.X;
-                _localTranslationScaleSpace.Row3.Y = value.Y;
-                _localTranslationScaleSpace.Row3.Z = value.Z;
-                _localTranslationScaleSpace.Row3.W = 1f;
+                var local = new Vector4(value, 1f) * _parentSpaceInverse;
+
+                _localTranslationScaleSpace.M41 = local.X;
+                _localTranslationScaleSpace.M42 = local.Y;
+                _localTranslationScaleSpace.M43 = local.Z;
 
                 _isLocalOutdated = true;
                 _isWorldOutdated = true;
@@ -80,13 +90,14 @@ namespace Framework.ECS.Components.Transform
 
         public Vector3 Scale
         {
-            get => _localTranslationScaleSpace.Diagonal.Xyz;
+            get => (_localTranslationScaleSpace * ParentSpace).ClearRotation().Diagonal.Xyz;
             set
             {
-                _localTranslationScaleSpace.M11 = value.X;
-                _localTranslationScaleSpace.M22 = value.Y;
-                _localTranslationScaleSpace.M33 = value.Z;
-                _localTranslationScaleSpace.M44 = 0f;
+                var local = new Vector4(value, 1f) * _parentSpaceInverse;
+
+                _localTranslationScaleSpace.M11 = local.X;
+                _localTranslationScaleSpace.M22 = local.Y;
+                _localTranslationScaleSpace.M33 = local.Z;
 
                 _isLocalOutdated = true;
                 _isWorldOutdated = true;
@@ -95,10 +106,12 @@ namespace Framework.ECS.Components.Transform
 
         public Vector3 Forward
         {
-            get => _localRotationSpace.Row2.Xyz;
+            get => (_localRotationSpace * ParentSpace).ClearScale().Row2.Xyz;
             set
             {
-                var forward = value.Normalized();
+                var local = (new Vector4(value, 1f) * _parentSpaceInverse).Xyz;
+
+                var forward = local.Normalized();
                 var right = Vector3.Cross(Vector3.UnitY, forward).Normalized();
                 var up = Vector3.Cross(forward, right).Normalized();
 
@@ -118,6 +131,8 @@ namespace Framework.ECS.Components.Transform
         private Matrix4 _localSpace;
         private Matrix4 _parentSpace;
         private Matrix4 _worldSpace;
+        private Matrix4 _parentSpaceInverse;
+        private Matrix4 _worldSpaceInverse;
 
         /// <summary>
         /// 
@@ -126,6 +141,19 @@ namespace Framework.ECS.Components.Transform
         {
             ParentSpace = Matrix4.Identity;
             LocalSpace = Matrix4.Identity;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void UpdateWorldSpace()
+        {
+            if (_isLocalOutdated || _isWorldOutdated)
+            {
+                _worldSpace = LocalSpace * ParentSpace;
+                _worldSpaceInverse = _worldSpace.Inverted();
+                _isWorldOutdated = false;
+            }
         }
     }
 }

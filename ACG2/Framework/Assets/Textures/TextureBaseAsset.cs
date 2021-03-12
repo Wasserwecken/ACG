@@ -27,5 +27,32 @@ namespace Framework.Assets.Textures
             MinFilter = TextureMinFilter.Linear;
             MagFilter = TextureMagFilter.Linear;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void PushToGPU()
+        {
+            if (Handle <= 0)
+                Handle = GL.GenTexture();
+            GL.BindTexture(Target, Handle);
+
+            GLTexImage();
+
+            GL.TexParameter(Target, TextureParameterName.TextureWrapS, (int)WrapModeS);
+            GL.TexParameter(Target, TextureParameterName.TextureWrapT, (int)WrapModeT);
+            GL.TexParameter(Target, TextureParameterName.TextureMinFilter, (int)MinFilter);
+            GL.TexParameter(Target, TextureParameterName.TextureMagFilter, (int)MagFilter);
+
+            if (GenerateMipMaps)
+                GL.GenerateMipmap(MipMapTarget);
+
+            GL.BindTexture(Target, 0);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected abstract void GLTexImage();
     }
 }

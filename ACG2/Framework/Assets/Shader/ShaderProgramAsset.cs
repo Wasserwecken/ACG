@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
+using Framework.Assets.Shader.Block;
 using Framework.Assets.Shader.Info;
 using OpenTK.Graphics.OpenGL;
 
@@ -29,6 +29,17 @@ namespace Framework.Assets.Shader
             GetAttributesInfos();
             GetUniformInfos();
             GetBlockInfos();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Use()
+        {
+            GL.UseProgram(Handle);
+            foreach (var block in ShaderBlockRegister.Blocks)
+                if (IdentifierToLayout.TryGetValue(block.Name, out var blockLayout))
+                    GL.BindBufferBase(block.Target, blockLayout, block.Handle);
         }
 
         /// <summary>

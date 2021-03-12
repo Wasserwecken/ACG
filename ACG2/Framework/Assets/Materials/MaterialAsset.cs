@@ -46,6 +46,34 @@ namespace Framework.Assets.Materials
             UniformTextures = new Dictionary<string, TextureBaseAsset>();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Use()
+        {
+            GL.ShadeModel(Model);
+            GL.FrontFace(FaceDirection);
+
+            if (IsDepthTesting)
+                GL.Enable(EnableCap.DepthTest);
+
+            if (IsCulling)
+            {
+                GL.Enable(EnableCap.CullFace);
+                GL.CullFace(CullingMode);
+            }
+            else
+                GL.Disable(EnableCap.CullFace);
+
+            if (IsTransparent)
+            {
+                GL.Enable(EnableCap.Blend);
+                GL.BlendFunc(SourceBlend, DestinationBlend);
+            }
+            else
+                GL.Disable(EnableCap.Blend);
+        }
+
         public void SetUniform(string name, float value) => SetUniform(name, value, UniformFloats);
         public void SetUniform(string name, Vector4 value) => SetUniform(name, value, UniformVecs);
         public void SetUniform(string name, Matrix4 value) => SetUniform(name, value, UniformMats);

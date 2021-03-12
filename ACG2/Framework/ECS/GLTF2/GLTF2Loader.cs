@@ -91,10 +91,7 @@ namespace Framework.ECS.GLTF2
                 entity.Components.Add(lightComponent);
 
             if (gltfNode.Camera != null && _cameras.TryGetValue(gltfNode.Camera, out var cameraComponent))
-            {
                 entity.Components.Add(cameraComponent);
-                entity.Components.Add(new ViewSpaceComponent());
-            }
 
             if (gltfNode.Mesh != null && _meshs.TryGetValue(gltfNode.Mesh, out var meshAsset))
             {

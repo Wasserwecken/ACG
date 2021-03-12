@@ -10,10 +10,7 @@ namespace Framework.ECS.Systems
         {
             var parents = entities.Where(f => f.HasAllComponents(typeof(ChildComponent)));
             foreach (var parent in parents)
-            {
-                parent.TryGetComponent<ChildComponent>(out var childComponent);
-                childComponent.Children.Clear();
-            }
+                parent.GetComponent<ChildComponent>().Children.Clear();
 
             var children = entities.Where(f => f.HasAllComponents(typeof(ParentComponent)));
             foreach (var child in children)

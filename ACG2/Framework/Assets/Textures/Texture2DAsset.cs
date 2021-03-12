@@ -15,5 +15,13 @@ namespace Framework.Assets.Textures
         /// 
         /// </summary>
         public Texture2DAsset(string name) : base(name) { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected override void GLTexImage()
+        {
+            GL.TexImage2D(Target, 0, Image.InternalFormat, Image.Width, Image.Height, 0, Image.Format, Image.PixelType, Image.Data);
+        }
     }
 }
