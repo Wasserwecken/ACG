@@ -43,7 +43,7 @@ namespace Framework.ECS.Systems
 
 
             var meshes = entities.Where(f => f.HasAnyComponents(typeof(MeshRendererComponent)));
-            var renderGraph = new Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, List<VertexPrimitiveAsset>>>();
+            var renderGraph = new Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, List<ValueTuple<VertexPrimitiveAsset, TransformComponent>>>>();
             foreach(var mesh in meshes)
             {
                 var meshComponent = mesh.GetComponent<MeshRendererComponent>();
@@ -56,16 +56,16 @@ namespace Framework.ECS.Systems
                     if (renderGraph.TryGetValue(shader, out var materialRelation))
                     {
                         if (materialRelation.TryGetValue(material, out var primitives))
-                            primitives.Add(primitive);
+                            primitives.Add((primitive, mesh.GetComponent<TransformComponent>()));
                         else
-                            materialRelation.Add(material, new List<VertexPrimitiveAsset>() { primitive });
+                            materialRelation.Add(material, new List<ValueTuple<VertexPrimitiveAsset, TransformComponent>>
+                                {(primitive, mesh.GetComponent<TransformComponent>())});
                     }
                     else
                     {
-                        renderGraph.Add(shader, new Dictionary<MaterialAsset, List<VertexPrimitiveAsset>>()
-                        {
-                            { material, new List<VertexPrimitiveAsset>() { primitive } }
-                        });
+                        renderGraph.Add(shader, new Dictionary<MaterialAsset, List<ValueTuple<VertexPrimitiveAsset, TransformComponent>>>()
+                            {{ material, new List<(VertexPrimitiveAsset, TransformComponent)>()
+                                {(primitive, mesh.GetComponent<TransformComponent>())}}});
                     }
 
                     if (primitive.Handle <= 0) primitive.PushToGPU();
@@ -85,18 +85,9 @@ namespace Framework.ECS.Systems
                     cameraData.FarClipping
                 );
 
-                _renderSpaceUniformBlock.Data.WorldToView = cameraTransform.WorldSpaceInverse;
-                _renderSpaceUniformBlock.Data.ViewPosition = new Vector4(cameraTransform.Position, 1);
-                _renderSpaceUniformBlock.Data.ViewPosition = new Vector4(cameraTransform.Forward, 0);
-                _renderSpaceUniformBlock.Data.LocalToView = cameraTransform.WorldSpaceInverse;
-                _renderSpaceUniformBlock.Data.LocalToProjection = cameraTransform.WorldSpaceInverse * cameraProjectionSpace;
-                _renderSpaceUniformBlock.Data.LocalToViewRotation = cameraTransform.WorldSpaceInverse.ClearScale().ClearTranslation();
-                _renderSpaceUniformBlock.PushToGPU();
-
                 GL.ClearColor(cameraData.ClearColor.X, cameraData.ClearColor.Y, cameraData.ClearColor.Z, cameraData.ClearColor.W);
                 GL.Clear(cameraData.ClearMask);
-
-                
+                                
                 foreach(var shaderRelation in renderGraph)
                 {
                     var shader = shaderRelation.Key;
@@ -135,7 +126,16 @@ namespace Framework.ECS.Systems
 
                         foreach (var primitive in materialRelation.Value)
                         {
-                            primitive.Draw();
+                            _renderSpaceUniformBlock.Data.WorldToView = cameraTransform.WorldSpaceInverse;
+                            _renderSpaceUniformBlock.Data.ViewPosition = new Vector4(cameraTransform.Position, 1);
+                            _renderSpaceUniformBlock.Data.ViewPosition = new Vector4(cameraTransform.Forward, 0);
+
+                            _renderSpaceUniformBlock.Data.LocalToView = primitive.Item2.WorldSpace * cameraTransform.WorldSpaceInverse;
+                            _renderSpaceUniformBlock.Data.LocalToProjection = primitive.Item2.WorldSpace * cameraTransform.WorldSpaceInverse * cameraProjectionSpace;
+                            _renderSpaceUniformBlock.Data.LocalToViewRotation = primitive.Item2.WorldSpace.ClearScale().ClearRotation() * cameraTransform.WorldSpaceInverse.ClearScale().ClearTranslation();
+                            _renderSpaceUniformBlock.PushToGPU();
+
+                            primitive.Item1.Draw();
                         }
                     }
                 }
