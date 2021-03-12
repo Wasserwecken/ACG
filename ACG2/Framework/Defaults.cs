@@ -109,8 +109,8 @@ namespace Framework
                 Camera = new Entity("Camera");
                 Camera.Components.Add(new TransformComponent()
                 {
-                    Position = new Vector3(0f, 0f, 5f),
-                    Forward = new Vector3(0, 0, 1)
+                    Position = new Vector3(1f, 1f, 3f),
+                    Forward = new Vector3(1f, 1f, 3f)
                 });
                 Camera.Components.Add(new PerspectiveCameraComponent()
                 {

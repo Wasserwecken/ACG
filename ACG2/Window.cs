@@ -71,6 +71,7 @@ namespace Window
 
             //var scenePath = "./Assets/foo.glb";
             var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
+            //var scenePath = "./Assets/Samples/Buggy/glTF-Binary/Buggy.glb";
             //var scenePath = "./Assets/Samples/TextureCoordinateTest/glTF-Binary/TextureCoordinateTest.glb";
             //var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
 

@@ -1,10 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Framework.ECS.Components.Relation
 {
-    [DebuggerDisplay("Parent: {Parent?.Name}")]
+    [DebuggerDisplay("Children: {Children.Count}")]
     public class ParentComponent : IComponent
     {
-        public Entity Parent { get; set; }
+        public List<Entity> Children { get; set; }
     }
 }

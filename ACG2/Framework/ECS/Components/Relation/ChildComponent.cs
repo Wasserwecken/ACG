@@ -3,9 +3,9 @@ using System.Diagnostics;
 
 namespace Framework.ECS.Components.Relation
 {
-    [DebuggerDisplay("Children: {Children.Count}")]
+    [DebuggerDisplay("Parent: {Parent?.Name}")]
     public class ChildComponent : IComponent
     {
-        public List<Entity> Children { get; set; }
+        public Entity Parent { get; set; }
     }
 }

@@ -8,27 +8,30 @@ namespace Framework.ECS.Systems
     {
         public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var parents = entities.Where(f => f.HasAllComponents(typeof(ChildComponent)));
-            foreach (var parent in parents)
-                parent.GetComponent<ChildComponent>().Children.Clear();
+            var parentEntities = entities.Where(f => f.HasAnyComponents(typeof(ParentComponent)));
+            foreach (var parentEntity in parentEntities)
+                parentEntity.GetComponent<ParentComponent>().Children.Clear();
 
-            var children = entities.Where(f => f.HasAllComponents(typeof(ParentComponent)));
-            foreach (var child in children)
+            var childEntites = entities.Where(f => f.HasAllComponents(typeof(ChildComponent)));
+            foreach (var childEntity in childEntites)
             {
-                child.TryGetComponent<ParentComponent>(out var parentComponent);
-                if (parentComponent.Parent.TryGetComponent<ChildComponent>(out var childComponent))
-                    childComponent.Children.Add(child);
+                var childComponent = childEntity.GetComponent<ChildComponent>();
+                if (childComponent.Parent == null)
+                    childEntity.Components.Remove(childComponent);
+
+                else if (childComponent.Parent.TryGetComponent<ParentComponent>(out var parentComponent))
+                    parentComponent.Children.Add(childEntity);
+
                 else
-                    parentComponent.Parent.Components.Add(new ChildComponent() { Children = new List<Entity>() { child } });
+                    childComponent.Parent.Components.Add(new ParentComponent() { Children = new List<Entity>() { childEntity } });
             }
 
-            foreach(var parent in parents)
+            foreach(var parentEntity in parentEntities)
             {
-                parent.TryGetComponent<ChildComponent>(out var childComponent);
-                if (childComponent.Children.Count == 0)
-                    parent.Components.Remove(childComponent);
+                if (parentEntity.TryGetComponent<ParentComponent>(out var parentComponent))
+                    if (parentComponent.Children.Count == 0)
+                        parentEntity.Components.Remove(parentComponent);
             }
-
         }
     }
 }

@@ -32,7 +32,7 @@ namespace Framework.Assets.Materials
             Name = name;
 
             IsTransparent = false;
-            IsCulling = true;
+            IsCulling = false;
             IsDepthTesting = true;
             Model = ShadingModel.Smooth;
             CullingMode = CullFaceMode.Back;

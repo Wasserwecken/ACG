@@ -56,8 +56,8 @@ namespace Framework.ECS.Systems
 
                 for (int i = 0; i < mesh.Mesh.Primitives.Count; i++)
                 {
-                    var shader = mesh.Shaders[mesh.Shaders.Count < i ? i : 0];
-                    var material = mesh.Materials[mesh.Materials.Count < i ? i : 0];
+                    var shader = mesh.Shaders[mesh.Shaders.Count > i ? i : 0];
+                    var material = mesh.Materials[mesh.Materials.Count > i ? i : 0];
                     var primitive = mesh.Mesh.Primitives[i];
 
                     if (primitive.Handle <= 0) primitive.PushToGPU();
