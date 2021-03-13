@@ -5,7 +5,22 @@ using OpenTK.Mathematics;
 namespace Framework
 {
     public static class Extensions
-    {        
+    {       
+        /// <summary>
+        /// 
+        /// </summary>
+        public static ushort[] ToShort(this Color4 color)
+        {
+            return new ushort[]
+            {
+                (ushort)(color.R * ushort.MaxValue),
+                (ushort)(color.G * ushort.MaxValue),
+                (ushort)(color.B * ushort.MaxValue),
+                (ushort)(color.A * ushort.MaxValue)
+            };
+        }
+
+
         /// <summary>
         /// 
         /// </summary>

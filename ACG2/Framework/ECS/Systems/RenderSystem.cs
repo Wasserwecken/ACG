@@ -126,8 +126,20 @@ namespace Framework.ECS.Systems
                                 GL.BindTexture(uniform.Value.Target, uniform.Value.Handle);
                             }
 
+                        foreach (var uniformTexture in shader.Uniforms.Where
+                            (f => f.Type == ActiveUniformType.Sampler2D && !material.UniformTextures.ContainsKey(f.Name)))
+                        {
+                            GL.Uniform1(uniformTexture.Layout, uniformTexture.Layout);
+                            GL.ActiveTexture(TextureUnit.Texture0 + uniformTexture.Layout);
 
-                        foreach(var transformRelation in materialRelation.Value)
+                            if (uniformTexture.Name.ToLower().Contains("normal"))
+                                GL.BindTexture(Defaults.Texture.Normal.Target, Defaults.Texture.Normal.Handle);
+                            else
+                                GL.BindTexture(Defaults.Texture.White.Target, Defaults.Texture.White.Handle);
+                        }
+
+
+                        foreach (var transformRelation in materialRelation.Value)
                         {
                             var transform = transformRelation.Key;
 

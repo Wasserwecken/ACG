@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader;
+using Framework.Assets.Textures;
 using Framework.Assets.Verticies;
 using Framework.ECS;
 using Framework.ECS.Components.Render;
@@ -52,6 +53,27 @@ namespace Framework
                     MeshPBR = new ShaderProgramAsset("MeshLitPBR", Source.VertexMesh, Source.FragmentLitPBR);
                     MeshBlinnPhong = new ShaderProgramAsset("MeshBlinnPhong", Source.VertexMesh, Source.FragmentBlinnPhong);
                 }
+            }
+        }
+
+        public static class Texture
+        {
+            public static Texture2DAsset White { get; }
+            public static Texture2DAsset Gray { get; }
+            public static Texture2DAsset Black { get; }
+            public static Texture2DAsset Normal { get; }
+
+            static Texture()
+            {
+                White = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.White.ToShort() } };
+                Gray = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Gray.ToShort() } };
+                Black = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Black.ToShort() } };
+                Normal = new Texture2DAsset("Default") { Image = new ImageAsset("Normal") { Data = Color4.Blue.ToShort() } };
+
+                White.PushToGPU();
+                Gray.PushToGPU();
+                Black.PushToGPU();
+                Normal.PushToGPU();
             }
         }
 

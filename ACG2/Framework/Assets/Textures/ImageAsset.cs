@@ -21,8 +21,11 @@ namespace Framework.Assets.Textures
         {
             Name = name;
 
+            Width = 1;
+            Height = 1;
+
             PixelType = PixelType.UnsignedShort;
-            Format = PixelFormat.Rgba;
+            Format = PixelFormat.Rgb;
             InternalFormat = (PixelInternalFormat)Format;
         }
     }
