@@ -70,6 +70,8 @@ namespace Window
             Console.WriteLine(GL.GetError());
 
             var scenePath = "./Assets/foo.glb";
+            //var scenePath = "./Assets/Samples/Box/glTF-Binary/Box.glb";
+            //var scenePath = "./Assets/Samples/OrientationTest/glTF-Binary/OrientationTest.glb";
             //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
             //var scenePath = "./Assets/Samples/Buggy/glTF-Binary/Buggy.glb";
             //var scenePath = "./Assets/Samples/TextureCoordinateTest/glTF-Binary/TextureCoordinateTest.glb";

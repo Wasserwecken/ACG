@@ -48,6 +48,18 @@ namespace Framework.ECS
         /// <summary>
         /// 
         /// </summary>
+        public bool HasComponent<TType>()
+        {
+            foreach (var component in Components)
+                if (component is TType)
+                    return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public TType GetComponent<TType>() where TType : IComponent
         {
             foreach (var component in Components)

@@ -9,27 +9,24 @@ namespace Framework.ECS.Systems
     {
         public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var rootEntities = entities
-                .Where(f => f.HasAllComponents(typeof(TransformComponent), typeof(ParentComponent)))
-                .Where(f => !f.HasAnyComponents(typeof(ChildComponent)));
-
+            var rootEntities = entities.Where(f => f.HasComponent<TransformComponent>() && !f.HasComponent<ChildComponent>());
             foreach (var entity in rootEntities)
                 PassTransformSpace(entity);
         }
 
         private void PassTransformSpace(Entity entity)
         {
-            var transformComponent = entity.GetComponent<TransformComponent>();
-            var parentComponent = entity.GetComponent<ParentComponent>();
-
-            foreach(var child in parentComponent.Children)
+            if (entity.TryGetComponent<TransformComponent>(out var transformComponent) &&
+                entity.TryGetComponent<ParentComponent>(out var parentComponent))
             {
-                if (child.TryGetComponent<TransformComponent>(out var childTransformComponent))
-                    childTransformComponent.ParentSpace = transformComponent.WorldSpace;
+                foreach(var child in parentComponent.Children)
+                {
+                    if (child.TryGetComponent<TransformComponent>(out var childTransformComponent))
+                        childTransformComponent.ParentSpace = transformComponent.WorldSpace;
 
-                if (child.HasAnyComponents(typeof(ParentComponent)))
                     PassTransformSpace(child);
-            }    
+                }    
+            }
         }
     }
 }
