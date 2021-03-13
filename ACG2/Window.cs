@@ -8,6 +8,8 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using Project.ECS.Components;
+using Project.ECS.Systems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -38,8 +40,13 @@ namespace Window
             _gameSettings = gameSettings;
             _nativeSettings = nativeSettings;
 
-            _sceneComponents = new List<IComponent>();
             _sceneEntities = new List<Entity>();
+            _sceneComponents = new List<IComponent>()
+            {
+                new AspectRatioComponent() { Width = _nativeSettings.Size.X, Height = _nativeSettings.Size.Y },
+                new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState },
+                new TimeComponent()
+            };
 
             _totalWatch = new Stopwatch();
             _totalWatch.Start();
@@ -50,6 +57,8 @@ namespace Window
 
             _frameSystems = new List<ISystem>()
             {
+                new CameraControllerSystem(),
+
                 new ParentChildSystem(),
                 new TransformSystem(),
                 new LightSystem(),
@@ -69,20 +78,20 @@ namespace Window
             Console.WriteLine(GL.GetString(StringName.Renderer));
             Console.WriteLine(GL.GetError());
 
-            var scenePath = "./Assets/foo.glb";
-            //var scenePath = "./Assets/Samples/Box/glTF-Binary/Box.glb";
-            //var scenePath = "./Assets/Samples/OrientationTest/glTF-Binary/OrientationTest.glb";
+            //var scenePath = "./Assets/foo.glb";
             //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
-            //var scenePath = "./Assets/Samples/Buggy/glTF-Binary/Buggy.glb";
+            var scenePath = "./Assets/Samples/Buggy/glTF-Binary/Buggy.glb";
             //var scenePath = "./Assets/Samples/TextureCoordinateTest/glTF-Binary/TextureCoordinateTest.glb";
             //var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
 
-            _sceneComponents.Add(new AspectRatioComponent() { Width = _nativeSettings.Size.X, Height = _nativeSettings.Size.Y });
-            _sceneComponents.Add(new TimeComponent());
 
             _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Defaults.Shader.Program.MeshUnlit));
             if (!_sceneEntities.Any(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent))))
-                _sceneEntities.Add(Defaults.Entities.Camera);
+            {
+                var camera = Defaults.Entities.Camera;
+                camera.Components.Add(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
+                _sceneEntities.Add(camera);
+            }
         }
 
         /// <summary>

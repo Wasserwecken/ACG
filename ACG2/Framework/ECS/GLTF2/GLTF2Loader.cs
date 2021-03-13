@@ -90,8 +90,8 @@ namespace Framework.ECS.GLTF2
             if (gltfNode.PunctualLight != null && _lights.TryGetValue(gltfNode.PunctualLight, out var lightComponent))
                 entity.Components.Add(lightComponent);
 
-            if (gltfNode.Camera != null && _cameras.TryGetValue(gltfNode.Camera, out var cameraComponent))
-                entity.Components.Add(cameraComponent);
+            //if (gltfNode.Camera != null && _cameras.TryGetValue(gltfNode.Camera, out var cameraComponent))
+            //    entity.Components.Add(cameraComponent);
 
             if (gltfNode.Mesh != null && _meshs.TryGetValue(gltfNode.Mesh, out var meshAsset))
             {

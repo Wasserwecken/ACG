@@ -141,15 +141,15 @@ namespace Framework.ECS.Systems
 
                         foreach (var transformRelation in materialRelation.Value)
                         {
-                            var transform = transformRelation.Key;
+                            var primitiveTransform = transformRelation.Key;
 
                             _renderSpaceUniformBlock.Data.WorldToView = cameraTransform.WorldSpaceInverse;
                             _renderSpaceUniformBlock.Data.ViewPosition = new Vector4(cameraTransform.Position, 1);
                             _renderSpaceUniformBlock.Data.ViewPosition = new Vector4(cameraTransform.Forward, 0);
 
-                            _renderSpaceUniformBlock.Data.LocalToView = transform.WorldSpace * cameraTransform.WorldSpaceInverse;
-                            _renderSpaceUniformBlock.Data.LocalToProjection = transform.WorldSpace * cameraTransform.WorldSpaceInverse * cameraProjectionSpace;
-                            _renderSpaceUniformBlock.Data.LocalToViewRotation = transform.WorldSpace.ClearScale().ClearRotation() * cameraTransform.WorldSpaceInverse.ClearScale().ClearTranslation();
+                            _renderSpaceUniformBlock.Data.LocalToView = primitiveTransform.WorldSpace * cameraTransform.WorldSpaceInverse;
+                            _renderSpaceUniformBlock.Data.LocalToProjection = primitiveTransform.WorldSpace * cameraTransform.WorldSpaceInverse * cameraProjectionSpace;
+                            _renderSpaceUniformBlock.Data.LocalToViewRotation = primitiveTransform.WorldSpace.ClearScale().ClearRotation() * cameraTransform.WorldSpaceInverse.ClearScale().ClearTranslation();
                             
                             _renderSpaceUniformBlock.PushToGPU();
 

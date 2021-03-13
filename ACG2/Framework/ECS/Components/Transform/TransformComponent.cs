@@ -124,6 +124,16 @@ namespace Framework.ECS.Components.Transform
             }
         }
 
+        public Vector3 Right
+        {
+            get => (_localRotationSpace * ParentSpace).ClearScale().Row0.Xyz;
+        }
+
+        public Vector3 Up
+        {
+            get => (_localRotationSpace * ParentSpace).ClearScale().Row1.Xyz;
+        }
+
         private bool _isLocalOutdated;
         private bool _isWorldOutdated;
         private Matrix4 _localRotationSpace;

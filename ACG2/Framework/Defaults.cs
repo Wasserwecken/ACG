@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Textures;
@@ -131,8 +128,8 @@ namespace Framework
                 Camera = new Entity("Camera");
                 Camera.Components.Add(new TransformComponent()
                 {
-                    Position = new Vector3(1f, 1f, 3f) * 2f,
-                    Forward = new Vector3(1f, 1f, 3f)
+                    Position = new Vector3(0f, 0f, 0f),
+                    Forward = new Vector3(0f, 0f, 1f)
                 });
                 Camera.Components.Add(new PerspectiveCameraComponent()
                 {
