@@ -1,12 +1,13 @@
 ﻿using Framework.Assets.Materials;
 using Framework.Assets.Shader;
+using Framework.Assets.Textures;
 using Framework.Assets.Verticies;
 using Framework.ECS.Components.Transform;
 using System.Collections.Generic;
 
 namespace Framework.ECS.Components.Scene
 {
-    public class RenderGraphComponent : IComponent
+    public class RenderDataComponent : IComponent
     {
         public Dictionary<ShaderProgramAsset,
                 Dictionary<MaterialAsset,
@@ -14,6 +15,8 @@ namespace Framework.ECS.Components.Scene
                         List<VertexPrimitiveAsset>>>> Graph { get; set; }
 
         public List<Entity> Entities;
+        public List<TextureBaseAsset> Textures;
+
         public List<ShaderProgramAsset> Shaders;
         public List<MaterialAsset> Materials;
         public List<TransformComponent> Transforms;
@@ -22,7 +25,7 @@ namespace Framework.ECS.Components.Scene
         /// <summary>
         /// 
         /// </summary>
-        public RenderGraphComponent()
+        public RenderDataComponent()
         {
             Entities = new List<Entity>();
             Shaders = new List<ShaderProgramAsset>();

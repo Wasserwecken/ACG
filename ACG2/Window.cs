@@ -46,7 +46,7 @@ namespace Window
                 new AspectRatioComponent() { Width = _nativeSettings.Size.X, Height = _nativeSettings.Size.Y },
                 new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState },
                 new TimeComponent(),
-                new RenderGraphComponent(),
+                new RenderDataComponent(),
                 new SkyboxComponent()
                 {
                     Shader = Default.Shader.Program.Skybox,
@@ -66,9 +66,9 @@ namespace Window
             {
                 new CameraControllerSystem(),
 
-                new ParentChildSystem(),
-                new TransformSystem(),
-                new RenderGraphSystem(),
+                new EntityHierarchySystem(),
+                new TransformHierarchySystem(),
+                new RenderHierarchySystem(),
                 new PrimitiveSyncSystem(),
                 new LightSyncSystem(),
                 new RenderSystem()

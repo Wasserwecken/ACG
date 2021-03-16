@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Framework.ECS.Systems
 {
-    public class TransformSystem : ISystem
+    public class TransformHierarchySystem : ISystem
     {
         public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {

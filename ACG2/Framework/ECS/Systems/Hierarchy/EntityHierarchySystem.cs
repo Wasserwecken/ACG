@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Framework.ECS.Systems
 {
-    public class ParentChildSystem : ISystem
+    public class EntityHierarchySystem : ISystem
     {
         public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {

@@ -29,7 +29,7 @@ namespace Framework.ECS.Systems
         /// </summary>
         public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var renderGraphComponent = sceneComponents.First(f => f is RenderGraphComponent) as RenderGraphComponent;
+            var renderGraphComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
             var aspectRatioComponent = sceneComponents.First(f => f is AspectRatioComponent) as AspectRatioComponent;
 
             var time = sceneComponents.First(f => f is TimeComponent) as TimeComponent;

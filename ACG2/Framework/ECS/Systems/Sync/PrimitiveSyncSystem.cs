@@ -13,7 +13,7 @@ namespace Framework.ECS.Systems
         /// </summary>
         public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var renderGraphComponent = sceneComponents.First(f => f is RenderGraphComponent) as RenderGraphComponent;
+            var renderGraphComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
 
             foreach(var primitive in renderGraphComponent.Primitves)
             {
