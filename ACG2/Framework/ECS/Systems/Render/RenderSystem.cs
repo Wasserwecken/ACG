@@ -11,7 +11,6 @@ namespace Framework.ECS.Systems.Render
 {
     public class RenderSystem : ISystem
     {
-        private ShaderBlockSingle<ShaderTime> _timeUniformBlock;
         private ShaderBlockSingle<ShaderRenderSpace> _renderSpaceUniformBlock;
         
         /// <summary>
@@ -19,7 +18,6 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         public RenderSystem()
         {
-            _timeUniformBlock = new ShaderBlockSingle<ShaderTime>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _renderSpaceUniformBlock = new ShaderBlockSingle<ShaderRenderSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
         }
 
@@ -30,13 +28,6 @@ namespace Framework.ECS.Systems.Render
         {
             var renderGraphComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
             var aspectRatioComponent = sceneComponents.First(f => f is AspectRatioComponent) as AspectRatioComponent;
-
-            var time = sceneComponents.First(f => f is TimeComponent) as TimeComponent;
-            _timeUniformBlock.Data.Total = time.Total;
-            _timeUniformBlock.Data.TotalSin = time.TotalSin;
-            _timeUniformBlock.Data.Frame = time.DeltaFrame;
-            _timeUniformBlock.Data.Fixed = time.DeltaFixed;
-            _timeUniformBlock.PushToGPU();
 
             var cameras = entities.Where(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent)));
             foreach(var cameraEntity in cameras)
