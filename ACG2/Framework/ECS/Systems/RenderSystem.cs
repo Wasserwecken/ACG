@@ -6,9 +6,6 @@ using OpenTK.Mathematics;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
-using Framework.Assets.Shader;
-using Framework.Assets.Materials;
-using Framework.Assets.Verticies;
 using Framework.Assets.Shader.Block;
 
 namespace Framework.ECS.Systems
@@ -32,6 +29,7 @@ namespace Framework.ECS.Systems
         /// </summary>
         public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
+            var renderGraphComponent = sceneComponents.First(f => f is RenderGraphComponent) as RenderGraphComponent;
             var aspectRatioComponent = sceneComponents.First(f => f is AspectRatioComponent) as AspectRatioComponent;
 
             var time = sceneComponents.First(f => f is TimeComponent) as TimeComponent;
@@ -40,41 +38,6 @@ namespace Framework.ECS.Systems
             _timeUniformBlock.Data.Frame = time.DeltaFrame;
             _timeUniformBlock.Data.Fixed = time.DeltaFixed;
             _timeUniformBlock.PushToGPU();
-
-
-            var meshes = entities.Where(f => f.HasAnyComponents(typeof(MeshRendererComponent)));
-            var renderGraph = new
-                Dictionary<ShaderProgramAsset,
-                    Dictionary<MaterialAsset,
-                        Dictionary<TransformComponent,
-                            List<VertexPrimitiveAsset>>>>();
-
-            foreach(var meshEntity in meshes)
-            {
-                var mesh = meshEntity.GetComponent<MeshRendererComponent>();
-                var transform = meshEntity.GetComponent<TransformComponent>();
-
-                for (int i = 0; i < mesh.Mesh.Primitives.Count; i++)
-                {
-                    var shader = mesh.Shaders[mesh.Shaders.Count > i ? i : 0];
-                    var material = mesh.Materials[mesh.Materials.Count > i ? i : 0];
-                    var primitive = mesh.Mesh.Primitives[i];
-
-                    if (primitive.Handle <= 0) primitive.PushToGPU();
-
-                    if (!renderGraph.ContainsKey(shader))
-                        renderGraph.Add(shader, new Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>());
-                    
-                    if (!renderGraph[shader].ContainsKey(material))
-                        renderGraph[shader].Add(material, new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>());
-                    
-                    if (!renderGraph[shader][material].ContainsKey(transform))
-                        renderGraph[shader][material].Add(transform, new List<VertexPrimitiveAsset>());
-
-                    renderGraph[shader][material][transform].Add(primitive);
-                }
-            }
-
 
             var cameras = entities.Where(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent)));
             foreach(var cameraEntity in cameras)
@@ -90,8 +53,8 @@ namespace Framework.ECS.Systems
 
                 GL.ClearColor(cameraData.ClearColor.X, cameraData.ClearColor.Y, cameraData.ClearColor.Z, cameraData.ClearColor.W);
                 GL.Clear(cameraData.ClearMask);
-                                
-                foreach(var shaderRelation in renderGraph)
+
+                foreach(var shaderRelation in renderGraphComponent.Graph)
                 {
                     var shader = shaderRelation.Key;
                     shader.Use();
@@ -133,9 +96,9 @@ namespace Framework.ECS.Systems
                             GL.ActiveTexture(TextureUnit.Texture0 + uniformTexture.Layout);
 
                             if (uniformTexture.Name.ToLower().Contains("normal"))
-                                GL.BindTexture(Defaults.Texture.Normal.Target, Defaults.Texture.Normal.Handle);
+                                GL.BindTexture(Default.Texture.DefaultNormal.Target, Default.Texture.DefaultNormal.Handle);
                             else
-                                GL.BindTexture(Defaults.Texture.White.Target, Defaults.Texture.White.Handle);
+                                GL.BindTexture(Default.Texture.DefaultWhite.Target, Default.Texture.DefaultWhite.Handle);
                         }
 
 

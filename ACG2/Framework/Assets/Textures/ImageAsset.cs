@@ -12,7 +12,7 @@ namespace Framework.Assets.Textures
         public PixelType PixelType { get; set; }
         public PixelFormat Format { get; set; }
         public PixelInternalFormat InternalFormat { get; set; }
-        public MagickImage SourceImage;
+        public MagickImage SourceImage { get; set; }
 
         /// <summary>
         /// 
@@ -25,8 +25,51 @@ namespace Framework.Assets.Textures
             Height = 1;
 
             PixelType = PixelType.UnsignedShort;
-            Format = PixelFormat.Rgb;
+            Format = PixelFormat.Rgba;
             InternalFormat = (PixelInternalFormat)Format;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ImageAsset(string name, MagickImage sourceImage)
+        {
+            Name = name;
+            SourceImage = sourceImage;
+
+            UpdateImageData();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void UpdateImageData()
+        {
+            if (SourceImage != null)
+            {
+                PixelType = PixelType.UnsignedShort;
+
+                Width = SourceImage.Width;
+                Height = SourceImage.Height;
+                Data = SourceImage.GetPixels().ToArray();
+
+                switch (SourceImage.ChannelCount)
+                {
+                    case 1:
+                        Format = PixelFormat.Red;
+                        break;
+                    case 2:
+                        Format = PixelFormat.Rg;
+                        break;
+                    case 3:
+                        Format = PixelFormat.Rgb;
+                        break;
+                    case 4:
+                        Format = PixelFormat.Rgba;
+                        break;
+                }
+                InternalFormat = (PixelInternalFormat)Format;
+            }
         }
     }
 }

@@ -45,7 +45,14 @@ namespace Window
             {
                 new AspectRatioComponent() { Width = _nativeSettings.Size.X, Height = _nativeSettings.Size.Y },
                 new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState },
-                new TimeComponent()
+                new TimeComponent(),
+                new RenderGraphComponent(),
+                new SkyboxComponent()
+                {
+                    Shader = Default.Shader.Program.Skybox,
+                    Material = Default.Material.Skybox,
+                    Mesh = Default.Vertex.Mesh.Cube
+                }
             };
 
             _totalWatch = new Stopwatch();
@@ -62,6 +69,7 @@ namespace Window
                 new ParentChildSystem(),
                 new TransformSystem(),
                 new LightSystem(),
+                new RenderGraphSystem(),
                 new RenderSystem()
             };
         }
@@ -79,16 +87,16 @@ namespace Window
             Console.WriteLine(GL.GetError());
 
             //var scenePath = "./Assets/foo.glb";
-            //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
-            var scenePath = "./Assets/Samples/Buggy/glTF-Binary/Buggy.glb";
+            var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
+            //var scenePath = "./Assets/Samples/Buggy/glTF-Binary/Buggy.glb";
             //var scenePath = "./Assets/Samples/TextureCoordinateTest/glTF-Binary/TextureCoordinateTest.glb";
             //var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
 
 
-            _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Defaults.Shader.Program.MeshUnlit));
+            _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Default.Shader.Program.MeshUnlit));
             if (!_sceneEntities.Any(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent))))
             {
-                var camera = Defaults.Entities.Camera;
+                var camera = Default.Entity.Camera;
                 camera.Components.Add(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
                 _sceneEntities.Add(camera);
             }

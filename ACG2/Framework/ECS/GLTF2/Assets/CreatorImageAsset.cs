@@ -1,11 +1,5 @@
 ﻿using Framework.Assets.Textures;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenTK.Mathematics;
 using SharpGLTF.Schema2;
-using OpenTK.Graphics.OpenGL;
-using Framework.Assets.Materials;
 using ImageMagick;
 
 namespace Framework.ECS.GLTF2.Assets
@@ -14,24 +8,10 @@ namespace Framework.ECS.GLTF2.Assets
     {
         public static ImageAsset Create(Image gltfImage)
         {
-            var image = new ImageAsset(gltfImage.Name);
-            image.SourceImage = new MagickImage(gltfImage.Content.Content.ToArray());
-            image.Width = image.SourceImage.Width;
-            image.Height = image.SourceImage.Height;
-            image.Data = image.SourceImage.GetPixels().ToArray();
-
-            if (image.SourceImage.ChannelCount == 4)
-            {
-                image.Format = PixelFormat.Rgba;
-                image.InternalFormat = PixelInternalFormat.Rgba;
-            }
+            if (gltfImage.Content.SourcePath != null)
+                return Helper.LoadImage(gltfImage.Content.SourcePath);
             else
-            {
-                image.Format = PixelFormat.Rgb;
-                image.InternalFormat = PixelInternalFormat.Rgb;
-            }
-
-            return image;
+                return new ImageAsset(gltfImage.Name, new MagickImage(gltfImage.Content.Content.ToArray()));
         }
     }
 }

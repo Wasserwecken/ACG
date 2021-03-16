@@ -6,7 +6,7 @@ using OpenTK.Mathematics;
 
 namespace Framework.Assets.Materials
 {
-    [DebuggerDisplay("Name: {Name}, Uniforms: {UniformFloats.Count + UniformVecs.Count + UniformMats.Count}")]
+    [DebuggerDisplay("Name: {Name}, Uniforms: {_uniformCount}")]
     public class MaterialAsset
     {
         public string Name { get; set; }
@@ -23,6 +23,12 @@ namespace Framework.Assets.Materials
         public Dictionary<string, Vector4> UniformVecs;
         public Dictionary<string, Matrix4> UniformMats;
         public Dictionary<string, TextureBaseAsset> UniformTextures;
+
+        private int _uniformCount =>
+            UniformFloats.Count +
+            UniformVecs.Count +
+            UniformMats.Count +
+            UniformTextures.Count;
 
         /// <summary>
         /// 
@@ -82,12 +88,12 @@ namespace Framework.Assets.Materials
         /// <summary>
         /// 
         /// </summary>
-        private void SetUniform<TValue>(string name, TValue value, IDictionary<string, TValue> uniforms)
+        private void SetUniform<TValue>(string name, TValue value, IDictionary<string, TValue> uniformList)
         {
-            if (uniforms.ContainsKey(name))
-                uniforms[name] = value;
+            if (uniformList.ContainsKey(name))
+                uniformList[name] = value;
             else
-                uniforms.Add(name, value);
+                uniformList.Add(name, value);
         }
     }
 }

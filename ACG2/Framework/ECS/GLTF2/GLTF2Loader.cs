@@ -95,12 +95,12 @@ namespace Framework.ECS.GLTF2
 
             if (gltfNode.Mesh != null && _meshs.TryGetValue(gltfNode.Mesh, out var meshAsset))
             {
-                var renderer = new MeshRendererComponent() { Mesh = meshAsset };
+                var renderer = new MeshComponent() { Mesh = meshAsset };
                 renderer.Shaders.Add(_defaultShader);
                 foreach (var gltfPrimitive in gltfNode.Mesh.Primitives)
                 {
                     if (gltfPrimitive.Material == null)
-                        renderer.Materials.Add(Defaults.Materials.PBR);
+                        renderer.Materials.Add(Default.Material.PBR);
                     else if (_materials.TryGetValue(gltfPrimitive.Material, out var materialAsset))
                         renderer.Materials.Add(materialAsset);
                 }

@@ -30,6 +30,15 @@ namespace Framework.ECS
         /// <summary>
         /// 
         /// </summary>
+        public Entity(string name, params IComponent[] components)
+        {
+            Name = name;
+            Components = new List<IComponent>(components);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public bool TryGetComponent<TComponentType>(out TComponentType component) where TComponentType : IComponent
         {
             foreach (var attachedComponent in Components)

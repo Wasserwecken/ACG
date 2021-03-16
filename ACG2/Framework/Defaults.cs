@@ -3,7 +3,6 @@ using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Textures;
 using Framework.Assets.Verticies;
-using Framework.ECS;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2.Assets;
@@ -13,7 +12,7 @@ using SharpGLTF.Schema2;
 
 namespace Framework
 {
-    public static class Defaults
+    public static class Default
     {
         public static class Shader
         {
@@ -40,12 +39,15 @@ namespace Framework
 
             public static class Program
             {
+                public static ShaderProgramAsset Skybox { get; }
                 public static ShaderProgramAsset MeshUnlit { get; }
+
                 public static ShaderProgramAsset MeshPBR { get; }
                 public static ShaderProgramAsset MeshBlinnPhong { get; }
 
                 static Program()
                 {
+                    Skybox = new ShaderProgramAsset("Skybox", Source.VertexSkybox, Source.FragmentSkybox);
                     MeshUnlit = new ShaderProgramAsset("MeshUnlit", Source.VertexMesh, Source.FragmentUnlit);
                     MeshPBR = new ShaderProgramAsset("MeshLitPBR", Source.VertexMesh, Source.FragmentLitPBR);
                     MeshBlinnPhong = new ShaderProgramAsset("MeshBlinnPhong", Source.VertexMesh, Source.FragmentBlinnPhong);
@@ -55,32 +57,51 @@ namespace Framework
 
         public static class Texture
         {
-            public static Texture2DAsset White { get; }
-            public static Texture2DAsset Gray { get; }
-            public static Texture2DAsset Black { get; }
-            public static Texture2DAsset Normal { get; }
+            public static Texture2DAsset DefaultWhite { get; }
+            public static Texture2DAsset DefaultGray { get; }
+            public static Texture2DAsset DefaultBlack { get; }
+            public static Texture2DAsset DefaultNormal { get; }
+            public static TextureCubeAsset SkyboxCoast { get; }
 
             static Texture()
             {
-                White = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.White.ToShort() } };
-                Gray = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Gray.ToShort() } };
-                Black = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Black.ToShort() } };
-                Normal = new Texture2DAsset("Default") { Image = new ImageAsset("Normal") { Data = Color4.Blue.ToShort() } };
+                DefaultWhite = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.White.ToShort() } };
+                DefaultWhite.PushToGPU();
+                DefaultGray = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Gray.ToShort() } };
+                DefaultGray.PushToGPU();
+                DefaultBlack = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Black.ToShort() } };
+                DefaultBlack.PushToGPU();
+                DefaultNormal = new Texture2DAsset("Default") { Image = new ImageAsset("Normal") { Data = Color4.Blue.ToShort() } };
+                DefaultNormal.PushToGPU();
 
-                White.PushToGPU();
-                Gray.PushToGPU();
-                Black.PushToGPU();
-                Normal.PushToGPU();
+                SkyboxCoast = new TextureCubeAsset("DefaultCoast")
+                {
+                    Images = new ImageAsset[]
+                    {
+                        Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/right.jpg"),
+                        Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/left.jpg"),
+                        Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/top.jpg"),
+                        Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/bottom.jpg"),
+                        Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/back.jpg"),
+                        Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/front.jpg"),
+                    }
+                };
+                SkyboxCoast.PushToGPU();
             }
         }
 
-        public static class Materials
+        public static class Material
         {
+            public static MaterialAsset Skybox { get; }
             public static MaterialAsset PBR { get; }
 
-            static Materials()
+            static Material()
             {
-                PBR = new MaterialAsset("Default");
+                Skybox = new MaterialAsset("Default skybox");
+                Skybox.CullingMode = CullFaceMode.Front;
+                Skybox.SetUniform("SkyMap", Texture.SkyboxCoast);
+
+                PBR = new MaterialAsset("Default PBR");
                 PBR.SetUniform("BaseColor", new Vector4(0.8f, 0.8f, 0.9f, 1.0f));
                 PBR.SetUniform("MREO", new Vector4(0.0f, 0.5f, 0.0f, 1.0f));
                 PBR.SetUniform("Normal", 1f);
@@ -89,13 +110,13 @@ namespace Framework
 
         public static class Vertex
         {
-            public static class Primitive
+            public static class Mesh
             {
                 public static MeshAsset Plane { get; }
                 public static MeshAsset Cube { get; }
                 public static MeshAsset Sphere { get; }
 
-                static Primitive()
+                static Mesh()
                 {
                     var gltf = ModelRoot.Load(Path.Combine(Definitions.Directories.DefaultPrimitives, "primitives.glb"));
                     foreach(var gltfMesh in gltf.LogicalMeshes)
@@ -119,26 +140,23 @@ namespace Framework
             }
         }
 
-        public static class Entities
+        public static class Entity
         {
-            public static Entity Camera { get; }
+            public static ECS.Entity Camera { get; }
 
-            static Entities()
+            static Entity()
             {
-                Camera = new Entity("Camera");
-                Camera.Components.Add(new TransformComponent()
-                {
-                    Position = new Vector3(0f, 0f, 0f),
-                    Forward = new Vector3(0f, 0f, 1f)
-                });
-                Camera.Components.Add(new PerspectiveCameraComponent()
-                {
-                    ClearColor = new Vector4(0.2f),
-                    ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit,
-                    FarClipping = 100f,
-                    NearClipping = 0.01f,
-                    FieldOfView = 90f
-                });
+                Camera = new ECS.Entity("Camera",
+                    new TransformComponent(),
+                    new PerspectiveCameraComponent()
+                    {
+                        ClearColor = new Vector4(0.2f),
+                        ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit,
+                        FarClipping = 100f,
+                        NearClipping = 0.01f,
+                        FieldOfView = 90f
+                    }
+                );
             }
         }
     }

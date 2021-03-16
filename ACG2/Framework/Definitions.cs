@@ -10,6 +10,8 @@ namespace Framework
             public const string DefaultAssets = AssetPath + "Defaults/";
             public const string DefaultShader = DefaultAssets + "Shader/";
             public const string DefaultPrimitives = DefaultAssets + "Primitives/";
+            public const string DefaultImages = DefaultAssets + "Images/";
+            public const string DefaultSkyboxes = DefaultImages + "Skyboxes/";
         }
 
         public static class Buffer
