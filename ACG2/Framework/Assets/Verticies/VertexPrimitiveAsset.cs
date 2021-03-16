@@ -39,40 +39,15 @@ namespace Framework.Assets.Verticies
         /// <summary>
         /// 
         /// </summary>
-        public void UpdateBufferData()
-        {
-            ArrayBuffer.CreateBufferData();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void PushToGPU()
-        {
-            if (Handle <= 0)
-                Handle = GL.GenVertexArray();
-
-            GL.BindVertexArray(Handle);
-
-            ArrayBuffer.PushToGPU();
-            if (IndicieBuffer != null)
-                IndicieBuffer.PushToGPU();
-
-            GL.BindVertexArray(0);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         public void Draw()
         {
             GL.BindVertexArray(Handle);
             GL.PolygonMode(MaterialFace.FrontAndBack, Mode);
 
             if (IndicieBuffer != null)
-                GL.DrawElements(Type, IndicieBuffer.ElementCount, DrawElementsType.UnsignedInt, 0);
-            else
-                GL.DrawArrays(Type, 0, ArrayBuffer.ElementCount);
+                GL.DrawElements(Type, IndicieBuffer.Indicies.Length, DrawElementsType.UnsignedInt, 0);
+            //else
+            //    GL.DrawArrays(Type, 0, ArrayBuffer.ElementCount);
         }
     }
 }

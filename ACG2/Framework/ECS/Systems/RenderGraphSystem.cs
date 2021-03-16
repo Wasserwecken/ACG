@@ -36,8 +36,6 @@ namespace Framework.ECS.Systems
                     var material = mesh.Materials[mesh.Materials.Count > i ? i : 0];
                     var primitive = mesh.Mesh.Primitives[i];
 
-                    if (primitive.Handle <= 0) primitive.PushToGPU();
-
                     if (!graphComponent.Graph.ContainsKey(shader))
                     {
                         graphComponent.Graph.Add(shader, new Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>());

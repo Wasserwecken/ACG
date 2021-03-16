@@ -10,13 +10,13 @@ using OpenTK.Mathematics;
 
 namespace Framework.ECS.Systems
 {
-    public class LightSystem : ISystem
+    public class LightSyncSystem : ISystem
     {
         ShaderBlockArray<ShaderDirectionalLight> _directionalLightBlock;
         ShaderBlockArray<ShaderPointLight> _pointLightBlock;
         ShaderBlockArray<ShaderSpotLight> _spotLightBlock;
 
-        public LightSystem()
+        public LightSyncSystem()
         {
             _directionalLightBlock = new ShaderBlockArray<ShaderDirectionalLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _pointLightBlock = new ShaderBlockArray<ShaderPointLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);

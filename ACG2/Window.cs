@@ -68,8 +68,9 @@ namespace Window
 
                 new ParentChildSystem(),
                 new TransformSystem(),
-                new LightSystem(),
                 new RenderGraphSystem(),
+                new PrimitiveSyncSystem(),
+                new LightSyncSystem(),
                 new RenderSystem()
             };
         }

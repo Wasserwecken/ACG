@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System.Diagnostics;
+using System.Linq;
 using OpenTK.Graphics.OpenGL;
 
 namespace Framework.Assets.Verticies
 {
+    [DebuggerDisplay("Name: {Name}, Handle: {Handle}, ElementSize: {ElementSize}, UsageHint: {UsageHint}, ElementCount: {Attributes?[0]?.ElementCount}")]
     public class BufferArrayAsset : BufferBaseAsset
     {
         public VertexAttributeAsset[] Attributes { get; }
@@ -20,41 +22,6 @@ namespace Framework.Assets.Verticies
             : base(usageHint, BufferTarget.ArrayBuffer, "VertexArray", attributes.Sum(a => a.ElementSize))
         {
             Attributes = attributes;
-            CreateBufferData();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void CreateBufferData()
-        {
-            Data = new byte[Attributes[0].ElementCount * ElementSize];
-            for (int i = 0; i < ElementCount; i++)
-            {
-                var bufferIndex = i * ElementSize;
-                foreach (var attribute in Attributes)
-                {
-                    var attributeIndex = i * attribute.ElementSize;
-                    System.Buffer.BlockCopy(attribute.Data, attributeIndex, Data, bufferIndex, attribute.ElementSize);
-                    bufferIndex += attribute.ElementSize;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public override void PushToGPU()
-        {
-            base.PushToGPU();
-
-            var offset = 0;
-            foreach (var attribute in Attributes)
-            {
-                GL.VertexAttribPointer(attribute.Layout, attribute.Dimension, attribute.PointerType, attribute.IsNormalized, ElementSize, offset);
-                GL.EnableVertexAttribArray(attribute.Layout);
-                offset += attribute.ElementSize;
-            }
         }
     }
 }
