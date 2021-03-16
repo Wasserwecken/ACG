@@ -15,20 +15,20 @@ namespace Framework.ECS.Systems
         /// </summary>
         public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var dataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
-            dataComponent.Graph.Clear();
-            dataComponent.Entities.Clear();
-            dataComponent.Shaders.Clear();
-            dataComponent.Materials.Clear();
-            dataComponent.Transforms.Clear();
-            dataComponent.Primitves.Clear();
+            var renderDataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
+            renderDataComponent.Graph.Clear();
+            renderDataComponent.Entities.Clear();
+            renderDataComponent.Shaders.Clear();
+            renderDataComponent.Materials.Clear();
+            renderDataComponent.Transforms.Clear();
+            renderDataComponent.Primitves.Clear();
 
             var meshes = entities.Where(f => f.HasAnyComponents(typeof(MeshComponent)));
             foreach (var meshEntity in meshes)
             {
                 var mesh = meshEntity.GetComponent<MeshComponent>();
                 var transform = meshEntity.GetComponent<TransformComponent>();
-                dataComponent.Entities.Add(meshEntity);
+                renderDataComponent.Entities.Add(meshEntity);
 
                 for (int i = 0; i < mesh.Mesh.Primitives.Count; i++)
                 {
@@ -36,26 +36,26 @@ namespace Framework.ECS.Systems
                     var material = mesh.Materials[mesh.Materials.Count > i ? i : 0];
                     var primitive = mesh.Mesh.Primitives[i];
 
-                    if (!dataComponent.Graph.ContainsKey(shader))
+                    if (!renderDataComponent.Graph.ContainsKey(shader))
                     {
-                        dataComponent.Graph.Add(shader, new Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>());
-                        dataComponent.Shaders.Add(shader);
+                        renderDataComponent.Graph.Add(shader, new Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>());
+                        renderDataComponent.Shaders.Add(shader);
                     }
 
-                    if (!dataComponent.Graph[shader].ContainsKey(material))
+                    if (!renderDataComponent.Graph[shader].ContainsKey(material))
                     {
-                        dataComponent.Graph[shader].Add(material, new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>());
-                        dataComponent.Materials.Add(material);
+                        renderDataComponent.Graph[shader].Add(material, new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>());
+                        renderDataComponent.Materials.Add(material);
                     }
 
-                    if (!dataComponent.Graph[shader][material].ContainsKey(transform))
+                    if (!renderDataComponent.Graph[shader][material].ContainsKey(transform))
                     {
-                        dataComponent.Graph[shader][material].Add(transform, new List<VertexPrimitiveAsset>());
-                        dataComponent.Transforms.Add(transform);
+                        renderDataComponent.Graph[shader][material].Add(transform, new List<VertexPrimitiveAsset>());
+                        renderDataComponent.Transforms.Add(transform);
                     }
 
-                    dataComponent.Graph[shader][material][transform].Add(primitive);
-                    dataComponent.Primitves.Add(primitive);
+                    renderDataComponent.Graph[shader][material][transform].Add(primitive);
+                    renderDataComponent.Primitves.Add(primitive);
                 }
             }
         }

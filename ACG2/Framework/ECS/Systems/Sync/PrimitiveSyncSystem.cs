@@ -13,9 +13,9 @@ namespace Framework.ECS.Systems
         /// </summary>
         public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var renderGraphComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
+            var renderDataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
 
-            foreach(var primitive in renderGraphComponent.Primitves)
+            foreach(var primitive in renderDataComponent.Primitves)
             {
                 if (primitive.Handle <= 0)
                 {

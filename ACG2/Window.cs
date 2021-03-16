@@ -69,8 +69,11 @@ namespace Window
                 new EntityHierarchySystem(),
                 new TransformHierarchySystem(),
                 new RenderHierarchySystem(),
+
                 new PrimitiveSyncSystem(),
+                new TextureSyncSystem(),
                 new LightSyncSystem(),
+
                 new RenderSystem()
             };
         }

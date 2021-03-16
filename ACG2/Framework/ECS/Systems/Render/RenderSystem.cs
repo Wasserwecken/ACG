@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -82,8 +81,6 @@ namespace Framework.ECS.Systems
                         foreach (var uniform in material.UniformTextures)
                             if (shader.IdentifierToLayout.TryGetValue(uniform.Key, out var layout))
                             {
-                                if (uniform.Value.Handle <= 0) uniform.Value.PushToGPU();
-
                                 GL.Uniform1(layout, layout);
                                 GL.ActiveTexture(TextureUnit.Texture0 + layout);
                                 GL.BindTexture(uniform.Value.Target, uniform.Value.Handle);

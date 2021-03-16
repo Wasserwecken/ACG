@@ -66,13 +66,9 @@ namespace Framework
             static Texture()
             {
                 DefaultWhite = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.White.ToShort() } };
-                DefaultWhite.PushToGPU();
                 DefaultGray = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Gray.ToShort() } };
-                DefaultGray.PushToGPU();
                 DefaultBlack = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Black.ToShort() } };
-                DefaultBlack.PushToGPU();
                 DefaultNormal = new Texture2DAsset("Default") { Image = new ImageAsset("Normal") { Data = Color4.Blue.ToShort() } };
-                DefaultNormal.PushToGPU();
 
                 SkyboxCoast = new TextureCubeAsset("DefaultCoast")
                 {
@@ -86,7 +82,6 @@ namespace Framework
                         Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/front.jpg"),
                     }
                 };
-                SkyboxCoast.PushToGPU();
             }
         }
 
