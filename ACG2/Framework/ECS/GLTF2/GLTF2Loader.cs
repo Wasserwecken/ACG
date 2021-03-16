@@ -72,7 +72,7 @@ namespace Framework.ECS.GLTF2
             {
                 childEntity.Components.Add(new ChildComponent() { Parent = parentEntity });
 
-                if (parentEntity.TryGetComponent<ParentComponent>(out var childrenComponent))
+                if (parentEntity.Components.Has<ParentComponent>(out var childrenComponent))
                     childrenComponent.Children.Add(childEntity);
                 else
                     parentEntity.Components.Add(new ParentComponent() { Children = new List<Entity>() { childEntity } });

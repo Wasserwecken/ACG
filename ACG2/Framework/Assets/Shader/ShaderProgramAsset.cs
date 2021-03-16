@@ -34,17 +34,6 @@ namespace Framework.Assets.Shader
         /// <summary>
         /// 
         /// </summary>
-        public void Use()
-        {
-            GL.UseProgram(Handle);
-            foreach (var block in ShaderBlockRegister.Blocks)
-                if (IdentifierToLayout.TryGetValue(block.Name, out var blockLayout))
-                    GL.BindBufferBase(block.Target, blockLayout, block.Handle);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         private static int CreateProgramHandle(ShaderSourceAsset[] sources)
         {
             var handle = GL.CreateProgram();

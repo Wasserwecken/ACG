@@ -19,7 +19,7 @@ namespace Framework.ECS.Systems.Hierarchy
                 if (childComponent.Parent == null)
                     childEntity.Components.Remove(childComponent);
 
-                else if (childComponent.Parent.TryGetComponent<ParentComponent>(out var parentComponent))
+                else if (childComponent.Parent.Components.Has<ParentComponent>(out var parentComponent))
                     parentComponent.Children.Add(childEntity);
 
                 else
@@ -28,7 +28,7 @@ namespace Framework.ECS.Systems.Hierarchy
 
             foreach(var parentEntity in parentEntities)
             {
-                if (parentEntity.TryGetComponent<ParentComponent>(out var parentComponent))
+                if (parentEntity.Components.Has<ParentComponent>(out var parentComponent))
                     if (parentComponent.Children.Count == 0)
                         parentEntity.Components.Remove(parentComponent);
             }

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Framework.Assets.Shader.Block.Data;
 using OpenTK.Graphics.OpenGL;
 
 namespace Framework.Assets.Shader.Block

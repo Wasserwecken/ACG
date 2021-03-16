@@ -14,10 +14,10 @@ namespace Framework.ECS.Systems.Sync
         /// </summary>
         public TextureSyncSystem()
         {
-            if (Default.Texture.White.Handle <= 0) PushTexture(Default.Texture.White);
-            if (Default.Texture.Gray.Handle <= 0) PushTexture(Default.Texture.Gray);
-            if (Default.Texture.Black.Handle <= 0) PushTexture(Default.Texture.Black);
-            if (Default.Texture.Normal.Handle <= 0) PushTexture(Default.Texture.Normal);
+            if (Default.Texture.White.Handle <= 0) Push(Default.Texture.White);
+            if (Default.Texture.Gray.Handle <= 0) Push(Default.Texture.Gray);
+            if (Default.Texture.Black.Handle <= 0) Push(Default.Texture.Black);
+            if (Default.Texture.Normal.Handle <= 0) Push(Default.Texture.Normal);
         }
 
         /// <summary>
@@ -32,19 +32,19 @@ namespace Framework.ECS.Systems.Sync
                 foreach (var textureUniform in material.UniformTextures)
                     textures.Add(textureUniform.Value);
 
-            foreach (var skyboxComponent in sceneComponents.Where(f => f is SkyboxComponent))
-                foreach (var textureUniform in ((SkyboxComponent)skyboxComponent).Material.UniformTextures)
+            if (sceneComponents.Has<SkyboxComponent>(out var skyboxComponent))
+                foreach (var textureUniform in skyboxComponent.Material.UniformTextures)
                     textures.Add(textureUniform.Value);
 
             foreach (var texture in textures)
                 if (texture.Handle <= 0)
-                    PushTexture(texture);
+                    Push(texture);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private void PushTexture(TextureBaseAsset texture)
+        private void Push(TextureBaseAsset texture)
         {
             texture.Handle = GL.GenTexture();
             GL.BindTexture(texture.Target, texture.Handle);

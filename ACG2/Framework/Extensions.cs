@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Framework.ECS;
 using OpenTK.Mathematics;
 
 namespace Framework
@@ -90,6 +92,24 @@ namespace Framework
             return vector * MathF.Cos(angle)
                 + Vector3.Cross(vector, axis) * MathF.Sin(angle)
                 + Vector3.Dot(vector, axis) * axis * (1 - MathF.Cos(angle));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static bool Has<TComponent>(this IEnumerable<IComponent> components, out TComponent result) where TComponent : IComponent
+        {
+            foreach (var component in components)
+            {
+                if (component is TComponent)
+                {
+                    result = (TComponent)component;
+                    return true;
+                }
+            }
+            
+            result = default;
+            return false;
         }
     }
 }

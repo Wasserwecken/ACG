@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Framework
+﻿namespace Framework.Assets.Shader.Block.Data
 {
     public struct ShaderTime
     {

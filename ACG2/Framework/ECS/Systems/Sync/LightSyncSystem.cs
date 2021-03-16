@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Framework.Assets.Shader.Block;
+using Framework.Assets.Shader.Block.Data;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Transform;
 using OpenTK.Graphics.OpenGL;

@@ -38,7 +38,7 @@ namespace Framework.Assets.Materials
             Name = name;
 
             IsTransparent = false;
-            IsCulling = true;
+            IsCulling = false;
             IsDepthTesting = true;
             Model = ShadingModel.Smooth;
             CullingMode = CullFaceMode.Back;
@@ -50,34 +50,6 @@ namespace Framework.Assets.Materials
             UniformVecs = new Dictionary<string, Vector4>();
             UniformMats = new Dictionary<string, Matrix4>();
             UniformTextures = new Dictionary<string, TextureBaseAsset>();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Use()
-        {
-            GL.ShadeModel(Model);
-            GL.FrontFace(FaceDirection);
-
-            if (IsDepthTesting)
-                GL.Enable(EnableCap.DepthTest);
-
-            if (IsCulling)
-            {
-                GL.Enable(EnableCap.CullFace);
-                GL.CullFace(CullingMode);
-            }
-            else
-                GL.Disable(EnableCap.CullFace);
-
-            if (IsTransparent)
-            {
-                GL.Enable(EnableCap.Blend);
-                GL.BlendFunc(SourceBlend, DestinationBlend);
-            }
-            else
-                GL.Disable(EnableCap.Blend);
         }
 
         public void SetUniform(string name, float value) => SetUniform(name, value, UniformFloats);

@@ -39,24 +39,6 @@ namespace Framework.ECS
         /// <summary>
         /// 
         /// </summary>
-        public bool TryGetComponent<TComponentType>(out TComponentType component) where TComponentType : IComponent
-        {
-            foreach (var attachedComponent in Components)
-            {
-                if (attachedComponent is TComponentType castedComponent)
-                {
-                    component = castedComponent;
-                    return true;
-                }
-            }
-
-            component = default;
-            return false;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         public bool HasComponent<TType>()
         {
             foreach (var component in Components)

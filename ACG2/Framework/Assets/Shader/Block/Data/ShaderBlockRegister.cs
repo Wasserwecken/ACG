@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Framework.Assets.Shader.Block
+namespace Framework.Assets.Shader.Block.Data
 {
     public static class ShaderBlockRegister
     {

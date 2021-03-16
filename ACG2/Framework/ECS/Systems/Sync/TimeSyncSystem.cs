@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 using System.Linq;
 using Framework.ECS.Components.Scene;
+using Framework.Assets.Shader.Block.Data;
 
 namespace Framework.ECS.Systems.Sync
 {

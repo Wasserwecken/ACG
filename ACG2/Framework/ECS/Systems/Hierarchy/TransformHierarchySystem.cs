@@ -16,12 +16,12 @@ namespace Framework.ECS.Systems.Hierarchy
 
         private void PassTransformSpace(Entity entity)
         {
-            if (entity.TryGetComponent<TransformComponent>(out var transformComponent) &&
-                entity.TryGetComponent<ParentComponent>(out var parentComponent))
+            if (entity.Components.Has<TransformComponent>(out var transformComponent) &&
+                entity.Components.Has<ParentComponent>(out var parentComponent))
             {
                 foreach(var child in parentComponent.Children)
                 {
-                    if (child.TryGetComponent<TransformComponent>(out var childTransformComponent))
+                    if (child.Components.Has<TransformComponent>(out var childTransformComponent))
                         childTransformComponent.ParentSpace = transformComponent.WorldSpace;
 
                     PassTransformSpace(child);

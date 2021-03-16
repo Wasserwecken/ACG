@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using Framework.Assets.Verticies;
+using Framework.ECS.Components.Render;
 
 namespace Framework.ECS.Systems.Sync
 {
@@ -16,39 +17,48 @@ namespace Framework.ECS.Systems.Sync
             var renderDataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
 
             foreach(var primitive in renderDataComponent.Primitves)
-            {
                 if (primitive.Handle <= 0)
-                {
-                    // creating buffer bytes
-                    var arrayBuffer = CreateBufferArrayData(primitive.ArrayBuffer);
-                    var indicieBuffer = CreateBufferIndicieData(primitive.IndicieBuffer);
-                    
-                    // GPU buffer reservation
-                    primitive.Handle = GL.GenVertexArray();
-                    primitive.ArrayBuffer.Handle = GL.GenBuffer();
-                    
-                    // send arraybuffer to GPU
-                    GL.BindVertexArray(primitive.Handle);
-                    GL.BindBuffer(primitive.ArrayBuffer.Target, primitive.ArrayBuffer.Handle);
-                    GL.BufferData(primitive.ArrayBuffer.Target, arrayBuffer.Length, arrayBuffer, primitive.ArrayBuffer.UsageHint);
+                    Push(primitive);
 
-                    // send attribute infos to GPU
-                    var offset = 0;
-                    foreach (var attribute in primitive.ArrayBuffer.Attributes)
-                    {
-                        GL.VertexAttribPointer(attribute.Layout, attribute.Dimension, attribute.PointerType, attribute.IsNormalized, primitive.ArrayBuffer.ElementSize, offset);
-                        GL.EnableVertexAttribArray(attribute.Layout);
-                        offset += attribute.ElementSize;
-                    }
+            if (sceneComponents.Has<SkyboxComponent>(out var skyboxComponent))
+                foreach (var primitive in skyboxComponent.Mesh.Primitives)
+                    if (primitive.Handle <= 0)
+                        Push(primitive);
+        }
 
-                    // send indicie info to GPU
-                    if (primitive.IndicieBuffer != null)
-                    {
-                        primitive.IndicieBuffer.Handle = GL.GenBuffer();
-                        GL.BindBuffer(primitive.IndicieBuffer.Target, primitive.IndicieBuffer.Handle);
-                        GL.BufferData(primitive.IndicieBuffer.Target, indicieBuffer.Length, indicieBuffer, primitive.IndicieBuffer.UsageHint);
-                    }
-                }
+        /// <summary>
+        /// 
+        /// </summary>
+        private void Push(VertexPrimitiveAsset primitive)
+        {
+            // creating buffer bytes
+            var arrayBuffer = CreateBufferArrayData(primitive.ArrayBuffer);
+            var indicieBuffer = CreateBufferIndicieData(primitive.IndicieBuffer);
+
+            // GPU buffer reservation
+            primitive.Handle = GL.GenVertexArray();
+            primitive.ArrayBuffer.Handle = GL.GenBuffer();
+
+            // send arraybuffer to GPU
+            GL.BindVertexArray(primitive.Handle);
+            GL.BindBuffer(primitive.ArrayBuffer.Target, primitive.ArrayBuffer.Handle);
+            GL.BufferData(primitive.ArrayBuffer.Target, arrayBuffer.Length, arrayBuffer, primitive.ArrayBuffer.UsageHint);
+
+            // send attribute infos to GPU
+            var offset = 0;
+            foreach (var attribute in primitive.ArrayBuffer.Attributes)
+            {
+                GL.VertexAttribPointer(attribute.Layout, attribute.Dimension, attribute.PointerType, attribute.IsNormalized, primitive.ArrayBuffer.ElementSize, offset);
+                GL.EnableVertexAttribArray(attribute.Layout);
+                offset += attribute.ElementSize;
+            }
+
+            // send indicie info to GPU
+            if (primitive.IndicieBuffer != null)
+            {
+                primitive.IndicieBuffer.Handle = GL.GenBuffer();
+                GL.BindBuffer(primitive.IndicieBuffer.Target, primitive.IndicieBuffer.Handle);
+                GL.BufferData(primitive.IndicieBuffer.Target, indicieBuffer.Length, indicieBuffer, primitive.IndicieBuffer.UsageHint);
             }
         }
 
