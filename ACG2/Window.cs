@@ -4,15 +4,17 @@ using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.GLTF2;
 using Framework.ECS.Systems;
+using Framework.ECS.Systems.Hierarchy;
+using Framework.ECS.Systems.Render;
+using Framework.ECS.Systems.Sync;
+using Framework.ECS.Systems.Time;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using Project.ECS.Components;
 using Project.ECS.Systems;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Window
@@ -21,7 +23,6 @@ namespace Window
     {
         private GameWindowSettings _gameSettings;
         private NativeWindowSettings _nativeSettings;
-        private readonly Stopwatch _totalWatch;
 
         private readonly List<IComponent> _sceneComponents;
         private readonly List<Entity> _sceneEntities;
@@ -55,15 +56,17 @@ namespace Window
                 }
             };
 
-            _totalWatch = new Stopwatch();
-            _totalWatch.Start();
-
+            var totalTimeSystem = new TotalTimeSystem();
             _updateSystems = new List<ISystem>()
             {
+                totalTimeSystem,
+                new FixedTimeSystem(),
             };
 
             _frameSystems = new List<ISystem>()
             {
+                totalTimeSystem,
+                new FrameTimeSystem(),
                 new CameraControllerSystem(),
 
                 new EntityHierarchySystem(),
@@ -113,13 +116,6 @@ namespace Window
         {
             base.OnUpdateFrame(args);
 
-            if (KeyboardState.IsKeyDown(Keys.Escape)) Close();
-
-            var timeComponent = (TimeComponent)_sceneComponents.First(component => component is TimeComponent);
-            timeComponent.Total = _totalWatch.ElapsedMilliseconds / 1000f;
-            timeComponent.TotalSin = MathF.Sin(timeComponent.Total);
-            timeComponent.DeltaFrame = (float)args.Time;
-
             foreach (var system in _updateSystems)
                 system.Run(_sceneEntities, _sceneComponents);
         }
@@ -130,11 +126,6 @@ namespace Window
         protected override void OnRenderFrame(FrameEventArgs args)
         {
             base.OnRenderFrame(args);
-
-            var timeComponent = (TimeComponent)_sceneComponents.First(component => component is TimeComponent);
-            timeComponent.Total = _totalWatch.ElapsedMilliseconds / 1000f;
-            timeComponent.TotalSin = MathF.Sin(timeComponent.Total);
-            timeComponent.DeltaFixed = (float)args.Time;
 
             foreach (var system in _frameSystems)
                 system.Run(_sceneEntities, _sceneComponents);
@@ -150,7 +141,6 @@ namespace Window
             base.OnResize(e);
 
             GL.Viewport(0, 0, e.Width, e.Height);
-
             var aspectRatioComponent = (AspectRatioComponent)_sceneComponents.First(component => component is AspectRatioComponent);
             aspectRatioComponent.Width = e.Width;
             aspectRatioComponent.Height = e.Height;

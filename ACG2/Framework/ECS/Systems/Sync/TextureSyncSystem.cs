@@ -5,7 +5,7 @@ using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using Framework.ECS.Components.Render;
 
-namespace Framework.ECS.Systems
+namespace Framework.ECS.Systems.Sync
 {
     public class TextureSyncSystem : ISystem
     {

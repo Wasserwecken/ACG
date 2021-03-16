@@ -4,7 +4,7 @@ using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using Framework.Assets.Verticies;
 
-namespace Framework.ECS.Systems
+namespace Framework.ECS.Systems.Sync
 {
     public class PrimitiveSyncSystem : ISystem
     {

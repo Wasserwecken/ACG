@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Framework.ECS.Systems
+namespace Framework.ECS.Systems.Hierarchy
 {
     public class EntityHierarchySystem : ISystem
     {

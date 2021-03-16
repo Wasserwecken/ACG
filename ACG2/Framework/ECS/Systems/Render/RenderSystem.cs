@@ -7,7 +7,7 @@ using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.Assets.Shader.Block;
 
-namespace Framework.ECS.Systems
+namespace Framework.ECS.Systems.Render
 {
     public class RenderSystem : ISystem
     {

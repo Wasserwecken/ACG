@@ -3,7 +3,7 @@ using Framework.ECS.Components.Transform;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Framework.ECS.Systems
+namespace Framework.ECS.Systems.Hierarchy
 {
     public class TransformHierarchySystem : ISystem
     {

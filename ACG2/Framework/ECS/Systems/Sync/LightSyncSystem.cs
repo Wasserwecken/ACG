@@ -8,7 +8,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 
-namespace Framework.ECS.Systems
+namespace Framework.ECS.Systems.Sync
 {
     public class LightSyncSystem : ISystem
     {
