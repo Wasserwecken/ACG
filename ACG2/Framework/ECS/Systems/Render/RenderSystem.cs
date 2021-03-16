@@ -15,14 +15,16 @@ namespace Framework.ECS.Systems.Render
 {
     public class RenderSystem : ISystem
     {
-        private readonly ShaderBlockSingle<ShaderRenderSpace> _spaceBlock;
-        
+        private readonly ShaderBlockSingle<ShaderViewSpace> _viewSpaceBlock;
+        private readonly ShaderBlockSingle<ShaderPrimitiveSpace> _primitiveSpaceBlock;
+
         /// <summary>
         /// 
         /// </summary>
         public RenderSystem()
         {
-            _spaceBlock = new ShaderBlockSingle<ShaderRenderSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _viewSpaceBlock = new ShaderBlockSingle<ShaderViewSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _primitiveSpaceBlock = new ShaderBlockSingle<ShaderPrimitiveSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
         }
 
         /// <summary>
@@ -31,28 +33,32 @@ namespace Framework.ECS.Systems.Render
         public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
             var renderDataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
-            var aspectRatioComponent = sceneComponents.First(f => f is AspectRatioComponent) as AspectRatioComponent;
+            var aspectComponent = sceneComponents.First(f => f is AspectRatioComponent) as AspectRatioComponent;
             var cameras = entities.Where(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent)));
 
-            foreach(var cameraEntity in cameras)
+            foreach (var cameraEntity in cameras)
             {
                 var cameraData = cameraEntity.GetComponent<PerspectiveCameraComponent>();
                 var cameraTransform = cameraEntity.GetComponent<TransformComponent>();
-                SetPerspectiveData(cameraData, cameraTransform, aspectRatioComponent);
+                var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(cameraData.FieldOfView), aspectComponent.Ratio, cameraData.NearClipping, cameraData.FarClipping);
 
-                foreach(var shaderRelation in renderDataComponent.Graph)
+                UseCamera(cameraData);
+                _viewSpaceBlock.Data = CreateViewSpace(cameraTransform, projectionSpace);
+                _viewSpaceBlock.PushToGPU();
+
+                foreach (var shaderRelation in renderDataComponent.Graph)
                 {
                     UseShader(shaderRelation.Key);
 
-                    foreach(var materialRelation in shaderRelation.Value)
+                    foreach (var materialRelation in shaderRelation.Value)
                     {
                         UseMaterial(materialRelation.Key);
                         SetUniforms(materialRelation.Key, shaderRelation.Key);
 
                         foreach (var transformRelation in materialRelation.Value)
                         {
-                            SetPrimitiveData(transformRelation.Key, cameraTransform);
-                            _spaceBlock.PushToGPU();
+                            _primitiveSpaceBlock.Data = CreatePrimitiveSpace(transformRelation.Key, cameraTransform, projectionSpace);
+                            _primitiveSpaceBlock.PushToGPU();
 
                             foreach (var primitive in transformRelation.Value)
                                 Draw(primitive);
@@ -72,6 +78,14 @@ namespace Framework.ECS.Systems.Render
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        private void UseCamera(PerspectiveCameraComponent camera)
+        {
+            GL.ClearColor(camera.ClearColor.X, camera.ClearColor.Y, camera.ClearColor.Z, camera.ClearColor.W);
+            GL.Clear(camera.ClearMask);
+        }
 
         /// <summary>
         /// 
@@ -92,8 +106,13 @@ namespace Framework.ECS.Systems.Render
             GL.ShadeModel(material.Model);
             GL.FrontFace(material.FaceDirection);
 
-            if (material. IsDepthTesting)
+            if (material.IsDepthTesting)
+            {
                 GL.Enable(EnableCap.DepthTest);
+                GL.DepthFunc(material.DepthTest);
+            }
+            else
+                GL.Disable(EnableCap.DepthTest);
 
             if (material.IsCulling)
             {
@@ -156,34 +175,35 @@ namespace Framework.ECS.Systems.Render
         /// <summary>
         /// 
         /// </summary>
-        private void SetPerspectiveData(PerspectiveCameraComponent camera, TransformComponent transform, AspectRatioComponent aspect)
+        private ShaderViewSpace CreateViewSpace(TransformComponent transform, Matrix4 projection)
         {
-            var cameraProjectionSpace = Matrix4.CreatePerspectiveFieldOfView(
-               MathHelper.DegreesToRadians(camera.FieldOfView),
-               aspect.Ratio,
-               camera.NearClipping,
-               camera.FarClipping
-           );
+            return new ShaderViewSpace
+            {
+                WorldToView = transform.WorldSpaceInverse,
+                WorldToProjection = transform.WorldSpaceInverse * projection,
 
-            _spaceBlock.Data.WorldToView = transform.WorldSpaceInverse;
-            _spaceBlock.Data.ProjectionSpace = cameraProjectionSpace;
-            _spaceBlock.Data.ViewPosition = new Vector4(transform.Position, 1);
-            _spaceBlock.Data.ViewPosition = new Vector4(transform.Forward, 0);
+                WorldToViewRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation(),
+                WorldToProjectionRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation() * projection,
 
-            GL.ClearColor(camera.ClearColor.X, camera.ClearColor.Y, camera.ClearColor.Z, camera.ClearColor.W);
-            GL.Clear(camera.ClearMask);
+                ViewPosition = new Vector4(transform.Position, 1),
+                ViewDirection = new Vector4(transform.Forward, 0)
+            };
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private void SetPrimitiveData(TransformComponent primitiveTransform, TransformComponent cameraTransform)
+        private ShaderPrimitiveSpace CreatePrimitiveSpace(TransformComponent primitiveTransform, TransformComponent viewTransform, Matrix4 projection)
         {
-            _spaceBlock.Data.LocalToView = primitiveTransform.WorldSpace * cameraTransform.WorldSpaceInverse;
-            _spaceBlock.Data.LocalToViewRotation = _spaceBlock.Data.LocalToView.ClearScale().ClearRotation();
-
-            _spaceBlock.Data.LocalToProjection = primitiveTransform.WorldSpace * cameraTransform.WorldSpaceInverse;
-            _spaceBlock.Data.LocalToProjection *= _spaceBlock.Data.ProjectionSpace;
+            return new ShaderPrimitiveSpace
+            {
+                LocalToWorld = primitiveTransform.WorldSpace,
+                LocalToView = primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse,
+                LocalToProjection = primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse * projection,
+                LocalToWorldRotation = primitiveTransform.WorldSpace.ClearScale().ClearTranslation(),
+                LocalToViewRotation = (primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse).ClearScale().ClearTranslation(),
+                LocalToProjectionRotation = (primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse).ClearScale().ClearTranslation() * projection,
+            };
         }
 
         /// <summary>

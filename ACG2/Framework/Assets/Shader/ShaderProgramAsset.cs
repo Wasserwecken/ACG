@@ -22,9 +22,9 @@ namespace Framework.Assets.Shader
         /// </summary>
         public ShaderProgramAsset(string name, params ShaderSourceAsset[] sources)
         {
-            IdentifierToLayout = new Dictionary<string, int>();
-            Handle = CreateProgramHandle(sources);
             Name = name;
+            Handle = CreateProgramHandle(sources);
+            IdentifierToLayout = new Dictionary<string, int>();
 
             GetAttributesInfos();
             GetUniformInfos();
@@ -34,7 +34,7 @@ namespace Framework.Assets.Shader
         /// <summary>
         /// 
         /// </summary>
-        private static int CreateProgramHandle(ShaderSourceAsset[] sources)
+        private int CreateProgramHandle(ShaderSourceAsset[] sources)
         {
             var handle = GL.CreateProgram();
             foreach (var shader in sources)
@@ -43,7 +43,7 @@ namespace Framework.Assets.Shader
             GL.LinkProgram(handle);
             GL.GetProgramInfoLog(handle, out var log);
             if (log != string.Empty)
-                Console.WriteLine($"ShaderProgram: {log}");
+                Console.WriteLine($"ShaderProgram '{Name}': {log}");
 
             return handle;
         }

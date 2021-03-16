@@ -13,22 +13,29 @@ in VertexOut
 } _vertex;
 
 layout (std430) buffer ShaderTime {
- float Total;
- float Delta;
- float TotalSin;
- float TotalSin01;
+    float Frame;
+    float Fixed;
+    float Total;
+    float TotalSin;
 } _time;
 
-layout (std430) buffer ShaderRenderSpace {
+layout (std430) buffer ShaderPrimitiveSpace {
     mat4 LocalToWorld;
     mat4 LocalToView;
     mat4 LocalToProjection;
     mat4 LocalToWorldRotation;
     mat4 LocalToViewRotation;
+    mat4 LocalToProjectionRotation;
+} _primitiveSpace;
+
+layout (std430) buffer ShaderViewSpace {
     mat4 WorldToView;
+    mat4 WorldToViewRotation;
+    mat4 WorldToProjection;
+    mat4 WorldToProjectionRotation;
     vec3 ViewPosition;
     vec3 ViewDirection;
-} _space;
+} _viewSpace;
 
 uniform vec4 BaseColor;
 uniform vec4 MREO;

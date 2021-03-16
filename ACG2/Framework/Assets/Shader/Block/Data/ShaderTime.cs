@@ -2,9 +2,9 @@
 {
     public struct ShaderTime
     {
-        public float Total;
         public float Frame;
         public float Fixed;
+        public float Total;
         public float TotalSin;
     }
 }

@@ -78,8 +78,8 @@ namespace Framework
                         Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/left.jpg"),
                         Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/top.jpg"),
                         Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/bottom.jpg"),
-                        Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/back.jpg"),
                         Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/front.jpg"),
+                        Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/back.jpg"),
                     }
                 };
             }
@@ -94,6 +94,7 @@ namespace Framework
             {
                 Skybox = new MaterialAsset("Default skybox");
                 Skybox.CullingMode = CullFaceMode.Front;
+                Skybox.DepthTest = DepthFunction.Lequal;
                 Skybox.SetUniform("SkyMap", Texture.SkyboxCoast);
 
                 PBR = new MaterialAsset("Default PBR");

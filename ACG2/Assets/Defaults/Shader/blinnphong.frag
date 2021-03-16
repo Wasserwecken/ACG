@@ -45,10 +45,10 @@ layout (std430) buffer ShaderSpotLight {
 };
 
 layout (std430) buffer ShaderTime {
- float Total;
- float Delta;
- float TotalSin;
- float TotalSin01;
+    float Frame;
+    float Fixed;
+    float Total;
+    float TotalSin;
 } _time;
 
 layout (std140) uniform ShaderSpace {

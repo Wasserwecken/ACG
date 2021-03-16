@@ -8,22 +8,29 @@ layout (location = 4) in vec2 BufferUV1;
 layout (location = 5) in vec4 BufferColor;
 
 layout (std430) buffer ShaderTime {
- float Total;
- float Delta;
- float TotalSin;
- float TotalSin01;
+    float Frame;
+    float Fixed;
+    float Total;
+    float TotalSin;
 } _time;
 
-layout (std430) buffer ShaderRenderSpace {
+layout (std430) buffer ShaderPrimitiveSpace {
     mat4 LocalToWorld;
     mat4 LocalToView;
     mat4 LocalToProjection;
     mat4 LocalToWorldRotation;
     mat4 LocalToViewRotation;
+    mat4 LocalToProjectionRotation;
+} _primitiveSpace;
+
+layout (std430) buffer ShaderViewSpace {
     mat4 WorldToView;
+    mat4 WorldToViewRotation;
+    mat4 WorldToProjection;
+    mat4 WorldToProjectionRotation;
     vec3 ViewPosition;
     vec3 ViewDirection;
-} _space;
+} _viewSpace;
 
 out VertexOut
 {
@@ -46,11 +53,11 @@ void main(void)
     _vertex.Color = BufferColor;
 
     _vertex.NormalLocal = vec4(BufferNormal, 1.0);
-    _vertex.NormalWorld = _space.LocalToWorldRotation * _vertex.NormalLocal;
-    _vertex.NormalView = _space.LocalToViewRotation * _vertex.NormalLocal;
+    _vertex.NormalWorld = _primitiveSpace.LocalToWorldRotation * _vertex.NormalLocal;
+    _vertex.NormalView = _primitiveSpace.LocalToViewRotation * _vertex.NormalLocal;
 
     _vertex.PositionLocal = vec4(BufferVertex, 1.0);
-    _vertex.PositionWorld = _space.LocalToWorld * _vertex.PositionLocal;
-    _vertex.PositionView = _space.LocalToView * _vertex.PositionLocal;
-    gl_Position = _space.LocalToProjection * _vertex.PositionLocal;
+    _vertex.PositionWorld = _primitiveSpace.LocalToWorld * _vertex.PositionLocal;
+    _vertex.PositionView = _primitiveSpace.LocalToView * _vertex.PositionLocal;
+    gl_Position = _primitiveSpace.LocalToProjection * _vertex.PositionLocal;
 }

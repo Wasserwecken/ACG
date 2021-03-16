@@ -1,16 +1,14 @@
 ﻿#version 430 core
 layout (location = 0) in vec3 BufferVertex;
 
-layout (std140) uniform ShaderSpace {
-    mat4 LocalToWorld;
-    mat4 LocalToView;
-    mat4 LocalToProjection;
-    mat4 LocalToWorldRotation;
-    mat4 LocalToViewRotation;
+layout (std430) buffer ShaderViewSpace {
     mat4 WorldToView;
-    vec3 ViewPosition;
-    vec3 ViewDirection;
-} _space;
+    mat4 WorldToViewRotation;
+    mat4 WorldToProjection;
+    mat4 WorldToProjectionRotation;
+    vec4 ViewPosition;
+    vec4 ViewDirection;
+} _viewSpace;
 
 out VertexOut
 {
@@ -20,5 +18,6 @@ out VertexOut
 void main()
 {
     _vertex.UV0 = BufferVertex;
-    gl_Position = _space.LocalToProjection * vec4(BufferVertex, 1.0);
-}  
+    gl_Position = _viewSpace.WorldToProjectionRotation * vec4(BufferVertex, 1.0);
+    gl_Position = gl_Position.xyww;
+}

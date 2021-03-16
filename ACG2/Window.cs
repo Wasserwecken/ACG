@@ -95,8 +95,8 @@ namespace Window
             Console.WriteLine(GL.GetError());
 
             //var scenePath = "./Assets/foo.glb";
-            var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
-            //var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
+            //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
+            var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
             //var scenePath = "./Assets/Samples/Buggy/glTF-Binary/Buggy.glb";
 
 

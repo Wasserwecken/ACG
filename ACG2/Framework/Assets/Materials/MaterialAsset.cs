@@ -14,6 +14,7 @@ namespace Framework.Assets.Materials
         public bool IsCulling { get; set; }
         public bool IsDepthTesting { get; set; }
         public ShadingModel Model { get; set; }
+        public DepthFunction DepthTest { get; set; }
         public CullFaceMode CullingMode { get; set; }
         public FrontFaceDirection FaceDirection { get; set; }
         public BlendingFactor SourceBlend { get; set; }
@@ -38,8 +39,9 @@ namespace Framework.Assets.Materials
             Name = name;
 
             IsTransparent = false;
-            IsCulling = false;
+            IsCulling = true;
             IsDepthTesting = true;
+            DepthTest = DepthFunction.Less;
             Model = ShadingModel.Smooth;
             CullingMode = CullFaceMode.Back;
             FaceDirection = FrontFaceDirection.Ccw;
