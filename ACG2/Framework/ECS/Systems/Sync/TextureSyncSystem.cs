@@ -12,6 +12,17 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
+        public TextureSyncSystem()
+        {
+            if (Default.Texture.White.Handle <= 0) PushTexture(Default.Texture.White);
+            if (Default.Texture.Gray.Handle <= 0) PushTexture(Default.Texture.Gray);
+            if (Default.Texture.Black.Handle <= 0) PushTexture(Default.Texture.Black);
+            if (Default.Texture.Normal.Handle <= 0) PushTexture(Default.Texture.Normal);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
             var renderDataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
@@ -27,25 +38,31 @@ namespace Framework.ECS.Systems.Sync
 
             foreach (var texture in textures)
                 if (texture.Handle <= 0)
-                {
-                    texture.Handle = GL.GenTexture();
-                    GL.BindTexture(texture.Target, texture.Handle);
+                    PushTexture(texture);
+        }
 
-                    if (texture is Texture2DAsset texture2D)
-                        SpecificTexture2D(texture2D);
-                    else if (texture is TextureCubeAsset textureCube)
-                        SpecificTextureCube(textureCube);
+        /// <summary>
+        /// 
+        /// </summary>
+        private void PushTexture(TextureBaseAsset texture)
+        {
+            texture.Handle = GL.GenTexture();
+            GL.BindTexture(texture.Target, texture.Handle);
 
-                    GL.TexParameter(texture.Target, TextureParameterName.TextureWrapS, (int)texture.WrapModeS);
-                    GL.TexParameter(texture.Target, TextureParameterName.TextureWrapT, (int)texture.WrapModeT);
-                    GL.TexParameter(texture.Target, TextureParameterName.TextureMinFilter, (int)texture.MinFilter);
-                    GL.TexParameter(texture.Target, TextureParameterName.TextureMagFilter, (int)texture.MagFilter);
+            if (texture is Texture2DAsset texture2D)
+                SpecificTexture2D(texture2D);
+            else if (texture is TextureCubeAsset textureCube)
+                SpecificTextureCube(textureCube);
 
-                    if (texture.GenerateMipMaps)
-                        GL.GenerateMipmap(texture.MipMapTarget);
+            GL.TexParameter(texture.Target, TextureParameterName.TextureWrapS, (int)texture.WrapModeS);
+            GL.TexParameter(texture.Target, TextureParameterName.TextureWrapT, (int)texture.WrapModeT);
+            GL.TexParameter(texture.Target, TextureParameterName.TextureMinFilter, (int)texture.MinFilter);
+            GL.TexParameter(texture.Target, TextureParameterName.TextureMagFilter, (int)texture.MagFilter);
 
-                    GL.BindTexture(texture.Target, 0);
-                }
+            if (texture.GenerateMipMaps)
+                GL.GenerateMipmap(texture.MipMapTarget);
+
+            GL.BindTexture(texture.Target, 0);
         }
 
         /// <summary>

@@ -26,7 +26,7 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var renderGraphComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
+            var renderDataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
             var aspectRatioComponent = sceneComponents.First(f => f is AspectRatioComponent) as AspectRatioComponent;
 
             var cameras = entities.Where(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent)));
@@ -44,7 +44,7 @@ namespace Framework.ECS.Systems.Render
                 GL.ClearColor(cameraData.ClearColor.X, cameraData.ClearColor.Y, cameraData.ClearColor.Z, cameraData.ClearColor.W);
                 GL.Clear(cameraData.ClearMask);
 
-                foreach(var shaderRelation in renderGraphComponent.Graph)
+                foreach(var shaderRelation in renderDataComponent.Graph)
                 {
                     var shader = shaderRelation.Key;
                     shader.Use();
@@ -84,9 +84,9 @@ namespace Framework.ECS.Systems.Render
                             GL.ActiveTexture(TextureUnit.Texture0 + uniformTexture.Layout);
 
                             if (uniformTexture.Name.ToLower().Contains("normal"))
-                                GL.BindTexture(Default.Texture.DefaultNormal.Target, Default.Texture.DefaultNormal.Handle);
+                                GL.BindTexture(Default.Texture.Normal.Target, Default.Texture.Normal.Handle);
                             else
-                                GL.BindTexture(Default.Texture.DefaultWhite.Target, Default.Texture.DefaultWhite.Handle);
+                                GL.BindTexture(Default.Texture.White.Target, Default.Texture.White.Handle);
                         }
 
 

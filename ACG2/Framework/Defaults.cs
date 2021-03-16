@@ -57,18 +57,18 @@ namespace Framework
 
         public static class Texture
         {
-            public static Texture2DAsset DefaultWhite { get; }
-            public static Texture2DAsset DefaultGray { get; }
-            public static Texture2DAsset DefaultBlack { get; }
-            public static Texture2DAsset DefaultNormal { get; }
+            public static Texture2DAsset White { get; }
+            public static Texture2DAsset Gray { get; }
+            public static Texture2DAsset Black { get; }
+            public static Texture2DAsset Normal { get; }
             public static TextureCubeAsset SkyboxCoast { get; }
 
             static Texture()
             {
-                DefaultWhite = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.White.ToShort() } };
-                DefaultGray = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Gray.ToShort() } };
-                DefaultBlack = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Black.ToShort() } };
-                DefaultNormal = new Texture2DAsset("Default") { Image = new ImageAsset("Normal") { Data = Color4.Blue.ToShort() } };
+                White = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.White.ToShort() } };
+                Gray = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Gray.ToShort() } };
+                Black = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Black.ToShort() } };
+                Normal = new Texture2DAsset("Default") { Image = new ImageAsset("Normal") { Data = Color4.Blue.ToShort() } };
 
                 SkyboxCoast = new TextureCubeAsset("DefaultCoast")
                 {

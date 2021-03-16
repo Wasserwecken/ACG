@@ -12,9 +12,9 @@ namespace Framework.ECS.Systems.Sync
 {
     public class LightSyncSystem : ISystem
     {
-        ShaderBlockArray<ShaderDirectionalLight> _directionalBlock;
-        ShaderBlockArray<ShaderPointLight> _pointBlock;
-        ShaderBlockArray<ShaderSpotLight> _spotBlock;
+        private readonly ShaderBlockArray<ShaderDirectionalLight> _directionalBlock;
+        private readonly ShaderBlockArray<ShaderPointLight> _pointBlock;
+        private readonly ShaderBlockArray<ShaderSpotLight> _spotBlock;
 
         public LightSyncSystem()
         {
