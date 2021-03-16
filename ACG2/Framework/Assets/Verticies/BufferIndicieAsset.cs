@@ -4,6 +4,7 @@ namespace Framework.Assets.Verticies
 {
     public class BufferIndicieAsset : BufferBaseAsset
     {
+        public override int ElementCount => Indicies.Length;
         public uint[] Indicies { get; set; }
 
         /// <summary>

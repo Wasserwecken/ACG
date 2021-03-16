@@ -35,19 +35,5 @@ namespace Framework.Assets.Verticies
             Mode = PolygonMode.Fill;
             Type = PrimitiveType.Triangles;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Draw()
-        {
-            GL.BindVertexArray(Handle);
-            GL.PolygonMode(MaterialFace.FrontAndBack, Mode);
-
-            if (IndicieBuffer != null)
-                GL.DrawElements(Type, IndicieBuffer.Indicies.Length, DrawElementsType.UnsignedInt, 0);
-            //else
-            //    GL.DrawArrays(Type, 0, ArrayBuffer.ElementCount);
-        }
     }
 }

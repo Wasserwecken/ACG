@@ -1,12 +1,11 @@
-﻿using System.Diagnostics;
-using System.Linq;
+﻿using System.Linq;
 using OpenTK.Graphics.OpenGL;
 
 namespace Framework.Assets.Verticies
 {
-    [DebuggerDisplay("Name: {Name}, Handle: {Handle}, ElementSize: {ElementSize}, UsageHint: {UsageHint}, ElementCount: {Attributes?[0]?.ElementCount}")]
     public class BufferArrayAsset : BufferBaseAsset
     {
+        public override int ElementCount => Attributes[0].ElementCount;
         public VertexAttributeAsset[] Attributes { get; }
 
         /// <summary>

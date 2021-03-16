@@ -117,7 +117,15 @@ namespace Framework.ECS.Systems
                             _renderSpaceUniformBlock.PushToGPU();
 
                             foreach (var primitive in transformRelation.Value)
-                                primitive.Draw();
+                            {
+                                GL.BindVertexArray(primitive.Handle);
+                                GL.PolygonMode(MaterialFace.FrontAndBack, primitive.Mode);
+
+                                if (primitive.IndicieBuffer != null)
+                                    GL.DrawElements(primitive.Type, primitive.IndicieBuffer.Indicies.Length, DrawElementsType.UnsignedInt, 0);
+                                else
+                                    GL.DrawArrays(primitive.Type, 0, primitive.ArrayBuffer.ElementCount);
+                            }
                         }
                     }
                 }

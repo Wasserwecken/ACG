@@ -3,7 +3,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Framework.Assets.Verticies
 {
-    [DebuggerDisplay("Name: {Name}, Handle: {Handle}, ElementSize: {ElementSize}, UsageHint: {UsageHint}")]
+    [DebuggerDisplay("Name: {Name}, Handle: {Handle}, ElementCount: {ElementCount}, ElementSize: {ElementSize}, UsageHint: {UsageHint}")]
     public abstract class BufferBaseAsset
     {
         public int Handle { get; set; }
@@ -11,6 +11,7 @@ namespace Framework.Assets.Verticies
         public int ElementSize { get; }
         public BufferTarget Target { get; }
         public BufferUsageHint UsageHint { get; set; }
+        public abstract int ElementCount { get; }
 
         /// <summary>
         /// 

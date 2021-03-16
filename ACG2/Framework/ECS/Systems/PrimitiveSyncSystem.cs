@@ -61,8 +61,7 @@ namespace Framework.ECS.Systems
             var result = new byte[buffer.Attributes[0].ElementCount * buffer.ElementSize];
             
             // go through each data element
-            var elementCount = buffer.Attributes[0].ElementCount;
-            for (int i = 0; i < elementCount; i++)
+            for (int i = 0; i < buffer.ElementCount; i++)
             {
                 var bufferIndex = i * buffer.ElementSize;
 
