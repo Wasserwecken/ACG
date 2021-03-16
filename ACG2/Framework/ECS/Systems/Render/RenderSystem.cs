@@ -26,7 +26,7 @@ namespace Framework.ECS.Systems
         /// <summary>
         /// 
         /// </summary>
-        public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
             var renderGraphComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
             var aspectRatioComponent = sceneComponents.First(f => f is AspectRatioComponent) as AspectRatioComponent;

@@ -7,7 +7,7 @@ namespace Framework.ECS.Systems
 {
     public class TransformHierarchySystem : ISystem
     {
-        public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
             var rootEntities = entities.Where(f => f.HasComponent<TransformComponent>() && !f.HasComponent<ChildComponent>());
             foreach (var entity in rootEntities)

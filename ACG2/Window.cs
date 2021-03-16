@@ -121,7 +121,7 @@ namespace Window
             timeComponent.DeltaFrame = (float)args.Time;
 
             foreach (var system in _updateSystems)
-                system.Update(_sceneEntities, _sceneComponents);
+                system.Run(_sceneEntities, _sceneComponents);
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace Window
             timeComponent.DeltaFixed = (float)args.Time;
 
             foreach (var system in _frameSystems)
-                system.Update(_sceneEntities, _sceneComponents);
+                system.Run(_sceneEntities, _sceneComponents);
 
             Context.SwapBuffers();
         }

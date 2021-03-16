@@ -13,7 +13,7 @@ namespace Framework.ECS.Systems
         /// <summary>
         /// 
         /// </summary>
-        public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
             var renderDataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
             renderDataComponent.Graph.Clear();

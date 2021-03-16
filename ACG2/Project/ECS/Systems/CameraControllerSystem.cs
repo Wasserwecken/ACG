@@ -14,7 +14,7 @@ namespace Project.ECS.Systems
 {
     public class CameraControllerSystem : ISystem
     {
-        public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
             var cameraEntity = entities.First(f => f.HasComponent<CameraControllerComponent>());
             var transform = cameraEntity.GetComponent<TransformComponent>();

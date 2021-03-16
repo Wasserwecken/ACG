@@ -6,7 +6,7 @@ namespace Framework.ECS.Systems
 {
     public class EntityHierarchySystem : ISystem
     {
-        public void Update(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
             var parentEntities = entities.Where(f => f.HasAnyComponents(typeof(ParentComponent)));
             foreach (var parentEntity in parentEntities)
