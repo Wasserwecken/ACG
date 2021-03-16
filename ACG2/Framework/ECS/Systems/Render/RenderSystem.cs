@@ -11,14 +11,14 @@ namespace Framework.ECS.Systems.Render
 {
     public class RenderSystem : ISystem
     {
-        private ShaderBlockSingle<ShaderRenderSpace> _renderSpaceUniformBlock;
+        private ShaderBlockSingle<ShaderRenderSpace> _renderSpaceBlock;
         
         /// <summary>
         /// 
         /// </summary>
         public RenderSystem()
         {
-            _renderSpaceUniformBlock = new ShaderBlockSingle<ShaderRenderSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _renderSpaceBlock = new ShaderBlockSingle<ShaderRenderSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
         }
 
         /// <summary>
@@ -94,15 +94,15 @@ namespace Framework.ECS.Systems.Render
                         {
                             var primitiveTransform = transformRelation.Key;
 
-                            _renderSpaceUniformBlock.Data.WorldToView = cameraTransform.WorldSpaceInverse;
-                            _renderSpaceUniformBlock.Data.ViewPosition = new Vector4(cameraTransform.Position, 1);
-                            _renderSpaceUniformBlock.Data.ViewPosition = new Vector4(cameraTransform.Forward, 0);
+                            _renderSpaceBlock.Data.WorldToView = cameraTransform.WorldSpaceInverse;
+                            _renderSpaceBlock.Data.ViewPosition = new Vector4(cameraTransform.Position, 1);
+                            _renderSpaceBlock.Data.ViewPosition = new Vector4(cameraTransform.Forward, 0);
 
-                            _renderSpaceUniformBlock.Data.LocalToView = primitiveTransform.WorldSpace * cameraTransform.WorldSpaceInverse;
-                            _renderSpaceUniformBlock.Data.LocalToProjection = primitiveTransform.WorldSpace * cameraTransform.WorldSpaceInverse * cameraProjectionSpace;
-                            _renderSpaceUniformBlock.Data.LocalToViewRotation = primitiveTransform.WorldSpace.ClearScale().ClearRotation() * cameraTransform.WorldSpaceInverse.ClearScale().ClearTranslation();
+                            _renderSpaceBlock.Data.LocalToView = primitiveTransform.WorldSpace * cameraTransform.WorldSpaceInverse;
+                            _renderSpaceBlock.Data.LocalToProjection = primitiveTransform.WorldSpace * cameraTransform.WorldSpaceInverse * cameraProjectionSpace;
+                            _renderSpaceBlock.Data.LocalToViewRotation = primitiveTransform.WorldSpace.ClearScale().ClearRotation() * cameraTransform.WorldSpaceInverse.ClearScale().ClearTranslation();
                             
-                            _renderSpaceUniformBlock.PushToGPU();
+                            _renderSpaceBlock.PushToGPU();
 
                             foreach (var primitive in transformRelation.Value)
                             {

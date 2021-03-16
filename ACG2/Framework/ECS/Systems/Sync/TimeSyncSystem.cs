@@ -8,14 +8,14 @@ namespace Framework.ECS.Systems.Sync
 {
     public class TimeSyncSystem : ISystem
     {
-        private ShaderBlockSingle<ShaderTime> _timeUniformBlock;
+        private ShaderBlockSingle<ShaderTime> _timeBlock;
 
         /// <summary>
         /// 
         /// </summary>
         public TimeSyncSystem()
         {
-            _timeUniformBlock = new ShaderBlockSingle<ShaderTime>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _timeBlock = new ShaderBlockSingle<ShaderTime>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
         }
 
         /// <summary>
@@ -24,11 +24,11 @@ namespace Framework.ECS.Systems.Sync
         public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
             var time = sceneComponents.First(f => f is TimeComponent) as TimeComponent;
-            _timeUniformBlock.Data.Total = time.Total;
-            _timeUniformBlock.Data.TotalSin = time.TotalSin;
-            _timeUniformBlock.Data.Frame = time.DeltaFrame;
-            _timeUniformBlock.Data.Fixed = time.DeltaFixed;
-            _timeUniformBlock.PushToGPU();
+            _timeBlock.Data.Total = time.Total;
+            _timeBlock.Data.TotalSin = time.TotalSin;
+            _timeBlock.Data.Frame = time.DeltaFrame;
+            _timeBlock.Data.Fixed = time.DeltaFixed;
+            _timeBlock.PushToGPU();
         }
     }
 }
