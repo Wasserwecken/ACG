@@ -34,8 +34,8 @@ namespace Framework.ECS.Systems.Sync
             _directionalBlock.Data = new ShaderDirectionalLight[directional.Count()];
             foreach (var entity in directional)
             {
-                var light = entity.GetComponent<DirectionalLightComponent>();
-                var transform = entity.GetComponent<TransformComponent>();
+                var light = entity.Components.Get<DirectionalLightComponent>();
+                var transform = entity.Components.Get<TransformComponent>();
 
                 _directionalBlock.Data[index].Color = new Vector4(light.Color, light.AmbientFactor);
                 _directionalBlock.Data[index].Direction = new Vector4(transform.Forward, 0f);
@@ -49,8 +49,8 @@ namespace Framework.ECS.Systems.Sync
             _pointBlock.Data = new ShaderPointLight[points.Count()];
             foreach (var entity in points)
             {
-                var light = entity.GetComponent<PointLightComponent>();
-                var transform = entity.GetComponent<TransformComponent>();
+                var light = entity.Components.Get<PointLightComponent>();
+                var transform = entity.Components.Get<TransformComponent>();
 
                 _pointBlock.Data[index].Color = new Vector4(light.Color / 30, light.AmbientFactor);
                 _pointBlock.Data[index].Position = new Vector4(transform.Position, 1f);
@@ -64,8 +64,8 @@ namespace Framework.ECS.Systems.Sync
             _spotBlock.Data = new ShaderSpotLight[spots.Count()];
             foreach (var entity in spots)
             {
-                var light = entity.GetComponent<SpotLightComponent>();
-                var transform = entity.GetComponent<TransformComponent>();
+                var light = entity.Components.Get<SpotLightComponent>();
+                var transform = entity.Components.Get<TransformComponent>();
 
                 var foo = transform.Scale;
 

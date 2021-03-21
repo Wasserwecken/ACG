@@ -111,5 +111,17 @@ namespace Framework
             result = default;
             return false;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static TComponent Get<TComponent>(this IEnumerable<IComponent> components) where TComponent : IComponent
+        {
+            foreach (var component in components)
+                if (component is TComponent resultComponent)
+                    return resultComponent;
+
+            return default;
+        }
     }
 }

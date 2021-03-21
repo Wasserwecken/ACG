@@ -22,8 +22,8 @@ namespace Framework
                 public static ShaderSourceAsset VertexSkybox { get; }
                 public static ShaderSourceAsset FragmentUnlit { get; }
                 public static ShaderSourceAsset FragmentLitPBR { get; }
+                public static ShaderSourceAsset FragmentLitBlinnPhong { get; }
                 public static ShaderSourceAsset FragmentSkybox { get; }
-                public static ShaderSourceAsset FragmentBlinnPhong { get; }
 
                 static Source()
                 {
@@ -33,7 +33,7 @@ namespace Framework
                     FragmentUnlit = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "Unlit.frag"));
                     FragmentLitPBR = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitPBR.frag"));
                     FragmentSkybox = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.frag"));
-                    FragmentBlinnPhong = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "blinnphong.frag"));
+                    FragmentLitBlinnPhong = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitBlinnPhong.frag"));
                 }
             }
 
@@ -50,8 +50,21 @@ namespace Framework
                     Skybox = new ShaderProgramAsset("Skybox", Source.VertexSkybox, Source.FragmentSkybox);
                     MeshUnlit = new ShaderProgramAsset("MeshUnlit", Source.VertexMesh, Source.FragmentUnlit);
                     MeshPBR = new ShaderProgramAsset("MeshLitPBR", Source.VertexMesh, Source.FragmentLitPBR);
-                    MeshBlinnPhong = new ShaderProgramAsset("MeshBlinnPhong", Source.VertexMesh, Source.FragmentBlinnPhong);
+                    MeshBlinnPhong = new ShaderProgramAsset("MeshBlinnPhong", Source.VertexMesh, Source.FragmentLitBlinnPhong);
                 }
+            }
+
+            public static class Uniform
+            {
+                public static string BaseColor => "BaseColor";
+                public static string MREO => "MREO";
+                public static string Normal => "Normal";
+                public static string BaseColorMap => "BaseColorMap";
+                public static string MetallicRoughnessMap => "MetallicRoughnessMap";
+                public static string EmissiveMap => "EmissiveMap";
+                public static string OcclusionMap => "OcclusionMap";
+                public static string NormalMap => "NormalMap";
+                public static string ReflectionMap => "ReflectionMap";
             }
         }
 
@@ -95,7 +108,7 @@ namespace Framework
                 Skybox = new MaterialAsset("Default skybox");
                 Skybox.CullingMode = CullFaceMode.Front;
                 Skybox.DepthTest = DepthFunction.Lequal;
-                Skybox.SetUniform("SkyMap", Texture.SkyboxCoast);
+                Skybox.SetUniform("ReflectionMap", Texture.SkyboxCoast);
 
                 PBR = new MaterialAsset("Default PBR");
                 PBR.SetUniform("BaseColor", new Vector4(0.8f, 0.8f, 0.9f, 1.0f));

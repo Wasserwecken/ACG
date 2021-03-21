@@ -1,4 +1,5 @@
 ﻿#version 430 core
+// VERTEX INPUT
 in VertexOut
 {
     vec2 UV0;
@@ -12,6 +13,7 @@ in VertexOut
     vec4 PositionWorld;
 } _vertex;
 
+// SHADER BLOCK GLOBAL INPUT
 layout (std430) buffer ShaderTime {
     float Frame;
     float Fixed;
@@ -37,16 +39,17 @@ layout (std430) buffer ShaderViewSpace {
     vec3 ViewDirection;
 } _viewSpace;
 
+// MATERIAL INPUT
 uniform vec4 BaseColor;
 uniform vec4 MREO;
 uniform float Normal;
-
 uniform sampler2D BaseColorMap;
 uniform sampler2D MetallicRoughnessMap;
 uniform sampler2D EmissiveMap;
 uniform sampler2D OcclusionMap;
 uniform sampler2D NormalMap;
 
+// FRAG OUT
 out vec4 OutputColor;
 
 

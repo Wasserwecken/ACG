@@ -26,8 +26,8 @@ namespace Framework.ECS.Systems.Hierarchy
             var meshes = entities.Where(f => f.HasAnyComponents(typeof(MeshComponent)));
             foreach (var meshEntity in meshes)
             {
-                var mesh = meshEntity.GetComponent<MeshComponent>();
-                var transform = meshEntity.GetComponent<TransformComponent>();
+                var mesh = meshEntity.Components.Get<MeshComponent>();
+                var transform = meshEntity.Components.Get<TransformComponent>();
                 renderDataComponent.Entities.Add(meshEntity);
 
                 for (int i = 0; i < mesh.Mesh.Primitives.Count; i++)

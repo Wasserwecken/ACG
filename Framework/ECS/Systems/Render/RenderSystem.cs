@@ -32,15 +32,21 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var renderDataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
-            var aspectComponent = sceneComponents.First(f => f is AspectRatioComponent) as AspectRatioComponent;
+            var skyboxComponent = sceneComponents.Get<SkyboxComponent>();
+            var renderDataComponent = sceneComponents.Get<RenderDataComponent>();
+            var aspectComponent = sceneComponents.Get<AspectRatioComponent>();
+
+            var skyTexture = skyboxComponent == null && skyboxComponent.Material.UniformTextures.ContainsKey(Default.Shader.Uniform.ReflectionMap)
+                ? Default.Texture.SkyboxCoast
+                : skyboxComponent.Material.UniformTextures[Default.Shader.Uniform.ReflectionMap];
             var cameras = entities.Where(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent)));
 
             foreach (var cameraEntity in cameras)
             {
-                var cameraData = cameraEntity.GetComponent<PerspectiveCameraComponent>();
-                var cameraTransform = cameraEntity.GetComponent<TransformComponent>();
+                var cameraData = cameraEntity.Components.Get<PerspectiveCameraComponent>();
+                var cameraTransform = cameraEntity.Components.Get<TransformComponent>();
                 var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(cameraData.FieldOfView), aspectComponent.Ratio, cameraData.NearClipping, cameraData.FarClipping);
+
 
                 UseCamera(cameraData);
                 _viewSpaceBlock.Data = CreateViewSpace(cameraTransform, projectionSpace);
@@ -52,6 +58,7 @@ namespace Framework.ECS.Systems.Render
 
                     foreach (var materialRelation in shaderRelation.Value)
                     {
+                        materialRelation.Key.SetUniform(Default.Shader.Uniform.ReflectionMap, skyTexture);
                         UseMaterial(materialRelation.Key);
                         SetUniforms(materialRelation.Key, shaderRelation.Key);
 
@@ -66,7 +73,7 @@ namespace Framework.ECS.Systems.Render
                     }
                 }
 
-                if (sceneComponents.Has<SkyboxComponent>(out var skyboxComponent))
+                if (skyboxComponent != null)
                 {
                     UseShader(skyboxComponent.Shader);
                     UseMaterial(skyboxComponent.Material);

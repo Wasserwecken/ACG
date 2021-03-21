@@ -4,10 +4,10 @@ in VertexOut
     vec3 UV0;
 } _vertex;
 
-uniform samplerCube SkyMap;
+uniform samplerCube ReflectionMap;
 out vec4 FragColor;
 
 void main()
 {    
-    FragColor = texture(SkyMap, _vertex.UV0);
+    FragColor = texture(ReflectionMap, _vertex.UV0);
 }

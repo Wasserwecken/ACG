@@ -10,12 +10,12 @@ namespace Framework.ECS.Systems.Hierarchy
         {
             var parentEntities = entities.Where(f => f.HasAnyComponents(typeof(ParentComponent)));
             foreach (var parentEntity in parentEntities)
-                parentEntity.GetComponent<ParentComponent>().Children.Clear();
+                parentEntity.Components.Get<ParentComponent>().Children.Clear();
 
             var childEntites = entities.Where(f => f.HasAllComponents(typeof(ChildComponent)));
             foreach (var childEntity in childEntites)
             {
-                var childComponent = childEntity.GetComponent<ChildComponent>();
+                var childComponent = childEntity.Components.Get<ChildComponent>();
                 if (childComponent.Parent == null)
                     childEntity.Components.Remove(childComponent);
 

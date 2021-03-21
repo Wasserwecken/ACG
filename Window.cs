@@ -1,7 +1,9 @@
 ﻿using Framework;
 using Framework.ECS;
+using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
+using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2;
 using Framework.ECS.Systems;
 using Framework.ECS.Systems.Hierarchy;
@@ -9,6 +11,7 @@ using Framework.ECS.Systems.Render;
 using Framework.ECS.Systems.Sync;
 using Framework.ECS.Systems.Time;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using Project.ECS.Components;
@@ -100,12 +103,19 @@ namespace Window
             //var scenePath = "./Assets/Samples/Buggy/glTF-Binary/Buggy.glb";
 
 
-            _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Default.Shader.Program.MeshUnlit));
+            _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Default.Shader.Program.MeshBlinnPhong));
             if (!_sceneEntities.Any(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent))))
             {
                 var camera = Default.Entity.Camera;
                 camera.Components.Add(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
                 _sceneEntities.Add(camera);
+            }
+            if (!_sceneEntities.Any(f => f.HasAnyComponents(typeof(DirectionalLightComponent))))
+            {
+                _sceneEntities.Add(new Entity("Sun",
+                    new TransformComponent() { Forward = -Vector3.UnitY.Rotate(0.5f, Vector3.UnitX).Rotate(1f, Vector3.UnitY) },
+                    new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.02f }
+                ));
             }
         }
 
