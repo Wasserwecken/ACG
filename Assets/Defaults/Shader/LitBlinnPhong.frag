@@ -101,13 +101,13 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
     vec3 viewDirection = _viewSpace.ViewPosition - _vertex.PositionWorld.xyz;
     vec3 reflectionColor = texture(ReflectionMap, reflect(-viewDirection, surfaceNormal)).xyz;
     vec3 specularColor = mix(vec3(1.0), baseColor, metalic);
-    float glossy = (1.0 - (roughness.x * roughness.x)) * 128.0;
-    vec3 result = reflectionColor * baseColor * (1.0 - roughness) * metalic;
+    float glossy = mix(128.0, 0.0, roughness * roughness);
+    vec3 result = reflectionColor * baseColor * metalic;
     
     for(int i = 0; i < _directionalLights.length(); i++)
     {
         vec3 lightColor = _directionalLights[i].Color.xyz;
-        vec3 lightDirection = normalize(-_directionalLights[i].Direction);
+        vec3 lightDirection = _directionalLights[i].Direction;
         vec3 halfwayDirection = normalize(lightDirection + viewDirection);
 
         result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor);
@@ -164,5 +164,5 @@ void main()
     vec3 surfaceColor = emmision + evaluate_lights(baseColor.xyz, metallicRoughness.y, metallicRoughness.x, surfaceNormal);
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
 
-    OutputColor = vec4(corrected.xyz, baseColor.w);
+    OutputColor = vec4(corrected, baseColor.w);
 }

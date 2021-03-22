@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Framework.Assets.Verticies.Attributes;
 using OpenTK.Graphics.OpenGL;
 
 namespace Framework.Assets.Verticies
@@ -15,7 +16,7 @@ namespace Framework.Assets.Verticies
         /// <summary>
         /// 
         /// </summary>
-        public VertexPrimitiveAsset(VertexAttributeAsset[] attributes, uint[] indicies, BufferUsageHint usageHint)
+        public VertexPrimitiveAsset(IVertexAttribute[] attributes, uint[] indicies, BufferUsageHint usageHint)
             : this(new BufferArrayAsset(usageHint, attributes), new BufferIndicieAsset(usageHint, indicies)) { }
 
         /// <summary>

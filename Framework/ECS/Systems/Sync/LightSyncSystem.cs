@@ -38,7 +38,7 @@ namespace Framework.ECS.Systems.Sync
                 var transform = entity.Components.Get<TransformComponent>();
 
                 _directionalBlock.Data[index].Color = new Vector4(light.Color, light.AmbientFactor);
-                _directionalBlock.Data[index].Direction = new Vector4(transform.Forward, 0f);
+                _directionalBlock.Data[index].Direction = new Vector4(-transform.Forward, 0f);
                 index++;
             }
             _directionalBlock.PushToGPU();
@@ -71,7 +71,7 @@ namespace Framework.ECS.Systems.Sync
 
                 _spotBlock.Data[index].Color = new Vector4(light.Color / 30, light.AmbientFactor);
                 _spotBlock.Data[index].Position = new Vector4(transform.Position, MathF.Cos(light.OuterAngle));
-                _spotBlock.Data[index].Direction = new Vector4(transform.Forward, MathF.Cos(light.InnerAngle));
+                _spotBlock.Data[index].Direction = new Vector4(-transform.Forward, MathF.Cos(light.InnerAngle));
                 index++;
             }
             _spotBlock.PushToGPU();

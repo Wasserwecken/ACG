@@ -9,6 +9,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using Framework.ECS.Components.Scene;
 using OpenTK.Mathematics;
 using Framework;
+using Framework.Extensions;
 
 namespace Project.ECS.Systems
 {

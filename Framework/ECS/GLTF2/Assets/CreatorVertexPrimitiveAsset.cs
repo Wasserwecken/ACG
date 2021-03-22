@@ -3,6 +3,8 @@ using SharpGLTF.Schema2;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 using System.Linq;
+using Framework.Assets.Verticies.Attributes;
+using Framework.Extensions;
 
 namespace Framework.ECS.GLTF2.Assets
 {
@@ -27,36 +29,25 @@ namespace Framework.ECS.GLTF2.Assets
         /// </summary>
         private static VertexPrimitiveAsset CreatePrimitive(MeshPrimitive gltfPrimitive)
         {
-            var attributes = new List<VertexAttributeAsset>();
+            var attributes = new List<IVertexAttribute>();
             foreach (var gltfAttribute in gltfPrimitive.VertexAccessors)
             {
                 switch (gltfAttribute.Key)
                 {
                     case "POSITION":
-                        attributes.Add(VertexAttributeAsset.CreatePosition(gltfAttribute.Value.SourceBufferView.Content.ToArray()));
+                        attributes.Add(new VertexAttributePositionAsset(gltfAttribute.Value.AsVector3Array().ToArray().ToOpenTK()));
                         break;
                     case "NORMAL":
-                        attributes.Add(VertexAttributeAsset.CreateNormal(gltfAttribute.Value.SourceBufferView.Content.ToArray()));
+                        attributes.Add(new VertexAttributeNormalAsset(gltfAttribute.Value.AsVector3Array().ToArray().ToOpenTK()));
                         break;
                     case "TANGENT":
-                        attributes.Add(VertexAttributeAsset.CreateTangent(gltfAttribute.Value.SourceBufferView.Content.ToArray()));
+                        attributes.Add(new VertexAttributeTangentAsset(gltfAttribute.Value.AsVector4Array().ToArray().ToOpenTK()));
                         break;
                     case "TEXCOORD_0":
-                        attributes.Add(VertexAttributeAsset.CreateUV(gltfAttribute.Value.SourceBufferView.Content.ToArray()));
+                        attributes.Add(new VertexAttributeUVAsset(gltfAttribute.Value.AsVector2Array().ToArray().ToOpenTK()));
                         break;
                     case "COLOR_0":
-                        attributes.Add(VertexAttributeAsset.CreateColor(gltfAttribute.Value.SourceBufferView.Content.ToArray()));
-                        break;
-
-                    default:
-                        attributes.Add(new VertexAttributeAsset(
-                            gltfAttribute.Key,
-                            gltfAttribute.Value.LogicalIndex,
-                            gltfAttribute.Value.Format.ByteSize,
-                            gltfAttribute.Value.Format.Normalized,
-                            (VertexAttribPointerType)gltfAttribute.Value.Format.Encoding,
-                            gltfAttribute.Value.SourceBufferView.Content.ToArray()
-                        ));
+                        attributes.Add(new VertexAttributeColorAsset(gltfAttribute.Value.AsVector4Array().ToArray().ToOpenTK()));
                         break;
                 }
             }

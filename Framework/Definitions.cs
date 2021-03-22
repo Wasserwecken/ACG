@@ -14,9 +14,22 @@ namespace Framework
             public const string DefaultSkyboxes = DefaultImages + "Skyboxes/";
         }
 
-        public static class Buffer
+        public static class Shader
         {
-            public static class VertexAttribute
+            public static class Uniform
+            {
+                public static string BaseColor => "BaseColor";
+                public static string MREO => "MREO";
+                public static string Normal => "Normal";
+                public static string BaseColorMap => "BaseColorMap";
+                public static string MetallicRoughnessMap => "MetallicRoughnessMap";
+                public static string EmissiveMap => "EmissiveMap";
+                public static string OcclusionMap => "OcclusionMap";
+                public static string NormalMap => "NormalMap";
+                public static string ReflectionMap => "ReflectionMap";
+            }
+
+            public class Attribute
             {
                 public static class Position
                 {

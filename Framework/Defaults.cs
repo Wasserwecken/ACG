@@ -6,6 +6,7 @@ using Framework.Assets.Verticies;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2.Assets;
+using Framework.Extensions;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using SharpGLTF.Schema2;
@@ -52,19 +53,6 @@ namespace Framework
                     MeshPBR = new ShaderProgramAsset("MeshLitPBR", Source.VertexMesh, Source.FragmentLitPBR);
                     MeshBlinnPhong = new ShaderProgramAsset("MeshBlinnPhong", Source.VertexMesh, Source.FragmentLitBlinnPhong);
                 }
-            }
-
-            public static class Uniform
-            {
-                public static string BaseColor => "BaseColor";
-                public static string MREO => "MREO";
-                public static string Normal => "Normal";
-                public static string BaseColorMap => "BaseColorMap";
-                public static string MetallicRoughnessMap => "MetallicRoughnessMap";
-                public static string EmissiveMap => "EmissiveMap";
-                public static string OcclusionMap => "OcclusionMap";
-                public static string NormalMap => "NormalMap";
-                public static string ReflectionMap => "ReflectionMap";
             }
         }
 

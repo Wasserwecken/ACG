@@ -36,9 +36,9 @@ namespace Framework.ECS.Systems.Render
             var renderDataComponent = sceneComponents.Get<RenderDataComponent>();
             var aspectComponent = sceneComponents.Get<AspectRatioComponent>();
 
-            var skyTexture = skyboxComponent == null && skyboxComponent.Material.UniformTextures.ContainsKey(Default.Shader.Uniform.ReflectionMap)
+            var skyTexture = skyboxComponent == null && skyboxComponent.Material.UniformTextures.ContainsKey(Definitions.Shader.Uniform.ReflectionMap)
                 ? Default.Texture.SkyboxCoast
-                : skyboxComponent.Material.UniformTextures[Default.Shader.Uniform.ReflectionMap];
+                : skyboxComponent.Material.UniformTextures[Definitions.Shader.Uniform.ReflectionMap];
             var cameras = entities.Where(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent)));
 
             foreach (var cameraEntity in cameras)
@@ -58,7 +58,7 @@ namespace Framework.ECS.Systems.Render
 
                     foreach (var materialRelation in shaderRelation.Value)
                     {
-                        materialRelation.Key.SetUniform(Default.Shader.Uniform.ReflectionMap, skyTexture);
+                        materialRelation.Key.SetUniform(Definitions.Shader.Uniform.ReflectionMap, skyTexture);
                         UseMaterial(materialRelation.Key);
                         SetUniforms(materialRelation.Key, shaderRelation.Key);
 
@@ -193,7 +193,7 @@ namespace Framework.ECS.Systems.Render
                 WorldToProjectionRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation() * projection,
 
                 ViewPosition = new Vector4(transform.Position, 1),
-                ViewDirection = new Vector4(transform.Forward, 0)
+                ViewDirection = new Vector4(-transform.Forward, 0)
             };
         }
 

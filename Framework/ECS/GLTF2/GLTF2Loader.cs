@@ -7,6 +7,7 @@ using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2.Assets;
 using Framework.ECS.GLTF2.Components;
+using Framework.Extensions;
 using SharpGLTF.Schema2;
 using System.Collections.Generic;
 using System.Linq;

@@ -10,6 +10,7 @@ using Framework.ECS.Systems.Hierarchy;
 using Framework.ECS.Systems.Render;
 using Framework.ECS.Systems.Sync;
 using Framework.ECS.Systems.Time;
+using Framework.Extensions;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -98,8 +99,8 @@ namespace Window
             Console.WriteLine(GL.GetError());
 
             //var scenePath = "./Assets/foo.glb";
-            //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
-            var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
+            var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
+            //var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
             //var scenePath = "./Assets/Samples/Buggy/glTF-Binary/Buggy.glb";
 
 
@@ -113,8 +114,8 @@ namespace Window
             if (!_sceneEntities.Any(f => f.HasAnyComponents(typeof(DirectionalLightComponent))))
             {
                 _sceneEntities.Add(new Entity("Sun",
-                    new TransformComponent() { Forward = -Vector3.UnitY.Rotate(0.5f, Vector3.UnitX).Rotate(1f, Vector3.UnitY) },
-                    new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.02f }
+                    new TransformComponent() { Forward = -Vector3.UnitY.Rotate(1f, Vector3.UnitX).Rotate(1f, Vector3.UnitY) },
+                    new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f }
                 ));
             }
         }

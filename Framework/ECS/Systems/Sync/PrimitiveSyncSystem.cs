@@ -4,6 +4,8 @@ using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using Framework.Assets.Verticies;
 using Framework.ECS.Components.Render;
+using Framework.Extensions;
+using OpenTK.Mathematics;
 
 namespace Framework.ECS.Systems.Sync
 {
@@ -31,6 +33,9 @@ namespace Framework.ECS.Systems.Sync
         /// </summary>
         private void Push(VertexPrimitiveAsset primitive)
         {
+            // check for necessary attributes
+            var foo = primitive.ArrayBuffer.Attributes.First(f => f.Name == Definitions.Shader.Attribute.Position.Name);
+
             // creating buffer bytes
             var arrayBuffer = CreateBufferArrayData(primitive.ArrayBuffer);
             var indicieBuffer = CreateBufferIndicieData(primitive.IndicieBuffer);
@@ -65,6 +70,14 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
+        private void CreateTangets()
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         private byte[] CreateBufferArrayData(BufferArrayAsset buffer)
         {
             // set buffer size
@@ -79,7 +92,7 @@ namespace Framework.ECS.Systems.Sync
                 foreach (var attribute in buffer.Attributes)
                 {
                     var attributeIndex = i * attribute.ElementSize;
-                    System.Buffer.BlockCopy(attribute.Data, attributeIndex, result, bufferIndex, attribute.ElementSize);
+                    System.Buffer.BlockCopy(attribute.DataBytes, attributeIndex, result, bufferIndex, attribute.ElementSize);
                     bufferIndex += attribute.ElementSize;
                 }
             }
