@@ -24,56 +24,42 @@ namespace Framework.Extensions
         /// <summary>
         /// 
         /// </summary>
-        public static byte[] ToBytes(this Vector4[] data)
+        public static byte[] ToBytes(this Vector4 data)
         {
             var result = new List<byte>();
-            for (int i = 0; i < data.Length; i++)
-            {
-                result.AddRange(data[i].X.ToBytes());
-                result.AddRange(data[i].Y.ToBytes());
-                result.AddRange(data[i].Z.ToBytes());
-                result.AddRange(data[i].W.ToBytes());
-            }
+
+            result.AddRange(BitConverter.GetBytes(data.X));
+            result.AddRange(BitConverter.GetBytes(data.Y));
+            result.AddRange(BitConverter.GetBytes(data.Z));
+            result.AddRange(BitConverter.GetBytes(data.W));
+
             return result.ToArray();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public static byte[] ToBytes(this Vector3[] data)
+        public static byte[] ToBytes(this Vector3 data)
         {
             var result = new List<byte>();
-            for (int i = 0; i < data.Length; i++)
-            {
-                result.AddRange(data[i].X.ToBytes());
-                result.AddRange(data[i].Y.ToBytes());
-                result.AddRange(data[i].Z.ToBytes());
-            }
+
+            result.AddRange(BitConverter.GetBytes(data.X));
+            result.AddRange(BitConverter.GetBytes(data.Y));
+            result.AddRange(BitConverter.GetBytes(data.Z));
+
             return result.ToArray();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public static byte[] ToBytes(this Vector2[] data)
+        public static byte[] ToBytes(this Vector2 data)
         {
             var result = new List<byte>();
-            for (int i = 0; i < data.Length; i++)
-            {
-                result.AddRange(data[i].X.ToBytes());
-                result.AddRange(data[i].Y.ToBytes());
-            }
-            return result.ToArray();
-        }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public static byte[] ToBytes(this float[] data)
-        {
-            var result = new List<byte>();
-            for (int i = 0; i < data.Length; i++)
-                result.AddRange(BitConverter.GetBytes(data[i]));
+            result.AddRange(BitConverter.GetBytes(data.X));
+            result.AddRange(BitConverter.GetBytes(data.Y));
+
             return result.ToArray();
         }
 
@@ -83,17 +69,11 @@ namespace Framework.Extensions
         public static byte[] ToBytes(this uint[] data)
         {
             var result = new List<byte>();
+
             for (int i = 0; i < data.Length; i++)
                 result.AddRange(BitConverter.GetBytes(data[i]));
-            return result.ToArray();
-        }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public static byte[] ToBytes(this float data)
-        {
-            return BitConverter.GetBytes(data);
+            return result.ToArray();
         }
 
         /// <summary>

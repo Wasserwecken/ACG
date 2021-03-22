@@ -9,7 +9,7 @@ namespace Framework.Assets.Verticies.Attributes
         string Name { get; }
         int Dimension { get; }
         int ElementSize { get; }
-        bool IsNormalized { get; }
+        bool Normalize { get; }
         int ElementCount { get; }
         byte[] DataBytes { get; }
     }

@@ -5,7 +5,6 @@ using OpenTK.Graphics.OpenGL;
 using Framework.Assets.Verticies;
 using Framework.ECS.Components.Render;
 using Framework.Extensions;
-using OpenTK.Mathematics;
 
 namespace Framework.ECS.Systems.Sync
 {
@@ -53,7 +52,7 @@ namespace Framework.ECS.Systems.Sync
             var offset = 0;
             foreach (var attribute in primitive.ArrayBuffer.Attributes)
             {
-                GL.VertexAttribPointer(attribute.Layout, attribute.Dimension, attribute.PointerType, attribute.IsNormalized, primitive.ArrayBuffer.ElementSize, offset);
+                GL.VertexAttribPointer(attribute.Layout, attribute.Dimension, attribute.PointerType, attribute.Normalize, primitive.ArrayBuffer.ElementSize, offset);
                 GL.EnableVertexAttribArray(attribute.Layout);
                 offset += attribute.ElementSize;
             }

@@ -31,6 +31,36 @@ namespace Framework
 
             public class Attribute
             {
+                public static class UInt
+                {
+                    public const int Size = 4;
+                    public const VertexAttribPointerType PointerType = VertexAttribPointerType.UnsignedInt;
+                }
+
+                public static class Float
+                {
+                    public const int Size = 4;
+                    public const VertexAttribPointerType PointerType = VertexAttribPointerType.Float;
+                }
+
+                public static class Vector2
+                {
+                    public const int Size = 8;
+                    public const VertexAttribPointerType PointerType = VertexAttribPointerType.Float;
+                }
+
+                public static class Vector3
+                {
+                    public const int Size = 12;
+                    public const VertexAttribPointerType PointerType = VertexAttribPointerType.Float;
+                }
+
+                public static class Vector4
+                {
+                    public const int Size = 16;
+                    public const VertexAttribPointerType PointerType = VertexAttribPointerType.Float;
+                }
+
                 public static class Position
                 {
                     public const string Name = "Position";
