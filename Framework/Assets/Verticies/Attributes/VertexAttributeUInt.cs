@@ -8,7 +8,9 @@ namespace Framework.Assets.Verticies.Attributes
         /// 
         /// </summary>
         public VertexAttributeUInt(string name, int layout, bool normalize)
-            : base(name, layout, Definitions.Shader.Attribute.UInt.Size, normalize, Definitions.Shader.Attribute.UInt.PointerType, BitConverter.GetBytes)
+            : base(name, layout, normalize,
+                  Definitions.Shader.Attribute.UInt.Size, Definitions.Shader.Attribute.UInt.PointerType,
+                  BitConverter.GetBytes)
         { }
     }
 }

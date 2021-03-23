@@ -1,19 +1,38 @@
 ﻿#version 430 core
-// VERTEX INPUT
-in VertexOut
+// INPUT VERTEX
+in VertexPosition
 {
-    vec2 UV0;
-    vec2 UV1;
-    vec4 Color;
-    vec4 NormalLocal;
-    vec4 NormalWorld;
-    vec4 NormalView;
     vec4 PositionLocal;
     vec4 PositionView;
     vec4 PositionWorld;
-} _vertex;
+} _vertexPosition;
 
-// GLOBAL INPUT
+in VertexNormal
+{
+    vec3 NormalLocal;
+    vec3 NormalWorld;
+    vec3 NormalView;
+} _vertexNormal;
+
+in VertexTangent
+{
+    mat3 TangentSpaceLocal;
+    mat3 TangentSpaceWorld;
+    mat3 TangentSpaceView;
+} _vertexTangent;
+
+in VertexUV
+{
+    vec2 UV0;
+    vec2 UV1;
+} _vertexUV;
+
+in VertexColor
+{
+    vec4 Color;
+} _vertexColor;
+
+// INPUT GLOBAL UNIFORMS
 layout (std430) buffer ShaderTime {
     float Frame;
     float Fixed;
@@ -32,14 +51,14 @@ layout (std430) buffer ShaderPrimitiveSpace {
 
 layout (std430) buffer ShaderViewSpace {
     mat4 WorldToView;
-    mat4 WorldToViewRotation;
     mat4 WorldToProjection;
+    mat4 WorldToViewRotation;
     mat4 WorldToProjectionRotation;
     vec3 ViewPosition;
     vec3 ViewDirection;
 } _viewSpace;
 
-// POINT LIGHT INPUT
+// INPUT GLOBAL UNIFORMS LIGHT
 struct DirectionalLight
 {
  vec4 Color;
@@ -74,7 +93,7 @@ layout (std430) buffer ShaderSpotLight {
 // ENVIRONMENT
 uniform samplerCube ReflectionMap;
 
-// MATERIAL INPUT
+// INPUT SPECIFIC UNIFORMS
 uniform vec4 BaseColor;
 uniform vec4 MREO;
 uniform float Normal;
@@ -84,10 +103,10 @@ uniform sampler2D EmissiveMap;
 uniform sampler2D OcclusionMap;
 uniform sampler2D NormalMap;
 
-// FRAG OUT
+// SHADER OUTPUT
 out vec4 OutputColor;
 
-
+// LOGIC
 vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 normal, vec3 halfway, vec3 lightDirection, vec3 lightColor)
 {
     float luminance = max(dot(normal, lightDirection), 0.0);
@@ -98,7 +117,7 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 n
 
 vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfaceNormal)
 {
-    vec3 viewDirection = _viewSpace.ViewPosition - _vertex.PositionWorld.xyz;
+    vec3 viewDirection = normalize(_viewSpace.ViewPosition - _vertexPosition.PositionWorld.xyz);
     vec3 reflectionColor = texture(ReflectionMap, reflect(-viewDirection, surfaceNormal)).xyz;
     vec3 specularColor = mix(vec3(1.0), baseColor, metalic);
     float glossy = mix(128.0, 0.0, roughness * roughness);
@@ -116,7 +135,7 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
     
     for(int i = 0; i < _pointLights.length(); i++)
     {
-        vec3 lightDiff = _pointLights[i].Position - _vertex.PositionWorld.xyz;
+        vec3 lightDiff = _pointLights[i].Position - _vertexPosition.PositionWorld.xyz;
         vec3 lightColor = _pointLights[i].Color.xyz;
         float lightDistance = length(lightDiff);
         vec3 lightDirection = normalize(lightDiff);
@@ -130,7 +149,7 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
     
     for(int i = 0; i < _spotLights.length(); i++)
     {
-        vec3 lightDiff = _spotLights[i].Position.xyz - _vertex.PositionWorld.xyz;
+        vec3 lightDiff = _spotLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
         vec3 lightColor = _spotLights[i].Color.xyz;
         float lightDistance = length(lightDiff);
         vec3 lightDirection = normalize(lightDiff);
@@ -154,15 +173,15 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
 
 void main()
 {
-    vec4 baseColor = texture(BaseColorMap, _vertex.UV0);
-    vec2 metallicRoughness = texture(MetallicRoughnessMap, _vertex.UV0).yz * MREO.xy;
-    vec3 emmision = texture(EmissiveMap, _vertex.UV0).xyz * MREO.z;
-    float occlusion = texture(OcclusionMap, _vertex.UV0).x * MREO.w;
-    vec3 normal = normalize(texture(NormalMap, _vertex.UV0).xyz * 2.0 - 1.0);
+    vec4 baseColor = texture(BaseColorMap, _vertexUV.UV0);
+    vec2 metallicRoughness = texture(MetallicRoughnessMap, _vertexUV.UV0).yz * MREO.xy;
+    vec3 emmision = texture(EmissiveMap, _vertexUV.UV0).xyz * MREO.z;
+    float occlusion = texture(OcclusionMap, _vertexUV.UV0).x * MREO.w;
+    vec3 textureNormal = normalize(_vertexTangent.TangentSpaceWorld * (texture(NormalMap, _vertexUV.UV0).xyz * 2.0 - 1.0));
 
-    vec3 surfaceNormal = normalize(vec3(_vertex.NormalWorld));
+    vec3 surfaceNormal = mix(_vertexNormal.NormalWorld, textureNormal, Normal);
     vec3 surfaceColor = emmision + evaluate_lights(baseColor.xyz, metallicRoughness.y, metallicRoughness.x, surfaceNormal);
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
-
+    
     OutputColor = vec4(corrected, baseColor.w);
 }

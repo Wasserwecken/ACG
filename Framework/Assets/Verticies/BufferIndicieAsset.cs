@@ -4,8 +4,10 @@ namespace Framework.Assets.Verticies
 {
     public class BufferIndicieAsset : BufferBaseAsset
     {
+        public override int ElementSize => sizeof(uint);
         public override int ElementCount => Indicies.Length;
         public uint[] Indicies { get; set; }
+
 
         /// <summary>
         /// 
@@ -20,6 +22,6 @@ namespace Framework.Assets.Verticies
         /// 
         /// </summary>
         public BufferIndicieAsset(BufferUsageHint usageHint)
-            : base(usageHint, BufferTarget.ElementArrayBuffer, "Indicies", sizeof(uint)) { }
+            : base(usageHint, BufferTarget.ElementArrayBuffer, "Indicies") { }
     }
 }

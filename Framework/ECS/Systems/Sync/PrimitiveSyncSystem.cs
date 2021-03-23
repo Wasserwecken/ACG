@@ -5,6 +5,8 @@ using OpenTK.Graphics.OpenGL;
 using Framework.Assets.Verticies;
 using Framework.ECS.Components.Render;
 using Framework.Extensions;
+using Framework.Assets.Verticies.Attributes;
+using OpenTK.Mathematics;
 
 namespace Framework.ECS.Systems.Sync
 {
@@ -32,10 +34,10 @@ namespace Framework.ECS.Systems.Sync
         /// </summary>
         private void Push(VertexPrimitiveAsset primitive)
         {
-            // check for necessary attributes
-            var foo = primitive.ArrayBuffer.Attributes.First(f => f.Name == Definitions.Shader.Attribute.Position.Name);
-
             // creating buffer bytes
+            //if (!primitive.ArrayBuffer.Attributes.Any(f => f.Name == Definitions.Shader.Attribute.Tangent.Name))
+                CreateTangets(primitive);
+
             var arrayBuffer = CreateBufferArrayData(primitive.ArrayBuffer);
             var indicieBuffer = CreateBufferIndicieData(primitive.IndicieBuffer);
 
@@ -69,9 +71,47 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
-        private void CreateTangets()
+        private void CreateTangets(VertexPrimitiveAsset primitive)
         {
+            var positionAttribute = primitive.ArrayBuffer.Attributes.First(f => f.Name == Definitions.Shader.Attribute.Position.Name) as VertexAttributeVector3;
+            var uvAttribute = primitive.ArrayBuffer.Attributes.First(f => f.Name == Definitions.Shader.Attribute.UV.Name) as VertexAttributeVector2;
+            var tangentAttribute = new VertexAttributeVector4(
+                Definitions.Shader.Attribute.Tangent.Name,
+                Definitions.Shader.Attribute.Tangent.Layout,
+                Definitions.Shader.Attribute.Tangent.Normalize)
+            { DataTyped = new Vector4[positionAttribute.ElementCount] };
 
+            for(int i = 0; i < primitive.IndicieBuffer.Indicies.Length; i += 3)
+            {
+                var i1 = primitive.IndicieBuffer.Indicies[i + 0];
+                var i2 = primitive.IndicieBuffer.Indicies[i + 1];
+                var i3 = primitive.IndicieBuffer.Indicies[i + 2];
+                var p1 = positionAttribute.DataTyped[i1];
+                var p2 = positionAttribute.DataTyped[i2];
+                var p3 = positionAttribute.DataTyped[i3];
+                var uv1 = uvAttribute.DataTyped[i1];
+                var uv2 = uvAttribute.DataTyped[i2];
+                var uv3 = uvAttribute.DataTyped[i3];
+
+                var edge1 = p2 - p1;
+                var edge2 = p3 - p1;
+                var uvDelta1 = uv2 - uv1;
+                var uvDelta2 = uv3 - uv1;
+
+                float f = 1.0f / (uvDelta1.X * uvDelta2.Y - uvDelta2.X * uvDelta1.Y);
+                var tangent = new Vector4(new Vector3(
+                        f * (uvDelta2.Y * edge1.X - uvDelta1.Y * edge2.X),
+                        f * (uvDelta2.Y * edge1.Y - uvDelta1.Y * edge2.Y),
+                        f * (uvDelta2.Y * edge1.Z - uvDelta1.Y * edge2.Z)
+                    ).Normalized(), 1
+                );
+
+                tangentAttribute.DataTyped[i1] = tangent;
+                tangentAttribute.DataTyped[i2] = tangent;
+                tangentAttribute.DataTyped[i3] = tangent;
+            }
+
+            primitive.ArrayBuffer.Attributes.Add(tangentAttribute);
         }
 
         /// <summary>
@@ -81,7 +121,11 @@ namespace Framework.ECS.Systems.Sync
         {
             // set buffer size
             var result = new byte[buffer.Attributes[0].ElementCount * buffer.ElementSize];
-            
+
+            // prepare
+            foreach (var attribute in buffer.Attributes)
+                attribute.UpdateByteData();
+
             // go through each data element
             for (int i = 0; i < buffer.ElementCount; i++)
             {

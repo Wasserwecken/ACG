@@ -9,7 +9,10 @@ namespace Framework.Assets.Verticies.Attributes
         /// 
         /// </summary>
         public VertexAttributeVector2(string name, int layout, bool normalize)
-            : base(name, layout, Definitions.Shader.Attribute.Vector2.Size, normalize, Definitions.Shader.Attribute.Vector2.PointerType, ConversionExtensions.ToBytes)
+            : base(name, layout, normalize,
+                  Definitions.Shader.Attribute.Vector2.Size,
+                  Definitions.Shader.Attribute.Vector2.PointerType,
+                  ConversionExtensions.ToBytes)
         { }
     }
 }

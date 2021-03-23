@@ -1,13 +1,13 @@
 ﻿#version 430 core
-in VertexOut
+in VertexUV
 {
     vec3 UV0;
-} _vertex;
+} _vertexUV;
 
 uniform samplerCube ReflectionMap;
 out vec4 FragColor;
 
 void main()
 {    
-    FragColor = texture(ReflectionMap, _vertex.UV0);
+    FragColor = texture(ReflectionMap, _vertexUV.UV0);
 }

@@ -12,5 +12,7 @@ namespace Framework.Assets.Verticies.Attributes
         bool Normalize { get; }
         int ElementCount { get; }
         byte[] DataBytes { get; }
+
+        void UpdateByteData();
     }
 }

@@ -8,18 +8,17 @@ namespace Framework.Assets.Verticies
     {
         public int Handle { get; set; }
         public string Name { get; }
-        public int ElementSize { get; }
         public BufferTarget Target { get; }
         public BufferUsageHint UsageHint { get; set; }
+        public abstract int ElementSize { get; }
         public abstract int ElementCount { get; }
 
         /// <summary>
         /// 
         /// </summary>
-        public BufferBaseAsset(BufferUsageHint usageHint, BufferTarget target, string name, int elementSize)
+        public BufferBaseAsset(BufferUsageHint usageHint, BufferTarget target, string name)
         {
             Name = name;
-            ElementSize = elementSize;
             UsageHint = usageHint;
             Target = target;
         }

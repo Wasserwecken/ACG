@@ -1,17 +1,36 @@
 ﻿#version 430 core
-// VERTEX INPUT
-in VertexOut
+// INPUT VERTEX
+in VertexPosition
 {
-    vec2 UV0;
-    vec2 UV1;
-    vec4 Color;
-    vec4 NormalLocal;
-    vec4 NormalWorld;
-    vec4 NormalView;
     vec4 PositionLocal;
     vec4 PositionView;
     vec4 PositionWorld;
-} _vertex;
+} _vertexPosition;
+
+in VertexNormal
+{
+    vec3 NormalLocal;
+    vec3 NormalWorld;
+    vec3 NormalView;
+} _vertexNormal;
+
+in VertexTangent
+{
+    mat3 TangentSpaceLocal;
+    mat3 TangentSpaceWorld;
+    mat3 TangentSpaceView;
+} _vertexTangent;
+
+in VertexUV
+{
+    vec2 UV0;
+    vec2 UV1;
+} _vertexUV;
+
+in VertexColor
+{
+    vec4 Color;
+} _vertexColor;
 
 // SHADER BLOCK GLOBAL INPUT
 layout (std430) buffer ShaderTime {
@@ -32,8 +51,8 @@ layout (std430) buffer ShaderPrimitiveSpace {
 
 layout (std430) buffer ShaderViewSpace {
     mat4 WorldToView;
-    mat4 WorldToViewRotation;
     mat4 WorldToProjection;
+    mat4 WorldToViewRotation;
     mat4 WorldToProjectionRotation;
     vec3 ViewPosition;
     vec3 ViewDirection;
@@ -55,10 +74,9 @@ out vec4 OutputColor;
 
 void main()
 {
-    vec4 color = texture(BaseColorMap, _vertex.UV0) * BaseColor;
+    vec4 color = texture(BaseColorMap, _vertexUV.UV0) * BaseColor;
 
-
-    vec3 surfaceNormal = abs(normalize(vec3(_vertex.NormalView)));
+    vec3 surfaceNormal = abs(normalize(vec3(_vertexNormal.NormalView)));
     vec3 surfaceColor = vec3(1.0);
     vec3 corrected = pow(surfaceNormal, vec3(0.454545454545));
 

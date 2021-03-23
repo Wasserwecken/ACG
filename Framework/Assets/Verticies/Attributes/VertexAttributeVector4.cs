@@ -9,7 +9,10 @@ namespace Framework.Assets.Verticies.Attributes
         /// 
         /// </summary>
         public VertexAttributeVector4(string name, int layout, bool normalize)
-            : base(name, layout, Definitions.Shader.Attribute.Vector4.Size, normalize, Definitions.Shader.Attribute.Vector4.PointerType, ConversionExtensions.ToBytes)
+            : base(name, layout, normalize,
+                  Definitions.Shader.Attribute.Vector4.Size,
+                  Definitions.Shader.Attribute.Vector4.PointerType,
+                  ConversionExtensions.ToBytes)
         { }
     }
 }

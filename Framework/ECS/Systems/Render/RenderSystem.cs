@@ -207,7 +207,8 @@ namespace Framework.ECS.Systems.Render
                 LocalToWorld = primitiveTransform.WorldSpace,
                 LocalToView = primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse,
                 LocalToProjection = primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse * projection,
-                LocalToWorldRotation = primitiveTransform.WorldSpace.ClearScale().ClearTranslation(),
+
+                LocalToWorldRotation = primitiveTransform.WorldSpace.ClearScale(),
                 LocalToViewRotation = (primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse).ClearScale().ClearTranslation(),
                 LocalToProjectionRotation = (primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse).ClearScale().ClearTranslation() * projection,
             };

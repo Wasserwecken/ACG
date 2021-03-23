@@ -15,14 +15,26 @@ namespace Framework
         {
             foreach (var component in components)
             {
-                if (component is TComponent)
+                if (component is TComponent castedComponent)
                 {
-                    result = (TComponent)component;
+                    result = castedComponent;
                     return true;
                 }
             }
-            
+
             result = default;
+            return false;
+        }        
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public static bool Has<TComponent>(this IEnumerable<IComponent> components) where TComponent : IComponent
+        {
+            foreach (var component in components)
+                if (component is TComponent)
+                    return true;
+
             return false;
         }
 

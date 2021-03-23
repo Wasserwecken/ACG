@@ -71,7 +71,9 @@ namespace Window
             {
                 totalTimeSystem,
                 new FrameTimeSystem(),
+
                 new CameraControllerSystem(),
+                //new TurntableSystem(),
 
                 new EntityHierarchySystem(),
                 new TransformHierarchySystem(),
@@ -99,12 +101,12 @@ namespace Window
             Console.WriteLine(GL.GetError());
 
             //var scenePath = "./Assets/foo.glb";
-            var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
-            //var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
+            //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
+            var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
             //var scenePath = "./Assets/Samples/Buggy/glTF-Binary/Buggy.glb";
-
-
             _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Default.Shader.Program.MeshBlinnPhong));
+
+
             if (!_sceneEntities.Any(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent))))
             {
                 var camera = Default.Entity.Camera;
@@ -118,6 +120,9 @@ namespace Window
                     new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f }
                 ));
             }
+
+            foreach (var entitiy in _sceneEntities.Where(f => f.Components.Has<MeshComponent>()))
+                entitiy.Components.Add(new TurntableComponent() { Speed = 1f });
         }
 
         /// <summary>

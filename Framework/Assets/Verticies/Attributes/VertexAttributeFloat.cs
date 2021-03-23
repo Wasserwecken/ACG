@@ -8,7 +8,10 @@ namespace Framework.Assets.Verticies.Attributes
         /// 
         /// </summary>
         public VertexAttributeFloat(string name, int layout, bool normalize)
-            : base(name, layout, Definitions.Shader.Attribute.Float.Size, normalize, Definitions.Shader.Attribute.Float.PointerType, BitConverter.GetBytes)
+            : base(name, layout, normalize,
+                  Definitions.Shader.Attribute.Float.Size,
+                  Definitions.Shader.Attribute.Float.PointerType,
+                  BitConverter.GetBytes)
         { }
     }
 }
