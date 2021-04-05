@@ -4,6 +4,6 @@ namespace Framework.ECS.Systems
 {
     public interface ISystem
     {
-        void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents);
+        void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> globalComponents);
     }
 }

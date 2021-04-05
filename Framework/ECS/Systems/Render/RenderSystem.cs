@@ -39,7 +39,7 @@ namespace Framework.ECS.Systems.Render
             var skyTexture = skyboxComponent == null && skyboxComponent.Material.UniformTextures.ContainsKey(Definitions.Shader.Uniform.ReflectionMap)
                 ? Default.Texture.SkyboxCoast
                 : skyboxComponent.Material.UniformTextures[Definitions.Shader.Uniform.ReflectionMap];
-            var cameras = entities.Where(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent)));
+            var cameras = entities.Where(f => f.Components.Has<PerspectiveCameraComponent>());
 
             foreach (var cameraEntity in cameras)
             {

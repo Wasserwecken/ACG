@@ -13,13 +13,5 @@ namespace Framework.Assets.Shader.Block.Data
         {
             Blocks = new List<IShaderBlock>();
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static void Add(IShaderBlock block)
-        {
-            Blocks.Add(block);
-        }
     }
 }

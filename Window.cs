@@ -1,10 +1,12 @@
 ﻿using Framework;
+using Framework.Assets.Framebuffer;
 using Framework.ECS;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2;
+using Framework.ECS.Pipeline;
 using Framework.ECS.Systems;
 using Framework.ECS.Systems.Hierarchy;
 using Framework.ECS.Systems.Render;
@@ -17,7 +19,6 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using Project.ECS.Components;
 using Project.ECS.Systems;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -25,14 +26,12 @@ namespace Window
 {
     public class Window : GameWindow
     {
-        private GameWindowSettings _gameSettings;
-        private NativeWindowSettings _nativeSettings;
+        private List<Entity> _sceneEntities;
+        private List<IComponent> _sceneComponents;
 
-        private readonly List<IComponent> _sceneComponents;
-        private readonly List<Entity> _sceneEntities;
-
-        private readonly List<ISystem> _frameSystems;
-        private readonly List<ISystem> _updateSystems;
+        private readonly Pipeline _fixedPipeline;
+        private readonly Pipeline _framePipeline;
+        private readonly Pipeline _renderPipeline;
 
         /// <summary>
         /// 
@@ -42,49 +41,56 @@ namespace Window
         public Window(GameWindowSettings gameSettings, NativeWindowSettings nativeSettings)
             : base(gameSettings, nativeSettings)
         {
-            _gameSettings = gameSettings;
-            _nativeSettings = nativeSettings;
-
-            _sceneEntities = new List<Entity>();
-            _sceneComponents = new List<IComponent>()
+            _fixedPipeline = new Pipeline()
             {
-                new AspectRatioComponent() { Width = _nativeSettings.Size.X, Height = _nativeSettings.Size.Y },
-                new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState },
-                new TimeComponent(),
-                new RenderDataComponent(),
-                new SkyboxComponent()
+                Systems = new List<ISystem>()
                 {
-                    Shader = Default.Shader.Program.Skybox,
-                    Material = Default.Material.Skybox,
-                    Mesh = Default.Vertex.Mesh.Cube
+                    new FixedTimeSystem(),
+                },
+            };
+
+            _framePipeline = new Pipeline()
+            {
+                Systems = new List<ISystem>()
+                {
+                    new TotalTimeSystem(),
+                    new FrameTimeSystem(),
+                    new CameraControllerSystem(),
+                    new EntityHierarchySystem(),
+                    new TransformHierarchySystem(),
                 }
             };
 
-            var totalTimeSystem = new TotalTimeSystem();
-            _updateSystems = new List<ISystem>()
+            _renderPipeline = new Pipeline()
             {
-                totalTimeSystem,
-                new FixedTimeSystem(),
+                Systems = new List<ISystem>()
+                {
+                    new TimeSyncSystem(),
+                    new LightSyncSystem(),
+                    new TextureSyncSystem(),
+                    new PrimitiveSyncSystem(),
+                    new RenderSystem()
+                }
             };
 
-            _frameSystems = new List<ISystem>()
+            _sceneComponents = new List<IComponent>()
             {
-                totalTimeSystem,
-                new FrameTimeSystem(),
+                new TimeComponent(),
+                new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y },
+                new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState }
+            };
 
-                new CameraControllerSystem(),
-                //new TurntableSystem(),
-
-                new EntityHierarchySystem(),
-                new TransformHierarchySystem(),
-                new RenderHierarchySystem(),
-
-                new TimeSyncSystem(),
-                new PrimitiveSyncSystem(),
-                new TextureSyncSystem(),
-                new LightSyncSystem(),
-
-                new RenderSystem()
+            _sceneEntities = new List<Entity>()
+            {
+                new Entity("Sky",
+                    new TransformComponent(),
+                    new SkyboxComponent()
+                    {
+                        Shader = Default.Shader.Program.Skybox,
+                        Material = Default.Material.Skybox,
+                        Mesh = Default.Vertex.Mesh.Cube
+                    }
+                )
             };
         }
 
@@ -95,25 +101,19 @@ namespace Window
         {
             base.OnLoad();
 
-            Console.WriteLine(GL.GetString(StringName.Version));
-            Console.WriteLine(GL.GetString(StringName.ShadingLanguageVersion));
-            Console.WriteLine(GL.GetString(StringName.Renderer));
-            Console.WriteLine(GL.GetError());
-
             //var scenePath = "./Assets/foo.glb";
             //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
             var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
-            //var scenePath = "./Assets/Samples/Buggy/glTF-Binary/Buggy.glb";
             _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Default.Shader.Program.MeshBlinnPhong));
 
 
-            if (!_sceneEntities.Any(f => f.HasAnyComponents(typeof(PerspectiveCameraComponent))))
+            if (!_sceneEntities.Any(f => f.Components.Has<PerspectiveCameraComponent>()))
             {
                 var camera = Default.Entity.Camera;
                 camera.Components.Add(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
                 _sceneEntities.Add(camera);
             }
-            if (!_sceneEntities.Any(f => f.HasAnyComponents(typeof(DirectionalLightComponent))))
+            if (!_sceneEntities.Any(f => f.Components.Has<DirectionalLightComponent>()))
             {
                 _sceneEntities.Add(new Entity("Sun",
                     new TransformComponent() { Forward = -Vector3.UnitY.Rotate(1f, Vector3.UnitX).Rotate(1f, Vector3.UnitY) },
@@ -123,6 +123,20 @@ namespace Window
 
             foreach (var entitiy in _sceneEntities.Where(f => f.Components.Has<MeshComponent>()))
                 entitiy.Components.Add(new TurntableComponent() { Speed = 1f });
+
+
+            var foo = new FramebufferAsset("Test")
+            {
+                TextureTargets = new List<FrameBufferTextureAsset>()
+                {
+                    new FrameBufferTextureAsset("color"),
+                },
+                StorageTargets = new List<FramebufferStorageAsset>()
+                {
+                    new FramebufferStorageAsset("depth") { DataType = RenderbufferStorage.DepthComponent },
+                    new FramebufferStorageAsset("stencil") { DataType = RenderbufferStorage.DepthStencil },
+                }
+            };
         }
 
         /// <summary>
@@ -132,8 +146,7 @@ namespace Window
         {
             base.OnUpdateFrame(args);
 
-            foreach (var system in _updateSystems)
-                system.Run(_sceneEntities, _sceneComponents);
+            _fixedPipeline.Process(_sceneEntities, _sceneComponents);
         }
 
         /// <summary>
@@ -143,8 +156,8 @@ namespace Window
         {
             base.OnRenderFrame(args);
 
-            foreach (var system in _frameSystems)
-                system.Run(_sceneEntities, _sceneComponents);
+            _framePipeline.Process(_sceneEntities, _sceneComponents);
+            _renderPipeline.Process(_sceneEntities, _sceneComponents);
 
             Context.SwapBuffers();
         }
@@ -157,7 +170,8 @@ namespace Window
             base.OnResize(e);
 
             GL.Viewport(0, 0, e.Width, e.Height);
-            var aspectRatioComponent = (AspectRatioComponent)_sceneComponents.First(component => component is AspectRatioComponent);
+
+            var aspectRatioComponent = _sceneComponents.Get<AspectRatioComponent>();
             aspectRatioComponent.Width = e.Width;
             aspectRatioComponent.Height = e.Height;
         }

@@ -9,19 +9,19 @@ namespace Framework.ECS.Systems.Hierarchy
     {
         public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var rootEntities = entities.Where(f => f.HasComponent<TransformComponent>() && !f.HasComponent<ChildComponent>());
+            var rootEntities = entities.Where(f => f.Components.Has<TransformComponent>() && !f.Components.Has<ChildComponent>());
             foreach (var entity in rootEntities)
                 PassTransformSpace(entity);
         }
 
         private void PassTransformSpace(Entity entity)
         {
-            if (entity.Components.Has<TransformComponent>(out var transformComponent) &&
-                entity.Components.Has<ParentComponent>(out var parentComponent))
+            if (entity.Components.TryGet<TransformComponent>(out var transformComponent) &&
+                entity.Components.TryGet<ParentComponent>(out var parentComponent))
             {
                 foreach(var child in parentComponent.Children)
                 {
-                    if (child.Components.Has<TransformComponent>(out var childTransformComponent))
+                    if (child.Components.TryGet<TransformComponent>(out var childTransformComponent))
                         childTransformComponent.ParentSpace = transformComponent.WorldSpace;
 
                     PassTransformSpace(child);

@@ -8,5 +8,6 @@ namespace Framework.ECS.Components.Light
     {
         public Vector3 Color;
         public float AmbientFactor;
+        public float ShadowStrength;
     }
 }

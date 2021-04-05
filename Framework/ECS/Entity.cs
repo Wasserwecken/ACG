@@ -35,49 +35,5 @@ namespace Framework.ECS
             Name = name;
             Components = new List<IComponent>(components);
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool HasComponent<TType>()
-        {
-            foreach (var component in Components)
-                if (component is TType)
-                    return true;
-
-            return false;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool HasAllComponents(params Type[] requieredTypes)
-        {
-            var componentTypes = new List<Type>();
-            foreach (var component in Components)
-                componentTypes.Add(component.GetType());
-
-            foreach (var type in requieredTypes)
-                if (!componentTypes.Contains(type))
-                    return false;
-
-            return true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool HasAnyComponents(params Type[] requieredTypes)
-        {
-            var componentTypes = new List<Type>();
-            foreach (var component in Components)
-                componentTypes.Add(component.GetType());
-
-            foreach (var type in requieredTypes)
-                if (componentTypes.Contains(type))
-                    return true;
-
-            return false;
-        }
     }
 }

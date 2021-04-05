@@ -9,7 +9,7 @@ namespace Framework.ECS.Systems.Sync
 {
     public class TimeSyncSystem : ISystem
     {
-        private ShaderBlockSingle<ShaderTime> _timeBlock;
+        private readonly ShaderBlockSingle<ShaderTime> _timeBlock;
 
         /// <summary>
         /// 
@@ -24,12 +24,14 @@ namespace Framework.ECS.Systems.Sync
         /// </summary>
         public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var time = sceneComponents.First(f => f is TimeComponent) as TimeComponent;
-            _timeBlock.Data.Total = time.Total;
-            _timeBlock.Data.TotalSin = time.TotalSin;
-            _timeBlock.Data.Frame = time.DeltaFrame;
-            _timeBlock.Data.Fixed = time.DeltaFixed;
-            _timeBlock.PushToGPU();
+            if (sceneComponents.TryGet<TimeComponent>(out var time))
+            {
+                _timeBlock.Data.Total = time.Total;
+                _timeBlock.Data.TotalSin = time.TotalSin;
+                _timeBlock.Data.Frame = time.DeltaFrame;
+                _timeBlock.Data.Fixed = time.DeltaFixed;
+                _timeBlock.PushToGPU();
+            }
         }
     }
 }

@@ -8,18 +8,18 @@ namespace Framework.ECS.Systems.Hierarchy
     {
         public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var parentEntities = entities.Where(f => f.HasAnyComponents(typeof(ParentComponent)));
+            var parentEntities = entities.Where(f => f.Components.HasAll(typeof(ParentComponent)));
             foreach (var parentEntity in parentEntities)
                 parentEntity.Components.Get<ParentComponent>().Children.Clear();
 
-            var childEntites = entities.Where(f => f.HasAllComponents(typeof(ChildComponent)));
+            var childEntites = entities.Where(f => f.Components.HasAll(typeof(ChildComponent)));
             foreach (var childEntity in childEntites)
             {
                 var childComponent = childEntity.Components.Get<ChildComponent>();
                 if (childComponent.Parent == null)
                     childEntity.Components.Remove(childComponent);
 
-                else if (childComponent.Parent.Components.Has<ParentComponent>(out var parentComponent))
+                else if (childComponent.Parent.Components.TryGet<ParentComponent>(out var parentComponent))
                     parentComponent.Children.Add(childEntity);
 
                 else
@@ -28,7 +28,7 @@ namespace Framework.ECS.Systems.Hierarchy
 
             foreach(var parentEntity in parentEntities)
             {
-                if (parentEntity.Components.Has<ParentComponent>(out var parentComponent))
+                if (parentEntity.Components.TryGet<ParentComponent>(out var parentComponent))
                     if (parentComponent.Children.Count == 0)
                         parentEntity.Components.Remove(parentComponent);
             }

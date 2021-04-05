@@ -17,7 +17,7 @@ namespace Project.ECS.Systems
     {
         public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
         {
-            var cameraEntity = entities.First(f => f.HasComponent<CameraControllerComponent>());
+            var cameraEntity = entities.First(f => f.Components.Has<CameraControllerComponent>());
             var transform = cameraEntity.Components.Get<TransformComponent>();
             var controller = cameraEntity.Components.Get<CameraControllerComponent>();
             var input = sceneComponents.First(f => f is InputComponent) as InputComponent;

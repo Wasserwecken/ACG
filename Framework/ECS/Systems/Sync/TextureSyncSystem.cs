@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using Framework.ECS.Components.Render;
+using System;
+using Framework.Assets.Framebuffer;
 
 namespace Framework.ECS.Systems.Sync
 {
@@ -32,7 +34,10 @@ namespace Framework.ECS.Systems.Sync
                 foreach (var textureUniform in material.UniformTextures)
                     textures.Add(textureUniform.Value);
 
-            if (sceneComponents.Has<SkyboxComponent>(out var skyboxComponent))
+            //foreach (var texture in TextureRenderRegister.Textures)
+            //    textures.Add(texture);
+
+            if (sceneComponents.TryGet<SkyboxComponent>(out var skyboxComponent))
                 foreach (var textureUniform in skyboxComponent.Material.UniformTextures)
                     textures.Add(textureUniform.Value);
 
@@ -53,6 +58,8 @@ namespace Framework.ECS.Systems.Sync
                 SpecificTexture2D(texture2D);
             else if (texture is TextureCubeAsset textureCube)
                 SpecificTextureCube(textureCube);
+            else if (texture is FrameBufferTextureAsset textureRender)
+                SpecificTextureRender(textureRender);
 
             GL.TexParameter(texture.Target, TextureParameterName.TextureWrapS, (int)texture.WrapModeS);
             GL.TexParameter(texture.Target, TextureParameterName.TextureWrapT, (int)texture.WrapModeT);
@@ -102,6 +109,24 @@ namespace Framework.ECS.Systems.Sync
                 );
 
             GL.TexParameter(texture.Target, TextureParameterName.TextureWrapR, (int)texture.WrapModeR);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void SpecificTextureRender(FrameBufferTextureAsset texture)
+        {
+            //GL.TexImage2D(
+            //    texture.Target,
+            //    0,
+            //    texture.InternalFormat,
+            //    texture.Width,
+            //    texture.Height,
+            //    0,
+            //    texture.Format,
+            //    texture.PixelType,
+            //    default
+            //);
         }
     }
 }

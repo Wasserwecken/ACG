@@ -16,6 +16,7 @@ namespace Framework.ECS.Systems.Time
         {
             _watch = new Stopwatch();
         }
+
         /// <summary>
         /// 
         /// </summary>

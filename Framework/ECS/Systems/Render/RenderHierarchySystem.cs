@@ -23,7 +23,7 @@ namespace Framework.ECS.Systems.Hierarchy
             renderDataComponent.Transforms.Clear();
             renderDataComponent.Primitves.Clear();
 
-            var meshes = entities.Where(f => f.HasAnyComponents(typeof(MeshComponent)));
+            var meshes = entities.Where(f => f.Components.Has<MeshComponent>());
             foreach (var meshEntity in meshes)
             {
                 var mesh = meshEntity.Components.Get<MeshComponent>();

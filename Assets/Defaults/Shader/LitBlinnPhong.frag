@@ -62,13 +62,14 @@ layout (std430) buffer ShaderViewSpace {
 struct DirectionalLight
 {
  vec4 Color;
- vec3 Direction;
+ vec4 Direction;
+ vec4 Shadow;
 };
 
 struct PointLight
 {
  vec4 Color;
- vec3 Position;
+ vec4 Position;
 };
 
 struct SpotLight
@@ -126,7 +127,7 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
     for(int i = 0; i < _directionalLights.length(); i++)
     {
         vec3 lightColor = _directionalLights[i].Color.xyz;
-        vec3 lightDirection = _directionalLights[i].Direction;
+        vec3 lightDirection = _directionalLights[i].Direction.xyz;
         vec3 halfwayDirection = normalize(lightDirection + viewDirection);
 
         result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor);
@@ -135,7 +136,7 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
     
     for(int i = 0; i < _pointLights.length(); i++)
     {
-        vec3 lightDiff = _pointLights[i].Position - _vertexPosition.PositionWorld.xyz;
+        vec3 lightDiff = _pointLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
         vec3 lightColor = _pointLights[i].Color.xyz;
         float lightDistance = length(lightDiff);
         vec3 lightDirection = normalize(lightDiff);

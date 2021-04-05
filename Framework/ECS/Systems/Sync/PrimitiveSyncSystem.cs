@@ -23,7 +23,7 @@ namespace Framework.ECS.Systems.Sync
                 if (primitive.Handle <= 0)
                     Push(primitive);
 
-            if (sceneComponents.Has<SkyboxComponent>(out var skyboxComponent))
+            if (sceneComponents.TryGet<SkyboxComponent>(out var skyboxComponent))
                 foreach (var primitive in skyboxComponent.Mesh.Primitives)
                     if (primitive.Handle <= 0)
                         Push(primitive);
