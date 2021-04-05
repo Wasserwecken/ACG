@@ -17,7 +17,6 @@ namespace Framework.ECS.Systems.Hierarchy
         {
             var renderDataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
             renderDataComponent.Graph.Clear();
-            renderDataComponent.Entities.Clear();
             renderDataComponent.Shaders.Clear();
             renderDataComponent.Materials.Clear();
             renderDataComponent.Transforms.Clear();
@@ -28,7 +27,6 @@ namespace Framework.ECS.Systems.Hierarchy
             {
                 var mesh = meshEntity.Components.Get<MeshComponent>();
                 var transform = meshEntity.Components.Get<TransformComponent>();
-                renderDataComponent.Entities.Add(meshEntity);
 
                 for (int i = 0; i < mesh.Mesh.Primitives.Count; i++)
                 {

@@ -76,8 +76,9 @@ namespace Window
             _sceneComponents = new List<IComponent>()
             {
                 new TimeComponent(),
+                new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState },
+                new RenderDataComponent(),
                 new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y },
-                new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState }
             };
 
             _sceneEntities = new List<Entity>()

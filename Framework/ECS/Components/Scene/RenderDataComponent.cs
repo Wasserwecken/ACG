@@ -14,11 +14,9 @@ namespace Framework.ECS.Components.Scene
                     Dictionary<TransformComponent,
                         List<VertexPrimitiveAsset>>>> Graph { get; set; }
 
-        public List<Entity> Entities;
-        public List<TextureBaseAsset> Textures;
-
-        public List<ShaderProgramAsset> Shaders;
         public List<MaterialAsset> Materials;
+        public List<TextureBaseAsset> Textures;
+        public List<ShaderProgramAsset> Shaders;
         public List<TransformComponent> Transforms;
         public List<VertexPrimitiveAsset> Primitves;
 
@@ -27,12 +25,11 @@ namespace Framework.ECS.Components.Scene
         /// </summary>
         public RenderDataComponent()
         {
-            Entities = new List<Entity>();
+            Graph = new Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>>();
             Shaders = new List<ShaderProgramAsset>();
             Materials = new List<MaterialAsset>();
-            Transforms = new List<TransformComponent>();
             Primitves = new List<VertexPrimitiveAsset>();
-            Graph = new Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>>();
+            Transforms = new List<TransformComponent>();
         }
     }
 }
