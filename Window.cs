@@ -1,5 +1,7 @@
 ﻿using Framework;
 using Framework.Assets.Framebuffer;
+using Framework.Assets.Materials;
+using Framework.Assets.Shader;
 using Framework.ECS;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
@@ -58,6 +60,8 @@ namespace Window
                     new CameraControllerSystem(),
                     new EntityHierarchySystem(),
                     new TransformHierarchySystem(),
+
+                    new CameraControllerSystem()
                 }
             };
 
@@ -65,6 +69,7 @@ namespace Window
             {
                 Systems = new List<ISystem>()
                 {
+                    new RenderHierarchySystem(),
                     new TimeSyncSystem(),
                     new LightSyncSystem(),
                     new TextureSyncSystem(),
@@ -83,15 +88,15 @@ namespace Window
 
             _sceneEntities = new List<Entity>()
             {
-                new Entity("Sky",
-                    new TransformComponent(),
-                    new SkyboxComponent()
-                    {
-                        Shader = Default.Shader.Program.Skybox,
-                        Material = Default.Material.Skybox,
-                        Mesh = Default.Vertex.Mesh.Cube
-                    }
-                )
+                //new Entity("Sky",
+                //    new TransformComponent(),
+                //    new MeshComponent()
+                //    {
+                //        Shaders = new List<ShaderProgramAsset>() { Default.Shader.Program.Skybox },
+                //        Materials = new List<MaterialAsset>() { Default.Material.Skybox },
+                //        Mesh = Default.Vertex.Mesh.Cube
+                //    }
+                //)
             };
         }
 
@@ -103,8 +108,8 @@ namespace Window
             base.OnLoad();
 
             //var scenePath = "./Assets/foo.glb";
-            //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
-            var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
+            var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
+            //var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
             _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Default.Shader.Program.MeshBlinnPhong));
 
 
@@ -122,8 +127,17 @@ namespace Window
                 ));
             }
 
-            foreach (var entitiy in _sceneEntities.Where(f => f.Components.Has<MeshComponent>()))
-                entitiy.Components.Add(new TurntableComponent() { Speed = 1f });
+            //_sceneEntities.Add(
+            //    new Entity("Sky",
+            //        new TransformComponent(),
+            //        new MeshComponent()
+            //        {
+            //            Shaders = new List<ShaderProgramAsset>() { Default.Shader.Program.Skybox },
+            //            Materials = new List<MaterialAsset>() { Default.Material.Skybox },
+            //            Mesh = Default.Vertex.Mesh.Cube
+            //        }
+            //    )
+            //);
 
 
             var foo = new FramebufferAsset("Test")

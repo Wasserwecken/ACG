@@ -17,6 +17,7 @@ namespace Framework.ECS.Systems.Time
         public TotalTimeSystem()
         {
             _watch = new Stopwatch();
+            _watch.Start();
         }
 
         /// <summary>

@@ -22,11 +22,6 @@ namespace Framework.ECS.Systems.Sync
             foreach(var primitive in renderDataComponent.Primitves)
                 if (primitive.Handle <= 0)
                     Push(primitive);
-
-            if (sceneComponents.TryGet<SkyboxComponent>(out var skyboxComponent))
-                foreach (var primitive in skyboxComponent.Mesh.Primitives)
-                    if (primitive.Handle <= 0)
-                        Push(primitive);
         }
 
         /// <summary>
