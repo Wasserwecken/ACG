@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using DefaultEcs;
+using DefaultEcs.System;
 using Framework.Assets.Shader.Block;
 using Framework.Assets.Shader.Block.Data;
-using Framework.Assets.Textures;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Transform;
 using OpenTK.Graphics.OpenGL;
@@ -12,50 +11,58 @@ using OpenTK.Mathematics;
 
 namespace Framework.ECS.Systems.Sync
 {
-    public class LightSyncSystem : ISystem
+    public class LightSyncSystem : AEntitySetSystem<bool>
     {
         private readonly ShaderBlockArray<ShaderDirectionalLight> _directionalBlock;
         private readonly ShaderBlockArray<ShaderPointLight> _pointBlock;
         private readonly ShaderBlockArray<ShaderSpotLight> _spotBlock;
 
+        private readonly EntitySet _directionalSet;
+        private readonly EntitySet _pointSet;
+        private readonly EntitySet _spotSet;
+
         /// <summary>
         /// 
         /// </summary>
-        public LightSyncSystem()
+        public LightSyncSystem(World world) : base(world)
         {
             _directionalBlock = new ShaderBlockArray<ShaderDirectionalLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _pointBlock = new ShaderBlockArray<ShaderPointLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _spotBlock = new ShaderBlockArray<ShaderSpotLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+
+            _directionalSet = World.GetEntities().With<DirectionalLightComponent>().With<TransformComponent>().AsSet();
+            _pointSet = World.GetEntities().With<PointLightComponent>().With<TransformComponent>().AsSet();
+            _spotSet = World.GetEntities().With<SpotLightComponent>().With<TransformComponent>().AsSet();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
-            _directionalBlock.Data = CreateDirectionalBlock(entities);
+            _directionalBlock.Data = CreateDirectionalBlock();
             _directionalBlock.PushToGPU();
 
-            _pointBlock.Data = CreatePointBlock(entities);
+            _pointBlock.Data = CreatePointBlock();
             _pointBlock.PushToGPU();
 
-            _spotBlock.Data = CreateSpotBlock(entities);
+            _spotBlock.Data = CreateSpotBlock();
             _spotBlock.PushToGPU();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private static ShaderDirectionalLight[] CreateDirectionalBlock(IEnumerable<Entity> entities)
+        private ShaderDirectionalLight[] CreateDirectionalBlock()
         {
             var index = 0;
-            var directionals = entities.Where(f => f.Components.HasAll(typeof(DirectionalLightComponent), typeof(TransformComponent)));
-            var result = new ShaderDirectionalLight[directionals.Count()];
+            var entities = _directionalSet.GetEntities();
+            var result = new ShaderDirectionalLight[entities.Length];
 
-            foreach (var entity in directionals)
+            foreach (var entity in entities)
             {
-                var light = entity.Components.Get<DirectionalLightComponent>();
-                var transform = entity.Components.Get<TransformComponent>();
+                var light = entity.Get<DirectionalLightComponent>();
+                var transform = entity.Get<TransformComponent>();
 
                 result[index].Color = new Vector4(light.Color, light.AmbientFactor);
                 result[index].Direction = new Vector4(-transform.Forward, 0f);
@@ -69,16 +76,16 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
-        private static ShaderPointLight[] CreatePointBlock(IEnumerable<Entity> entities)
+        private ShaderPointLight[] CreatePointBlock()
         {
             var index = 0;
-            var points = entities.Where(f => f.Components.HasAll(typeof(PointLightComponent), typeof(TransformComponent)));
-            var result = new ShaderPointLight[points.Count()];
+            var entities = _pointSet.GetEntities();
+            var result = new ShaderPointLight[entities.Length];
 
-            foreach (var entity in points)
+            foreach (var entity in entities)
             {
-                var light = entity.Components.Get<PointLightComponent>();
-                var transform = entity.Components.Get<TransformComponent>();
+                var light = entity.Get<PointLightComponent>();
+                var transform = entity.Get<TransformComponent>();
 
                 result[index].Color = new Vector4(light.Color / 30, light.AmbientFactor);
                 result[index].Position = new Vector4(transform.Position, 0f);
@@ -91,18 +98,16 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
-        private static ShaderSpotLight[] CreateSpotBlock(IEnumerable<Entity> entities)
+        private ShaderSpotLight[] CreateSpotBlock()
         {
             var index = 0;
-            var spots = entities.Where(f => f.Components.HasAll(typeof(SpotLightComponent), typeof(TransformComponent)));
-            var result = new ShaderSpotLight[spots.Count()];
+            var entities = _spotSet.GetEntities();
+            var result = new ShaderSpotLight[entities.Length];
 
-            foreach (var entity in spots)
+            foreach (var entity in entities)
             {
-                var light = entity.Components.Get<SpotLightComponent>();
-                var transform = entity.Components.Get<TransformComponent>();
-
-                var foo = transform.Scale;
+                var light = entity.Get<SpotLightComponent>();
+                var transform = entity.Get<TransformComponent>();
 
                 result[index].Color = new Vector4(light.Color / 30, light.AmbientFactor);
                 result[index].Position = new Vector4(transform.Position, MathF.Cos(light.OuterAngle));

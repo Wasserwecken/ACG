@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using DefaultEcs;
 using System.Diagnostics;
 
 namespace Framework.ECS.Components.Relation
 {
     [DebuggerDisplay("Parent: {Parent?.Name}")]
-    public class ChildComponent : IComponent
+    public struct ChildComponent
     {
         public Entity Parent { get; set; }
     }

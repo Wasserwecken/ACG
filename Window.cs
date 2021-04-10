@@ -1,13 +1,12 @@
-﻿using Framework;
+﻿using DefaultEcs;
+using DefaultEcs.System;
+using Framework;
 using Framework.Assets.Framebuffer;
-using Framework.ECS;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2;
-using Framework.ECS.Pipeline;
-using Framework.ECS.Systems;
 using Framework.ECS.Systems.Hierarchy;
 using Framework.ECS.Systems.Render;
 using Framework.ECS.Systems.Sync;
@@ -26,12 +25,10 @@ namespace Window
 {
     public class Window : GameWindow
     {
-        private List<Entity> _sceneEntities;
-        private List<IComponent> _sceneComponents;
-
-        private readonly Pipeline _fixedPipeline;
-        private readonly Pipeline _framePipeline;
-        private readonly Pipeline _renderPipeline;
+        private readonly World _scene;
+        private readonly SequentialSystem<bool> _fixedPipeline;
+        private readonly SequentialSystem<bool> _framePipeline;
+        private readonly SequentialSystem<bool> _renderPipeline;
 
         /// <summary>
         /// 
@@ -41,50 +38,35 @@ namespace Window
         public Window(GameWindowSettings gameSettings, NativeWindowSettings nativeSettings)
             : base(gameSettings, nativeSettings)
         {
-            _fixedPipeline = new Pipeline()
-            {
-                Systems = new List<ISystem>()
-                {
-                    new FixedTimeSystem(),
-                },
-            };
+            var sceneComponents = _scene.CreateEntity();
+            sceneComponents.Set(new TimeComponent());
+            sceneComponents.Set(new RenderDataComponent());
+            sceneComponents.Set(new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState });
+            sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
 
-            _framePipeline = new Pipeline()
-            {
-                Systems = new List<ISystem>()
-                {
-                    new TotalTimeSystem(),
-                    new FrameTimeSystem(),
-                    new CameraControllerSystem(),
-                    new EntityHierarchySystem(),
-                    new TransformHierarchySystem(),
 
-                    new CameraControllerSystem()
-                }
-            };
+            _fixedPipeline = new SequentialSystem<bool>(
+                new FixedTimeSystem(_scene)
+            );
 
-            _renderPipeline = new Pipeline()
-            {
-                Systems = new List<ISystem>()
-                {
+            _framePipeline = new SequentialSystem<bool>(
+                new TotalTimeSystem(_scene),
+                new FrameTimeSystem(_scene),
+
+                new EntityHierarchySystem(_scene),
+                new TransformHierarchySystem(_scene),
+
+                new CameraControllerSystem(_scene)
+            );
+
+            _renderPipeline = new SequentialSystem<bool>(
                     new RenderHierarchySystem(),
-                    new TimeSyncSystem(),
-                    new LightSyncSystem(),
-                    new TextureSyncSystem(),
-                    new PrimitiveSyncSystem(),
-                    new RenderSystem()
-                }
-            };
-
-            _sceneComponents = new List<IComponent>()
-            {
-                new TimeComponent(),
-                new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState },
-                new RenderDataComponent(),
-                new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y },
-            };
-
-            _sceneEntities = new List<Entity>();
+                    new TimeSyncSystem(_scene),
+                    new LightSyncSystem(_scene),
+                    new TextureSyncSystem(_scene),
+                    new PrimitiveSyncSystem(_scene),
+                    new RenderSystem(_scene)
+            );
         }
 
         /// <summary>
@@ -136,7 +118,7 @@ namespace Window
         {
             base.OnUpdateFrame(args);
 
-            _fixedPipeline.Process(_sceneEntities, _sceneComponents);
+            _fixedPipeline.Update(true);
         }
 
         /// <summary>
@@ -146,8 +128,8 @@ namespace Window
         {
             base.OnRenderFrame(args);
 
-            _framePipeline.Process(_sceneEntities, _sceneComponents);
-            _renderPipeline.Process(_sceneEntities, _sceneComponents);
+            _framePipeline.Update(true);
+            _renderPipeline.Update(true);
 
             Context.SwapBuffers();
         }
@@ -161,7 +143,7 @@ namespace Window
 
             GL.Viewport(0, 0, e.Width, e.Height);
 
-            var aspectRatioComponent = _sceneComponents.Get<AspectRatioComponent>();
+            var aspectRatioComponent = _scene.Get<AspectRatioComponent>()[0];
             aspectRatioComponent.Width = e.Width;
             aspectRatioComponent.Height = e.Height;
         }

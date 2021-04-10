@@ -7,7 +7,7 @@ using System.Text;
 namespace Framework.ECS.Components.Transform
 {
     [DebuggerDisplay("Position: {Position}, Forward: {Forward}, Scale: {Scale}")]
-    public class TransformComponent : IComponent
+    public struct TransformComponent
     {
         /// <summary>
         /// Parent in world space
@@ -30,14 +30,6 @@ namespace Framework.ECS.Components.Transform
                 UpdateWorldSpace();
                 return _worldSpace;
             }
-            //set
-            //{
-            //    _worldSpace = value;
-            //    _worldSpaceInverse = _worldSpace.Inverted();
-            //    _localSpace = _worldSpaceInverse * _parentSpace;
-            //    _isWorldOutdated = false;
-            //    _isLocalOutdated = false;
-            //}
         }
 
         public Matrix4 WorldSpaceInverse
@@ -147,11 +139,11 @@ namespace Framework.ECS.Components.Transform
         /// <summary>
         /// 
         /// </summary>
-        public TransformComponent()
+        public static TransformComponent Default => new TransformComponent()
         {
-            ParentSpace = Matrix4.Identity;
-            LocalSpace = Matrix4.Identity;
-        }
+            ParentSpace = Matrix4.Identity,
+            LocalSpace = Matrix4.Identity
+        };
 
         /// <summary>
         /// 

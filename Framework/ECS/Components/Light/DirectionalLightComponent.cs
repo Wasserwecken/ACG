@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace Framework.ECS.Components.Light
 {
     [DebuggerDisplay("Color: {Color}, AmbientFactor: {AmbientFactor}")]
-    public class DirectionalLightComponent : IComponent
+    public struct DirectionalLightComponent
     {
         public Vector3 Color;
         public float AmbientFactor;

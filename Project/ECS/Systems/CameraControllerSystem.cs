@@ -1,39 +1,49 @@
-﻿using Framework.ECS;
-using Framework.ECS.Components.Transform;
-using Framework.ECS.Systems;
-using Project.ECS.Components;
-using System.Collections.Generic;
-using System.Linq;
-using OpenTK.Input;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+﻿using Framework.Extensions;
 using Framework.ECS.Components.Scene;
+using Framework.ECS.Components.Transform;
+using Project.ECS.Components;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Mathematics;
-using Framework;
-using Framework.Extensions;
+using DefaultEcs;
+using DefaultEcs.System;
 
 namespace Project.ECS.Systems
 {
-    public class CameraControllerSystem : ISystem
+    [With(typeof(CameraControllerComponent))]
+    [With(typeof(TransformComponent))]
+    public class CameraControllerSystem : AEntitySetSystem<bool>
     {
-        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        private readonly InputComponent _inputComponent;
+        private readonly TimeComponent _timeComponent;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public CameraControllerSystem(World world) : base(world)
         {
-            var cameraEntity = entities.First(f => f.Components.Has<CameraControllerComponent>());
-            var transform = cameraEntity.Components.Get<TransformComponent>();
-            var controller = cameraEntity.Components.Get<CameraControllerComponent>();
-            var input = sceneComponents.First(f => f is InputComponent) as InputComponent;
-            var time = sceneComponents.First(f => f is TimeComponent) as TimeComponent;
+            _inputComponent = world.Get<InputComponent>()[0];
+            _timeComponent = world.Get<TimeComponent>()[0];
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected override void Update(bool state, in Entity entity)
+        {
+            var controller = entity.Get<CameraControllerComponent>();
+            var transform = entity.Get<TransformComponent>();
 
 
             var moveInput = Vector2.Zero;
-            if (input.Keyboard.IsKeyDown(Keys.W)) moveInput.Y += 1;
-            if (input.Keyboard.IsKeyDown(Keys.S)) moveInput.Y -= 1;
-            if (input.Keyboard.IsKeyDown(Keys.A)) moveInput.X -= 1;
-            if (input.Keyboard.IsKeyDown(Keys.D)) moveInput.X += 1;
-            moveInput *= time.DeltaFrame * controller.MoveSpeed;
+            if (_inputComponent.Keyboard.IsKeyDown(Keys.W)) moveInput.Y += 1;
+            if (_inputComponent.Keyboard.IsKeyDown(Keys.S)) moveInput.Y -= 1;
+            if (_inputComponent.Keyboard.IsKeyDown(Keys.A)) moveInput.X -= 1;
+            if (_inputComponent.Keyboard.IsKeyDown(Keys.D)) moveInput.X += 1;
+            moveInput *= _timeComponent.DeltaFrame * controller.MoveSpeed;
 
             var lookInput = Vector2.Zero;
-            lookInput.X = input.Mouse.Delta.X;
-            lookInput.Y = input.Mouse.Delta.Y;
+            lookInput.X = _inputComponent.Mouse.Delta.X;
+            lookInput.Y = _inputComponent.Mouse.Delta.Y;
             lookInput *= controller.LookSpeed * 0.005f;
 
 

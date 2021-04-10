@@ -1,31 +1,37 @@
-﻿using Framework.ECS.Components.Relation;
+﻿using DefaultEcs;
+using DefaultEcs.System;
+using Framework.ECS.Components.Relation;
 using Framework.ECS.Components.Transform;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Framework.ECS.Systems.Hierarchy
 {
-    public class TransformHierarchySystem : ISystem
+    [With(typeof(TransformComponent))]
+    [With(typeof(ParentComponent))]
+    [Without(typeof(ChildComponent))]
+    public class TransformHierarchySystem : AEntitySetSystem<bool>
     {
-        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
-        {
-            var rootEntities = entities.Where(f => f.Components.Has<TransformComponent>() && !f.Components.Has<ChildComponent>());
-            foreach (var entity in rootEntities)
-                PassTransformSpace(entity);
-        }
+        /// <summary>
+        /// 
+        /// </summary>
+        public TransformHierarchySystem(World world) : base(world) { }
 
-        private void PassTransformSpace(Entity entity)
+        /// <summary>
+        /// 
+        /// </summary>
+        protected override void Update(bool state, in Entity entity)
         {
-            if (entity.Components.TryGet<TransformComponent>(out var transformComponent) &&
-                entity.Components.TryGet<ParentComponent>(out var parentComponent))
+            if (entity.Has<TransformComponent>() && entity.Has<ParentComponent>())
             {
-                foreach(var child in parentComponent.Children)
+                var transform = entity.Get<TransformComponent>();
+                var parent = entity.Get<ParentComponent>();
+             
+                foreach (var child in parent.Children)
                 {
-                    if (child.Components.TryGet<TransformComponent>(out var childTransformComponent))
-                        childTransformComponent.ParentSpace = transformComponent.WorldSpace;
+                    if (child.Has<TransformComponent>())
+                        child.Get<TransformComponent>().ParentSpace = transform.WorldSpace;
 
-                    PassTransformSpace(child);
-                }    
+                    Update(state, child);
+                }
             }
         }
     }

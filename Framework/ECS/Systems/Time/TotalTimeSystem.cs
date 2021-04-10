@@ -1,20 +1,21 @@
-﻿using Framework.ECS.Components.Scene;
+﻿using DefaultEcs;
+using DefaultEcs.System;
+using Framework.ECS.Components.Scene;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 
 namespace Framework.ECS.Systems.Time
 {
-    public class TotalTimeSystem : ISystem
+    public class TotalTimeSystem : AComponentSystem<bool, TimeComponent>
     {
         private readonly Stopwatch _watch;
 
         /// <summary>
         /// 
         /// </summary>
-        public TotalTimeSystem()
+        public TotalTimeSystem(World world) : base(world)
         {
             _watch = new Stopwatch();
             _watch.Start();
@@ -23,9 +24,8 @@ namespace Framework.ECS.Systems.Time
         /// <summary>
         /// 
         /// </summary>
-        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        protected override void Update(bool state, ref TimeComponent timeComponent)
         {
-            var timeComponent = sceneComponents.First(f => f is TimeComponent) as TimeComponent;
             timeComponent.Total = (float)_watch.Elapsed.TotalSeconds;
             timeComponent.TotalSin = MathF.Sin(timeComponent.Total);
         }

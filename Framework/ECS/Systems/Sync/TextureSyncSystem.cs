@@ -3,18 +3,19 @@ using Framework.ECS.Components.Scene;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTK.Graphics.OpenGL;
-using Framework.ECS.Components.Render;
-using System;
 using Framework.Assets.Framebuffer;
+using Framework.ECS.Components.Render;
+using DefaultEcs.System;
+using DefaultEcs;
 
 namespace Framework.ECS.Systems.Sync
 {
-    public class TextureSyncSystem : ISystem
+    public class TextureSyncSystem : AComponentSystem<bool, MeshComponent>
     {
         /// <summary>
         /// 
         /// </summary>
-        public TextureSyncSystem()
+        public TextureSyncSystem(World world) : base(world)
         {
             if (Defaults.Texture.White.Handle <= 0) Push(Defaults.Texture.White);
             if (Defaults.Texture.Gray.Handle <= 0) Push(Defaults.Texture.Gray);
@@ -25,12 +26,11 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
-        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        protected override void Update(bool state, ref MeshComponent meshComponent)
         {
-            var renderDataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
             var textures = new HashSet<TextureBaseAsset>();
 
-            foreach (var material in renderDataComponent.Materials)
+            foreach (var material in meshComponent.Materials)
                 foreach (var textureUniform in material.UniformTextures)
                     textures.Add(textureUniform.Value);
 

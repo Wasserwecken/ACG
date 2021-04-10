@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Framework.ECS.Components.Scene
+﻿namespace Framework.ECS.Components.Scene
 {
-    public class TimeComponent : IComponent
+    public struct TimeComponent
     {
         public float Total { get; set; }
         public float TotalSin { get; set; }

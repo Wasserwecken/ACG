@@ -3,23 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using Framework.Assets.Verticies;
-using Framework.ECS.Components.Render;
 using Framework.Extensions;
 using Framework.Assets.Verticies.Attributes;
 using OpenTK.Mathematics;
+using Framework.ECS.Components.Render;
+using DefaultEcs.System;
+using DefaultEcs;
 
 namespace Framework.ECS.Systems.Sync
 {
-    public class PrimitiveSyncSystem : ISystem
+    public class PrimitiveSyncSystem : AComponentSystem<bool, MeshComponent>
     {
         /// <summary>
         /// 
         /// </summary>
-        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        public PrimitiveSyncSystem(World world) : base(world)
         {
-            var renderDataComponent = sceneComponents.First(f => f is RenderDataComponent) as RenderDataComponent;
 
-            foreach(var primitive in renderDataComponent.Primitves)
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected override void Update(bool state, ref MeshComponent meshComponent)
+        {
+            foreach (var primitive in meshComponent.Mesh.Primitives)
                 if (primitive.Handle <= 0)
                     Push(primitive);
         }

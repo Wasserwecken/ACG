@@ -1,37 +1,45 @@
-﻿using Framework.ECS.Components.Relation;
+﻿using DefaultEcs;
+using DefaultEcs.System;
+using Framework.ECS.Components.Relation;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Framework.ECS.Systems.Hierarchy
 {
-    public class EntityHierarchySystem : ISystem
+    public class EntityHierarchySystem : AEntitySetSystem<bool>
     {
-        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        /// <summary>
+        /// 
+        /// </summary>
+        public EntityHierarchySystem(World world) : base(world) { }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
-            var parentEntities = entities.Where(f => f.Components.HasAll(typeof(ParentComponent)));
-            foreach (var parentEntity in parentEntities)
-                parentEntity.Components.Get<ParentComponent>().Children.Clear();
+            var parentEntities = World.GetEntities().With<ParentComponent>().AsSet().GetEntities();
+            foreach (var parent in parentEntities)
+                parent.Get<ParentComponent>().Children.Clear();
 
-            var childEntites = entities.Where(f => f.Components.HasAll(typeof(ChildComponent)));
-            foreach (var childEntity in childEntites)
+            var childEntites = World.GetEntities().With<ChildComponent>().AsSet().GetEntities();
+            foreach (var child in childEntites)
             {
-                var childComponent = childEntity.Components.Get<ChildComponent>();
+                var childComponent = child.Get<ChildComponent>();
                 if (childComponent.Parent == null)
-                    childEntity.Components.Remove(childComponent);
+                    child.Remove<ChildComponent>();
 
-                else if (childComponent.Parent.Components.TryGet<ParentComponent>(out var parentComponent))
-                    parentComponent.Children.Add(childEntity);
+                else if (childComponent.Parent.Has<ParentComponent>())
+                    childComponent.Parent.Get<ParentComponent>().Children.Add(child);
 
                 else
-                    childComponent.Parent.Components.Add(new ParentComponent() { Children = new List<Entity>() { childEntity } });
+                    childComponent.Parent.Set(new ParentComponent() { Children = new List<Entity>() { child } });
             }
 
-            foreach(var parentEntity in parentEntities)
-            {
-                if (parentEntity.Components.TryGet<ParentComponent>(out var parentComponent))
-                    if (parentComponent.Children.Count == 0)
-                        parentEntity.Components.Remove(parentComponent);
-            }
+            foreach (var parent in parentEntities)
+                if (parent.Has<ParentComponent>())
+                    if (parent.Get<ParentComponent>().Children.Count == 0)
+                        parent.Remove<ParentComponent>();
         }
     }
 }
