@@ -10,6 +10,7 @@ using Framework.Assets.Shader;
 using Framework.Assets.Materials;
 using Framework.Assets.Verticies;
 using Framework.Assets.Shader.Block.Data;
+using Framework.Assets.Textures;
 
 namespace Framework.ECS.Systems.Render
 {
@@ -34,12 +35,6 @@ namespace Framework.ECS.Systems.Render
         {
             var renderDataComponent = sceneComponents.Get<RenderDataComponent>();
             var aspectComponent = sceneComponents.Get<AspectRatioComponent>();
-
-            //var skyboxEntity = entities.FirstOrDefault(f => f.Components.Has<SkyboxComponent>());
-            //var skyboxComponent = skyboxEntity.Components.Get<SkyboxComponent>();
-            //var skyTexture = skyboxEntity == null && skyboxComponent.Material.UniformTextures.ContainsKey(Definitions.Shader.Uniform.ReflectionMap)
-            //    ? Default.Texture.SkyboxCoast
-            //    : skyboxComponent.Material.UniformTextures[Definitions.Shader.Uniform.ReflectionMap];
             var cameras = entities.Where(f => f.Components.Has<PerspectiveCameraComponent>());
 
             foreach (var cameraEntity in cameras)
@@ -48,6 +43,9 @@ namespace Framework.ECS.Systems.Render
                 var cameraTransform = cameraEntity.Components.Get<TransformComponent>();
                 var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(cameraData.FieldOfView), aspectComponent.Ratio, cameraData.NearClipping, cameraData.FarClipping);
 
+                TextureBaseAsset skyboxTexture = Default.Texture.SkyboxCoast;
+                if (cameraEntity.Components.TryGet<MeshComponent>(out var skyboxMesh))
+                    skyboxTexture = skyboxMesh.Materials[0].UniformTextures[Definitions.Shader.Uniform.ReflectionMap];
 
                 UseCamera(cameraData);
                 _viewSpaceBlock.Data = CreateViewSpace(cameraTransform, projectionSpace);
@@ -59,7 +57,7 @@ namespace Framework.ECS.Systems.Render
 
                     foreach (var materialRelation in shaderRelation.Value)
                     {
-                        //materialRelation.Key.SetUniform(Definitions.Shader.Uniform.ReflectionMap, skyTexture);
+                        materialRelation.Key.SetUniform(Definitions.Shader.Uniform.ReflectionMap, skyboxTexture);
                         UseMaterial(materialRelation.Key);
                         SetUniforms(materialRelation.Key, shaderRelation.Key);
 
@@ -73,16 +71,6 @@ namespace Framework.ECS.Systems.Render
                         }
                     }
                 }
-
-                //if (skyboxComponent != null)
-                //{
-                //    UseShader(skyboxComponent.Shader);
-                //    UseMaterial(skyboxComponent.Material);
-                //    SetUniforms(skyboxComponent.Material, skyboxComponent.Shader);
-
-                //    foreach (var primitive in skyboxComponent.Mesh.Primitives)
-                //        Draw(primitive);
-                //}
             }
         }
 

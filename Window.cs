@@ -86,18 +86,7 @@ namespace Window
                 new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y },
             };
 
-            _sceneEntities = new List<Entity>()
-            {
-                //new Entity("Sky",
-                //    new TransformComponent(),
-                //    new MeshComponent()
-                //    {
-                //        Shaders = new List<ShaderProgramAsset>() { Default.Shader.Program.Skybox },
-                //        Materials = new List<MaterialAsset>() { Default.Material.Skybox },
-                //        Mesh = Default.Vertex.Mesh.Cube
-                //    }
-                //)
-            };
+            _sceneEntities = new List<Entity>();
         }
 
         /// <summary>
@@ -108,8 +97,8 @@ namespace Window
             base.OnLoad();
 
             //var scenePath = "./Assets/foo.glb";
-            var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
-            //var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
+            //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
+            var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
             _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Default.Shader.Program.MeshBlinnPhong));
 
 
@@ -126,18 +115,6 @@ namespace Window
                     new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f }
                 ));
             }
-
-            //_sceneEntities.Add(
-            //    new Entity("Sky",
-            //        new TransformComponent(),
-            //        new MeshComponent()
-            //        {
-            //            Shaders = new List<ShaderProgramAsset>() { Default.Shader.Program.Skybox },
-            //            Materials = new List<MaterialAsset>() { Default.Material.Skybox },
-            //            Mesh = Default.Vertex.Mesh.Cube
-            //        }
-            //    )
-            //);
 
 
             var foo = new FramebufferAsset("Test")

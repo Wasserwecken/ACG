@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Textures;
@@ -152,6 +153,12 @@ namespace Framework
                         FarClipping = 100f,
                         NearClipping = 0.01f,
                         FieldOfView = 90f
+                    },                    
+                    new MeshComponent()
+                    {
+                        Shaders = new List<ShaderProgramAsset>() { Shader.Program.Skybox },
+                        Materials = new List<MaterialAsset>() { Material.Skybox },
+                        Mesh = Vertex.Mesh.Cube
                     }
                 );
             }

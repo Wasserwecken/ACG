@@ -34,13 +34,6 @@ namespace Framework.ECS.Systems.Sync
                 foreach (var textureUniform in material.UniformTextures)
                     textures.Add(textureUniform.Value);
 
-            //foreach (var texture in TextureRenderRegister.Textures)
-            //    textures.Add(texture);
-
-            if (sceneComponents.TryGet<SkyboxComponent>(out var skyboxComponent))
-                foreach (var textureUniform in skyboxComponent.Material.UniformTextures)
-                    textures.Add(textureUniform.Value);
-
             foreach (var texture in textures)
                 if (texture.Handle <= 0)
                     Push(texture);
