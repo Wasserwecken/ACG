@@ -101,7 +101,7 @@ namespace Framework.ECS.GLTF2
                 foreach (var gltfPrimitive in gltfNode.Mesh.Primitives)
                 {
                     if (gltfPrimitive.Material == null)
-                        renderer.Materials.Add(Default.Material.PBR);
+                        renderer.Materials.Add(Defaults.Material.PBR);
                     else if (_materials.TryGetValue(gltfPrimitive.Material, out var materialAsset))
                         renderer.Materials.Add(materialAsset);
                 }

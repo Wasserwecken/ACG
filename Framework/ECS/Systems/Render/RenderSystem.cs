@@ -43,7 +43,7 @@ namespace Framework.ECS.Systems.Render
                 var cameraTransform = cameraEntity.Components.Get<TransformComponent>();
                 var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(cameraData.FieldOfView), aspectComponent.Ratio, cameraData.NearClipping, cameraData.FarClipping);
 
-                TextureBaseAsset skyboxTexture = Default.Texture.SkyboxCoast;
+                TextureBaseAsset skyboxTexture = Defaults.Texture.SkyboxCoast;
                 if (cameraEntity.Components.TryGet<MeshComponent>(out var skyboxMesh))
                     skyboxTexture = skyboxMesh.Materials[0].UniformTextures[Definitions.Shader.Uniform.ReflectionMap];
 
@@ -162,9 +162,9 @@ namespace Framework.ECS.Systems.Render
                 GL.ActiveTexture(TextureUnit.Texture0 + uniformTexture.Layout);
 
                 if (uniformTexture.Name.ToLower().Contains("normal"))
-                    GL.BindTexture(Default.Texture.Normal.Target, Default.Texture.Normal.Handle);
+                    GL.BindTexture(Defaults.Texture.Normal.Target, Defaults.Texture.Normal.Handle);
                 else
-                    GL.BindTexture(Default.Texture.White.Target, Default.Texture.White.Handle);
+                    GL.BindTexture(Defaults.Texture.White.Target, Defaults.Texture.White.Handle);
             }
         }
 

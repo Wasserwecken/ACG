@@ -14,7 +14,7 @@ using SharpGLTF.Schema2;
 
 namespace Framework
 {
-    public static class Default
+    public static class Defaults
     {
         public static class Shader
         {

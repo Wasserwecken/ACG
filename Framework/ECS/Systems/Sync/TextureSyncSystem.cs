@@ -16,10 +16,10 @@ namespace Framework.ECS.Systems.Sync
         /// </summary>
         public TextureSyncSystem()
         {
-            if (Default.Texture.White.Handle <= 0) Push(Default.Texture.White);
-            if (Default.Texture.Gray.Handle <= 0) Push(Default.Texture.Gray);
-            if (Default.Texture.Black.Handle <= 0) Push(Default.Texture.Black);
-            if (Default.Texture.Normal.Handle <= 0) Push(Default.Texture.Normal);
+            if (Defaults.Texture.White.Handle <= 0) Push(Defaults.Texture.White);
+            if (Defaults.Texture.Gray.Handle <= 0) Push(Defaults.Texture.Gray);
+            if (Defaults.Texture.Black.Handle <= 0) Push(Defaults.Texture.Black);
+            if (Defaults.Texture.Normal.Handle <= 0) Push(Defaults.Texture.Normal);
         }
 
         /// <summary>

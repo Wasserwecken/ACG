@@ -1,7 +1,5 @@
 ﻿using Framework;
 using Framework.Assets.Framebuffer;
-using Framework.Assets.Materials;
-using Framework.Assets.Shader;
 using Framework.ECS;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
@@ -99,12 +97,12 @@ namespace Window
             //var scenePath = "./Assets/foo.glb";
             //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
             var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
-            _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Default.Shader.Program.MeshBlinnPhong));
+            _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Defaults.Shader.Program.MeshBlinnPhong));
 
 
             if (!_sceneEntities.Any(f => f.Components.Has<PerspectiveCameraComponent>()))
             {
-                var camera = Default.Entity.Camera;
+                var camera = Defaults.Entity.Camera;
                 camera.Components.Add(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
                 _sceneEntities.Add(camera);
             }
