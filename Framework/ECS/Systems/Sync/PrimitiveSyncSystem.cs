@@ -7,7 +7,6 @@ using OpenTK.Mathematics;
 using Framework.ECS.Components.Render;
 using DefaultEcs.System;
 using DefaultEcs;
-using Framework.ECS.Components.Scene;
 
 namespace Framework.ECS.Systems.Sync
 {
@@ -26,13 +25,10 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
-        protected override void PreUpdate(bool state)
+        protected override void Update(bool state, ref PrimitiveComponent primitive)
         {
-            var renderData = _worldComponents.Get<RenderDataComponent>();
-
-            foreach(var primitive in renderData.Primitves)
-                if (primitive.Handle <= 0)
-                    Push(primitive);
+            if (primitive.Primitive.Handle <= 0)
+                Push(primitive.Primitive);
         }
 
         /// <summary>

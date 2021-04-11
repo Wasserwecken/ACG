@@ -1,36 +1,102 @@
-﻿using System.Linq;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Mathematics;
+﻿using DefaultEcs;
+using DefaultEcs.System;
+using Framework.Assets.Materials;
+using Framework.Assets.Shader;
+using Framework.Assets.Shader.Block;
+using Framework.Assets.Shader.Block.Data;
+using Framework.Assets.Textures;
+using Framework.Assets.Verticies;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
-using Framework.Assets.Shader.Block;
-using Framework.Assets.Shader;
-using Framework.Assets.Materials;
-using Framework.Assets.Verticies;
-using Framework.Assets.Shader.Block.Data;
-using Framework.Assets.Textures;
-using DefaultEcs.System;
-using DefaultEcs;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Framework.ECS.Systems.Render
 {
+    [With(typeof(TransformComponent))]
     [With(typeof(PerspectiveCameraComponent))]
-    public class RenderSystem : AEntitySetSystem<bool>
+    public class ForwardPassSystem : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
+        private EntitySet _graphSet;
+
         private readonly ShaderBlockSingle<ShaderViewSpace> _viewSpaceBlock;
         private readonly ShaderBlockSingle<ShaderPrimitiveSpace> _primitiveSpaceBlock;
+
+        private readonly List<MaterialAsset> _materials;
+        private readonly List<TextureBaseAsset> _textures;
+        private readonly List<ShaderProgramAsset> _shaders;
+        private readonly List<TransformComponent> _transforms;
+        private readonly List<VertexPrimitiveAsset> _primitives;
+
+        private readonly Dictionary<ShaderProgramAsset,
+           Dictionary<MaterialAsset,
+               Dictionary<TransformComponent,
+                   List<VertexPrimitiveAsset>>>> _graph;
 
         /// <summary>
         /// 
         /// </summary>
-        public RenderSystem(World world, Entity worldComponents) : base(world)
+        public ForwardPassSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
+            _graphSet = World.GetEntities().With<TransformComponent>().With<PrimitiveComponent>().AsSet();
 
             _viewSpaceBlock = new ShaderBlockSingle<ShaderViewSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _primitiveSpaceBlock = new ShaderBlockSingle<ShaderPrimitiveSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+
+            _materials = new List<MaterialAsset>();
+            _textures = new List<TextureBaseAsset>();
+            _shaders = new List<ShaderProgramAsset>();
+            _transforms = new List<TransformComponent>();
+            _primitives = new List<VertexPrimitiveAsset>();
+            _graph = new Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>>();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected override void PreUpdate(bool state)
+        {
+            _graph.Clear();
+            _shaders.Clear();
+            _materials.Clear();
+            _transforms.Clear();
+            _primitives.Clear();
+
+            foreach (var entity in _graphSet.GetEntities())
+            {
+                var primitive = entity.Get<PrimitiveComponent>();
+                var transform = entity.Get<TransformComponent>();
+
+                var shader = primitive.Shader;
+                var material = primitive.Material;
+                var verticies = primitive.Primitive;
+
+                if (!_graph.ContainsKey(shader))
+                {
+                    _graph.Add(shader, new Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>());
+                    _shaders.Add(shader);
+                }
+
+                if (!_graph[shader].ContainsKey(material))
+                {
+                    _graph[shader].Add(material, new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>());
+                    _materials.Add(material);
+                }
+
+                if (!_graph[shader][material].ContainsKey(transform))
+                {
+                    _graph[shader][material].Add(transform, new List<VertexPrimitiveAsset>());
+                    _transforms.Add(transform);
+                }
+
+                _graph[shader][material][transform].Add(verticies);
+                _primitives.Add(verticies);
+            }
         }
 
         /// <summary>
@@ -40,7 +106,6 @@ namespace Framework.ECS.Systems.Render
         {
             var cameraData = entity.Get<PerspectiveCameraComponent>();
             var cameraTransform = entity.Get<TransformComponent>();
-            var renderData = _worldComponents.Get<RenderDataComponent>();
             var aspectRatio = _worldComponents.Get<AspectRatioComponent>();
 
 
@@ -57,7 +122,7 @@ namespace Framework.ECS.Systems.Render
             _viewSpaceBlock.Data = CreateViewSpace(cameraTransform, projectionSpace);
             _viewSpaceBlock.PushToGPU();
 
-            foreach (var shaderRelation in renderData.Graph)
+            foreach (var shaderRelation in _graph)
             {
                 UseShader(shaderRelation.Key);
 

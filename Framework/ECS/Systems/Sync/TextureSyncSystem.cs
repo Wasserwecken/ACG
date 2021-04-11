@@ -5,7 +5,6 @@ using Framework.Assets.Framebuffer;
 using Framework.ECS.Components.Render;
 using DefaultEcs.System;
 using DefaultEcs;
-using Framework.ECS.Components.Scene;
 
 namespace Framework.ECS.Systems.Sync
 {
@@ -29,18 +28,11 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
-        protected override void PreUpdate(bool state)
+        protected override void Update(bool state, ref PrimitiveComponent component)
         {
-            var textures = new HashSet<TextureBaseAsset>();
-            var renderData = _worldComponents.Get<RenderDataComponent>();
-
-            foreach (var material in renderData.Materials)
-                foreach (var textureUniform in material.UniformTextures)
-                    textures.Add(textureUniform.Value);
-
-            foreach (var texture in textures)
-                if (texture.Handle <= 0)
-                    Push(texture);
+            foreach (var textureUniform in component.Material.UniformTextures)
+                if (textureUniform.Value.Handle <= 0)
+                    Push(textureUniform.Value);
         }
 
         /// <summary>
