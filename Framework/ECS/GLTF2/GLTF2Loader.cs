@@ -9,6 +9,7 @@ using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2.Assets;
 using Framework.ECS.GLTF2.Components;
 using Framework.Extensions;
+using OpenTK.Mathematics;
 using SharpGLTF.Schema2;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,7 +72,7 @@ namespace Framework.ECS.GLTF2
         private static Entity CreateEntity(Node gltfNode)
         {
             var entity = _world.CreateEntity();
-            entity.Set(new TransformComponent() { LocalSpace = gltfNode.LocalMatrix.ToOpenTK() });
+            entity.Set(new TransformComponent(gltfNode.LocalMatrix.ToOpenTK()));
                 
             if (gltfNode.PunctualLight != null && _lights.TryGetValue(gltfNode.PunctualLight, out var lightComponent))
                 entity.Set(lightComponent);

@@ -148,6 +148,45 @@ namespace Framework.ECS.Components.Transform
         /// <summary>
         /// 
         /// </summary>
+        public TransformComponent(Vector3 position)
+        {
+            this = Default;
+            Position = position;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public TransformComponent(Vector3 position, Vector3 forward)
+        {
+            this = Default;
+            Position = position;
+            Forward = forward;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public TransformComponent(Vector3 position, Vector3 forward, Vector3 scale)
+        {
+            this = Default;
+            Position = position;
+            Forward = forward;
+            Scale = scale;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public TransformComponent(Matrix4 localSpace)
+        {
+            this = Default;
+            LocalSpace = localSpace;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         private void UpdateWorldSpace()
         {
             if (_isLocalOutdated || _isWorldOutdated)

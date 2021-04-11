@@ -3,7 +3,6 @@ using DefaultEcs.System;
 using Framework;
 using Framework.Assets.Framebuffer;
 using Framework.ECS.Components.Light;
-using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2;
@@ -19,7 +18,6 @@ using OpenTK.Windowing.Desktop;
 using Project.ECS.Components;
 using Project.ECS.Systems;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Window
 {
@@ -87,9 +85,8 @@ namespace Window
             cameraEntity.Set(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
 
             var sunEntity = _scene.CreateEntity();
-            sunEntity.Set(new TransformComponent() { Forward = -Vector3.UnitY.Rotate(1f, Vector3.UnitX).Rotate(1f, Vector3.UnitY) });
+            sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(1f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
-
 
             var foo = new FramebufferAsset("Test")
             {
