@@ -134,9 +134,9 @@ namespace Window
 
             GL.Viewport(0, 0, e.Width, e.Height);
 
-            var aspectRatioComponent = _scene.Get<AspectRatioComponent>()[0];
-            aspectRatioComponent.Width = e.Width;
-            aspectRatioComponent.Height = e.Height;
+            ref var aspectRatio = ref _sceneComponents.Get<AspectRatioComponent>();
+            aspectRatio.Width = e.Width;
+            aspectRatio.Height = e.Height;
         }
     }
 }

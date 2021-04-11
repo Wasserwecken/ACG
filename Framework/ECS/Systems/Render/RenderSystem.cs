@@ -18,8 +18,7 @@ namespace Framework.ECS.Systems.Render
     [With(typeof(PerspectiveCameraComponent))]
     public class RenderSystem : AEntitySetSystem<bool>
     {
-        private readonly RenderDataComponent _renderData;
-        private readonly AspectRatioComponent _aspectRatio;
+        private readonly Entity _worldComponents;
         private readonly ShaderBlockSingle<ShaderViewSpace> _viewSpaceBlock;
         private readonly ShaderBlockSingle<ShaderPrimitiveSpace> _primitiveSpaceBlock;
 
@@ -28,8 +27,7 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         public RenderSystem(World world, Entity worldComponents) : base(world)
         {
-            _renderData = worldComponents.Get<RenderDataComponent>();
-            _aspectRatio = worldComponents.Get<AspectRatioComponent>();
+            _worldComponents = worldComponents;
 
             _viewSpaceBlock = new ShaderBlockSingle<ShaderViewSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _primitiveSpaceBlock = new ShaderBlockSingle<ShaderPrimitiveSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
@@ -42,17 +40,24 @@ namespace Framework.ECS.Systems.Render
         {
             var cameraData = entity.Get<PerspectiveCameraComponent>();
             var cameraTransform = entity.Get<TransformComponent>();
-            var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(cameraData.FieldOfView), _aspectRatio.Ratio, cameraData.NearClipping, cameraData.FarClipping);
+            var renderData = _worldComponents.Get<RenderDataComponent>();
+            var aspectRatio = _worldComponents.Get<AspectRatioComponent>();
+
 
             TextureBaseAsset skyboxTexture = Defaults.Texture.SkyboxCoast;
-            //if (entity.Has<MeshComponent>())
-            //    skyboxTexture = entity.Get<MeshComponent>().Materials[0].UniformTextures[Definitions.Shader.Uniform.ReflectionMap];
+            var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(
+                MathHelper.DegreesToRadians(cameraData.FieldOfView),
+                aspectRatio.Ratio,
+                cameraData.NearClipping,
+                cameraData.FarClipping
+            );
+
 
             UseCamera(cameraData);
             _viewSpaceBlock.Data = CreateViewSpace(cameraTransform, projectionSpace);
             _viewSpaceBlock.PushToGPU();
 
-            foreach (var shaderRelation in _renderData.Graph)
+            foreach (var shaderRelation in renderData.Graph)
             {
                 UseShader(shaderRelation.Key);
 

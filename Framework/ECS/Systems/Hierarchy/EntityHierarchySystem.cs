@@ -2,7 +2,6 @@
 using DefaultEcs.System;
 using Framework.ECS.Components.Relation;
 using System;
-using System.Collections.Generic;
 
 namespace Framework.ECS.Systems.Hierarchy
 {
