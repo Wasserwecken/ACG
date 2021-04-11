@@ -15,7 +15,7 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
-        public TextureSyncSystem(World world) : base(world)
+        public TextureSyncSystem(World world, Entity worldComponents) : base(world)
         {
             if (Defaults.Texture.White.Handle <= 0) Push(Defaults.Texture.White);
             if (Defaults.Texture.Gray.Handle <= 0) Push(Defaults.Texture.Gray);

@@ -7,19 +7,19 @@ using System.Diagnostics;
 namespace Framework.ECS.Components.Render
 {
     [DebuggerDisplay("Mesh: {Mesh?.Name}, Materials: {Materials.Count}, Shaders: {Shaders.Count}")]
-    public class MeshComponent : IComponent
+    public struct MeshComponent
     {
-        public List<ShaderProgramAsset> Shaders { get; set; }
-        public List<MaterialAsset> Materials { get; set; }
-        public MeshAsset Mesh { get; set; }
-
         /// <summary>
         /// 
         /// </summary>
-        public MeshComponent()
+        public static MeshComponent Default => new MeshComponent()
         {
-            Materials = new List<MaterialAsset>();
-            Shaders = new List<ShaderProgramAsset>();
-        }
+            Materials = new List<MaterialAsset>(),
+            Shaders = new List<ShaderProgramAsset>()
+        };
+
+        public List<ShaderProgramAsset> Shaders { get; set; }
+        public List<MaterialAsset> Materials { get; set; }
+        public MeshAsset Mesh { get; set; }
     }
 }

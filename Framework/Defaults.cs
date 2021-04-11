@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using DefaultEcs;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Textures;
@@ -138,29 +139,29 @@ namespace Framework
             }
         }
 
-        public static class Entity
+        public static class Entities
         {
-            public static ECS.Entity Camera { get; }
-
-            static Entity()
+            public static Entity Camera(World world)
             {
-                Camera = new ECS.Entity("Camera",
-                    new TransformComponent(),
-                    new PerspectiveCameraComponent()
-                    {
-                        ClearColor = new Vector4(0.2f),
-                        ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit,
-                        FarClipping = 100f,
-                        NearClipping = 0.01f,
-                        FieldOfView = 90f
-                    },                    
-                    new MeshComponent()
-                    {
-                        Shaders = new List<ShaderProgramAsset>() { Shader.Program.Skybox },
-                        Materials = new List<MaterialAsset>() { Material.Skybox },
-                        Mesh = Vertex.Mesh.Cube
-                    }
-                );
+                var entity = world.CreateEntity();
+
+                entity.Set(TransformComponent.Default);
+                entity.Set(new PerspectiveCameraComponent()
+                {
+                    ClearColor = new Vector4(0.2f),
+                    ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit,
+                    FarClipping = 100f,
+                    NearClipping = 0.01f,
+                    FieldOfView = 90f
+                });
+                entity.Set(new MeshComponent()
+                {
+                    Shaders = new List<ShaderProgramAsset>() { Shader.Program.Skybox },
+                    Materials = new List<MaterialAsset>() { Material.Skybox },
+                    Mesh = Vertex.Mesh.Cube
+                });
+
+                return entity;
             }
         }
     }

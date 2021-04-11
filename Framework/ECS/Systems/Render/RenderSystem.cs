@@ -11,19 +11,27 @@ using Framework.Assets.Materials;
 using Framework.Assets.Verticies;
 using Framework.Assets.Shader.Block.Data;
 using Framework.Assets.Textures;
+using DefaultEcs.System;
+using DefaultEcs;
 
 namespace Framework.ECS.Systems.Render
 {
-    public class RenderSystem : ISystem
+    [With(typeof(PerspectiveCameraComponent))]
+    public class RenderSystem : AEntitySetSystem<bool>
     {
+        private readonly RenderDataComponent _renderData;
+        private readonly AspectRatioComponent _aspectRatio;
         private readonly ShaderBlockSingle<ShaderViewSpace> _viewSpaceBlock;
         private readonly ShaderBlockSingle<ShaderPrimitiveSpace> _primitiveSpaceBlock;
 
         /// <summary>
         /// 
         /// </summary>
-        public RenderSystem()
+        public RenderSystem(World world, Entity worldComponents) : base(world)
         {
+            _renderData = worldComponents.Get<RenderDataComponent>();
+            _aspectRatio = worldComponents.Get<AspectRatioComponent>();
+
             _viewSpaceBlock = new ShaderBlockSingle<ShaderViewSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _primitiveSpaceBlock = new ShaderBlockSingle<ShaderPrimitiveSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
         }
@@ -31,44 +39,37 @@ namespace Framework.ECS.Systems.Render
         /// <summary>
         /// 
         /// </summary>
-        public void Run(IEnumerable<Entity> entities, IEnumerable<IComponent> sceneComponents)
+        protected override void Update(bool state, in Entity entity)
         {
-            var renderDataComponent = sceneComponents.Get<RenderDataComponent>();
-            var aspectComponent = sceneComponents.Get<AspectRatioComponent>();
-            var cameras = entities.Where(f => f.Components.Has<PerspectiveCameraComponent>());
+            var cameraData = entity.Get<PerspectiveCameraComponent>();
+            var cameraTransform = entity.Get<TransformComponent>();
+            var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(cameraData.FieldOfView), _aspectRatio.Ratio, cameraData.NearClipping, cameraData.FarClipping);
 
-            foreach (var cameraEntity in cameras)
+            TextureBaseAsset skyboxTexture = Defaults.Texture.SkyboxCoast;
+            if (entity.Has<MeshComponent>())
+                skyboxTexture = entity.Get<MeshComponent>().Materials[0].UniformTextures[Definitions.Shader.Uniform.ReflectionMap];
+
+            UseCamera(cameraData);
+            _viewSpaceBlock.Data = CreateViewSpace(cameraTransform, projectionSpace);
+            _viewSpaceBlock.PushToGPU();
+
+            foreach (var shaderRelation in _renderData.Graph)
             {
-                var cameraData = cameraEntity.Components.Get<PerspectiveCameraComponent>();
-                var cameraTransform = cameraEntity.Components.Get<TransformComponent>();
-                var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(cameraData.FieldOfView), aspectComponent.Ratio, cameraData.NearClipping, cameraData.FarClipping);
+                UseShader(shaderRelation.Key);
 
-                TextureBaseAsset skyboxTexture = Defaults.Texture.SkyboxCoast;
-                if (cameraEntity.Components.TryGet<MeshComponent>(out var skyboxMesh))
-                    skyboxTexture = skyboxMesh.Materials[0].UniformTextures[Definitions.Shader.Uniform.ReflectionMap];
-
-                UseCamera(cameraData);
-                _viewSpaceBlock.Data = CreateViewSpace(cameraTransform, projectionSpace);
-                _viewSpaceBlock.PushToGPU();
-
-                foreach (var shaderRelation in renderDataComponent.Graph)
+                foreach (var materialRelation in shaderRelation.Value)
                 {
-                    UseShader(shaderRelation.Key);
+                    materialRelation.Key.SetUniform(Definitions.Shader.Uniform.ReflectionMap, skyboxTexture);
+                    UseMaterial(materialRelation.Key);
+                    SetUniforms(materialRelation.Key, shaderRelation.Key);
 
-                    foreach (var materialRelation in shaderRelation.Value)
+                    foreach (var transformRelation in materialRelation.Value)
                     {
-                        materialRelation.Key.SetUniform(Definitions.Shader.Uniform.ReflectionMap, skyboxTexture);
-                        UseMaterial(materialRelation.Key);
-                        SetUniforms(materialRelation.Key, shaderRelation.Key);
+                        _primitiveSpaceBlock.Data = CreatePrimitiveSpace(transformRelation.Key, cameraTransform, projectionSpace);
+                        _primitiveSpaceBlock.PushToGPU();
 
-                        foreach (var transformRelation in materialRelation.Value)
-                        {
-                            _primitiveSpaceBlock.Data = CreatePrimitiveSpace(transformRelation.Key, cameraTransform, projectionSpace);
-                            _primitiveSpaceBlock.PushToGPU();
-
-                            foreach (var primitive in transformRelation.Value)
-                                Draw(primitive);
-                        }
+                        foreach (var primitive in transformRelation.Value)
+                            Draw(primitive);
                     }
                 }
             }

@@ -7,9 +7,9 @@ namespace Framework.ECS.GLTF2.Components
 {
     public static class CreatorCameraComponent
     {
-        public static IComponent Create(Camera gltfCamera)
+        public static object Create(Camera gltfCamera)
         {
-            IComponent camera = null;
+            object camera = null;
 
             if (gltfCamera.Settings.IsPerspective)
             {

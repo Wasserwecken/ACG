@@ -12,7 +12,7 @@ namespace Framework.ECS.Systems.Time
         /// <summary>
         /// 
         /// </summary>
-        public FrameTimeSystem(World world) : base(world)
+        public FrameTimeSystem(World world, Entity worldComponents) : base(world)
         {
             _watch = new Stopwatch();
             _watch.Start();

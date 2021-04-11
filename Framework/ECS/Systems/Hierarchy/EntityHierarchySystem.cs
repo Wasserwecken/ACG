@@ -8,22 +8,28 @@ namespace Framework.ECS.Systems.Hierarchy
 {
     public class EntityHierarchySystem : AEntitySetSystem<bool>
     {
+        private readonly EntitySet _parentEntities;
+        private readonly EntitySet _childEntities;
+
         /// <summary>
         /// 
         /// </summary>
-        public EntityHierarchySystem(World world) : base(world) { }
+        public EntityHierarchySystem(World world, Entity worldComponents) : base(world)
+        {
+            _parentEntities = World.GetEntities().With<ParentComponent>().AsSet();
+            _childEntities = World.GetEntities().With<ChildComponent>().AsSet();
+        }
 
         /// <summary>
         /// 
         /// </summary>
         protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
-            var parentEntities = World.GetEntities().With<ParentComponent>().AsSet().GetEntities();
+            var parentEntities = _parentEntities.GetEntities();
             foreach (var parent in parentEntities)
                 parent.Get<ParentComponent>().Children.Clear();
 
-            var childEntites = World.GetEntities().With<ChildComponent>().AsSet().GetEntities();
-            foreach (var child in childEntites)
+            foreach (var child in _childEntities.GetEntities())
             {
                 var childComponent = child.Get<ChildComponent>();
                 if (childComponent.Parent == null)

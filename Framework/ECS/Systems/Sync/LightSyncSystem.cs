@@ -24,7 +24,7 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
-        public LightSyncSystem(World world) : base(world)
+        public LightSyncSystem(World world, Entity worldComponents) : base(world)
         {
             _directionalBlock = new ShaderBlockArray<ShaderDirectionalLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _pointBlock = new ShaderBlockArray<ShaderPointLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);

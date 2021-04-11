@@ -2,9 +2,7 @@
 using DefaultEcs.System;
 using Framework.ECS.Components.Scene;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Framework.ECS.Systems.Time
 {
@@ -15,7 +13,7 @@ namespace Framework.ECS.Systems.Time
         /// <summary>
         /// 
         /// </summary>
-        public TotalTimeSystem(World world) : base(world)
+        public TotalTimeSystem(World world, Entity worldComponents) : base(world)
         {
             _watch = new Stopwatch();
             _watch.Start();

@@ -7,9 +7,9 @@ namespace Framework.ECS.GLTF2.Components
 {
     public static class CreatorLightComponent
     {
-        public static IComponent Create(PunctualLight gltfLight)
+        public static object Create(PunctualLight gltfLight)
         {
-            IComponent light = null;
+            object light = null;
 
             switch (gltfLight.LightType)
             {

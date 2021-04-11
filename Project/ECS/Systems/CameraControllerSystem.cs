@@ -13,16 +13,16 @@ namespace Project.ECS.Systems
     [With(typeof(TransformComponent))]
     public class CameraControllerSystem : AEntitySetSystem<bool>
     {
-        private readonly InputComponent _inputComponent;
-        private readonly TimeComponent _timeComponent;
+        private readonly InputComponent _input;
+        private readonly TimeComponent _time;
 
         /// <summary>
         /// 
         /// </summary>
-        public CameraControllerSystem(World world) : base(world)
+        public CameraControllerSystem(World world, Entity worldComponents) : base(world)
         {
-            _inputComponent = world.Get<InputComponent>()[0];
-            _timeComponent = world.Get<TimeComponent>()[0];
+            _input = worldComponents.Get<InputComponent>();
+            _time = worldComponents.Get<TimeComponent>();
         }
 
         /// <summary>
@@ -35,15 +35,15 @@ namespace Project.ECS.Systems
 
 
             var moveInput = Vector2.Zero;
-            if (_inputComponent.Keyboard.IsKeyDown(Keys.W)) moveInput.Y += 1;
-            if (_inputComponent.Keyboard.IsKeyDown(Keys.S)) moveInput.Y -= 1;
-            if (_inputComponent.Keyboard.IsKeyDown(Keys.A)) moveInput.X -= 1;
-            if (_inputComponent.Keyboard.IsKeyDown(Keys.D)) moveInput.X += 1;
-            moveInput *= _timeComponent.DeltaFrame * controller.MoveSpeed;
+            if (_input.Keyboard.IsKeyDown(Keys.W)) moveInput.Y += 1;
+            if (_input.Keyboard.IsKeyDown(Keys.S)) moveInput.Y -= 1;
+            if (_input.Keyboard.IsKeyDown(Keys.A)) moveInput.X -= 1;
+            if (_input.Keyboard.IsKeyDown(Keys.D)) moveInput.X += 1;
+            moveInput *= _time.DeltaFrame * controller.MoveSpeed;
 
             var lookInput = Vector2.Zero;
-            lookInput.X = _inputComponent.Mouse.Delta.X;
-            lookInput.Y = _inputComponent.Mouse.Delta.Y;
+            lookInput.X = _input.Mouse.Delta.X;
+            lookInput.Y = _input.Mouse.Delta.Y;
             lookInput *= controller.LookSpeed * 0.005f;
 
 

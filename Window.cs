@@ -26,6 +26,7 @@ namespace Window
     public class Window : GameWindow
     {
         private readonly World _scene;
+        private readonly Entity _sceneComponents;
         private readonly SequentialSystem<bool> _fixedPipeline;
         private readonly SequentialSystem<bool> _framePipeline;
         private readonly SequentialSystem<bool> _renderPipeline;
@@ -38,34 +39,35 @@ namespace Window
         public Window(GameWindowSettings gameSettings, NativeWindowSettings nativeSettings)
             : base(gameSettings, nativeSettings)
         {
-            var sceneComponents = _scene.CreateEntity();
-            sceneComponents.Set(new TimeComponent());
-            sceneComponents.Set(new RenderDataComponent());
-            sceneComponents.Set(new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState });
-            sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
+            _scene = new World();
+            _sceneComponents = _scene.CreateEntity();
+            _sceneComponents.Set(new TimeComponent());
+            _sceneComponents.Set(RenderDataComponent.Default);
+            _sceneComponents.Set(new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState });
+            _sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
 
 
             _fixedPipeline = new SequentialSystem<bool>(
-                new FixedTimeSystem(_scene)
+                new FixedTimeSystem(_scene, _sceneComponents)
             );
 
             _framePipeline = new SequentialSystem<bool>(
-                new TotalTimeSystem(_scene),
-                new FrameTimeSystem(_scene),
+                new TotalTimeSystem(_scene, _sceneComponents),
+                new FrameTimeSystem(_scene, _sceneComponents),
 
-                new EntityHierarchySystem(_scene),
-                new TransformHierarchySystem(_scene),
+                new EntityHierarchySystem(_scene, _sceneComponents),
+                new TransformHierarchySystem(_scene, _sceneComponents),
 
-                new CameraControllerSystem(_scene)
+                new CameraControllerSystem(_scene, _sceneComponents)
             );
 
             _renderPipeline = new SequentialSystem<bool>(
-                    new RenderHierarchySystem(),
-                    new TimeSyncSystem(_scene),
-                    new LightSyncSystem(_scene),
-                    new TextureSyncSystem(_scene),
-                    new PrimitiveSyncSystem(_scene),
-                    new RenderSystem(_scene)
+                    new RenderHierarchySystem(_scene, _sceneComponents),
+                    new TimeSyncSystem(_scene, _sceneComponents),
+                    new LightSyncSystem(_scene, _sceneComponents),
+                    new TextureSyncSystem(_scene, _sceneComponents),
+                    new PrimitiveSyncSystem(_scene, _sceneComponents),
+                    new RenderSystem(_scene, _sceneComponents)
             );
         }
 
@@ -79,22 +81,14 @@ namespace Window
             //var scenePath = "./Assets/foo.glb";
             //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
             var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
-            _sceneEntities.AddRange(GLTF2Loader.Load(scenePath, Defaults.Shader.Program.MeshBlinnPhong));
+            GLTF2Loader.Load(_scene, scenePath, Defaults.Shader.Program.MeshBlinnPhong);
 
+            var cameraEntity = Defaults.Entities.Camera(_scene);
+            cameraEntity.Set(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
 
-            if (!_sceneEntities.Any(f => f.Components.Has<PerspectiveCameraComponent>()))
-            {
-                var camera = Defaults.Entity.Camera;
-                camera.Components.Add(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
-                _sceneEntities.Add(camera);
-            }
-            if (!_sceneEntities.Any(f => f.Components.Has<DirectionalLightComponent>()))
-            {
-                _sceneEntities.Add(new Entity("Sun",
-                    new TransformComponent() { Forward = -Vector3.UnitY.Rotate(1f, Vector3.UnitX).Rotate(1f, Vector3.UnitY) },
-                    new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f }
-                ));
-            }
+            var sunEntity = _scene.CreateEntity();
+            sunEntity.Set(new TransformComponent() { Forward = -Vector3.UnitY.Rotate(1f, Vector3.UnitX).Rotate(1f, Vector3.UnitY) });
+            sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
 
 
             var foo = new FramebufferAsset("Test")

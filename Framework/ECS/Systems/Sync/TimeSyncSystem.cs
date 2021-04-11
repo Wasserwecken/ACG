@@ -14,7 +14,7 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
-        public TimeSyncSystem(World world) : base(world)
+        public TimeSyncSystem(World world, Entity worldComponents) : base(world)
         {
             _timeBlock = new ShaderBlockSingle<ShaderTime>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
         }

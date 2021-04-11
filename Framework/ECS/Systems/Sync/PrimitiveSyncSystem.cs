@@ -17,10 +17,7 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
-        public PrimitiveSyncSystem(World world) : base(world)
-        {
-
-        }
+        public PrimitiveSyncSystem(World world, Entity worldComponents) : base(world) { }
 
         /// <summary>
         /// 

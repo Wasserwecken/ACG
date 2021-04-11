@@ -10,6 +10,15 @@ namespace Framework.ECS.Components.Transform
     public struct TransformComponent
     {
         /// <summary>
+        /// 
+        /// </summary>
+        public static TransformComponent Default => new TransformComponent()
+        {
+            ParentSpace = Matrix4.Identity,
+            LocalSpace = Matrix4.Identity
+        };
+
+        /// <summary>
         /// Parent in world space
         /// </summary>
         public Matrix4 ParentSpace
@@ -135,15 +144,6 @@ namespace Framework.ECS.Components.Transform
         private Matrix4 _worldSpace;
         private Matrix4 _parentSpaceInverse;
         private Matrix4 _worldSpaceInverse;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static TransformComponent Default => new TransformComponent()
-        {
-            ParentSpace = Matrix4.Identity,
-            LocalSpace = Matrix4.Identity
-        };
 
         /// <summary>
         /// 

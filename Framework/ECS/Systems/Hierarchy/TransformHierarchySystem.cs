@@ -13,7 +13,7 @@ namespace Framework.ECS.Systems.Hierarchy
         /// <summary>
         /// 
         /// </summary>
-        public TransformHierarchySystem(World world) : base(world) { }
+        public TransformHierarchySystem(World world, Entity worldComponents) : base(world) { }
 
         /// <summary>
         /// 
