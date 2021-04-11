@@ -1,6 +1,4 @@
-﻿using Framework.ECS.Components.Scene;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using OpenTK.Graphics.OpenGL;
 using Framework.Assets.Verticies;
 using Framework.Extensions;
@@ -9,22 +7,30 @@ using OpenTK.Mathematics;
 using Framework.ECS.Components.Render;
 using DefaultEcs.System;
 using DefaultEcs;
+using Framework.ECS.Components.Scene;
 
 namespace Framework.ECS.Systems.Sync
 {
-    public class PrimitiveSyncSystem : AComponentSystem<bool, MeshComponent>
+    public class PrimitiveSyncSystem : AComponentSystem<bool, PrimitiveComponent>
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        public PrimitiveSyncSystem(World world, Entity worldComponents) : base(world) { }
+        private readonly Entity _worldComponents;
 
         /// <summary>
         /// 
         /// </summary>
-        protected override void Update(bool state, ref MeshComponent meshComponent)
+        public PrimitiveSyncSystem(World world, Entity worldComponents) : base(world)
         {
-            foreach (var primitive in meshComponent.Mesh.Primitives)
+            _worldComponents = worldComponents;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected override void PreUpdate(bool state)
+        {
+            var renderData = _worldComponents.Get<RenderDataComponent>();
+
+            foreach(var primitive in renderData.Primitves)
                 if (primitive.Handle <= 0)
                     Push(primitive);
         }

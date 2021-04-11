@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Framework.ECS.Systems.Hierarchy
 {
-    [With(typeof(MeshComponent))]
+    [With(typeof(PrimitiveComponent))]
     [With(typeof(TransformComponent))]
     public class RenderHierarchySystem : AEntitySetSystem<bool>
     {
@@ -40,36 +40,29 @@ namespace Framework.ECS.Systems.Hierarchy
         /// </summary>
         protected override void Update(bool state, in Entity entity)
         {
-            var mesh = entity.Get<MeshComponent>();
+            var primitive = entity.Get<PrimitiveComponent>();
             var transform = entity.Get<TransformComponent>();
 
-            for (int i = 0; i < mesh.Mesh.Primitives.Count; i++)
+            if (!_renderData.Graph.ContainsKey(primitive.Shader))
             {
-                var shader = mesh.Shaders[mesh.Shaders.Count > i ? i : 0];
-                var material = mesh.Materials[mesh.Materials.Count > i ? i : 0];
-                var primitive = mesh.Mesh.Primitives[i];
-
-                if (!_renderData.Graph.ContainsKey(shader))
-                {
-                    _renderData.Graph.Add(shader, new Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>());
-                    _renderData.Shaders.Add(shader);
-                }
-
-                if (!_renderData.Graph[shader].ContainsKey(material))
-                {
-                    _renderData.Graph[shader].Add(material, new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>());
-                    _renderData.Materials.Add(material);
-                }
-
-                if (!_renderData.Graph[shader][material].ContainsKey(transform))
-                {
-                    _renderData.Graph[shader][material].Add(transform, new List<VertexPrimitiveAsset>());
-                    _renderData.Transforms.Add(transform);
-                }
-
-                _renderData.Graph[shader][material][transform].Add(primitive);
-                _renderData.Primitves.Add(primitive);
+                _renderData.Graph.Add(primitive.Shader, new Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>());
+                _renderData.Shaders.Add(primitive.Shader);
             }
+
+            if (!_renderData.Graph[primitive.Shader].ContainsKey(primitive.Material))
+            {
+                _renderData.Graph[primitive.Shader].Add(primitive.Material, new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>());
+                _renderData.Materials.Add(primitive.Material);
+            }
+
+            if (!_renderData.Graph[primitive.Shader][primitive.Material].ContainsKey(transform))
+            {
+                _renderData.Graph[primitive.Shader][primitive.Material].Add(transform, new List<VertexPrimitiveAsset>());
+                _renderData.Transforms.Add(transform);
+            }
+
+            _renderData.Graph[primitive.Shader][primitive.Material][transform].Add(primitive.Primitive);
+            _renderData.Primitves.Add(primitive.Primitive);
         }
     }
 }

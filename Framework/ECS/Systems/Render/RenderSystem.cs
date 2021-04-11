@@ -45,8 +45,8 @@ namespace Framework.ECS.Systems.Render
             var projectionSpace = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(cameraData.FieldOfView), _aspectRatio.Ratio, cameraData.NearClipping, cameraData.FarClipping);
 
             TextureBaseAsset skyboxTexture = Defaults.Texture.SkyboxCoast;
-            if (entity.Has<MeshComponent>())
-                skyboxTexture = entity.Get<MeshComponent>().Materials[0].UniformTextures[Definitions.Shader.Uniform.ReflectionMap];
+            //if (entity.Has<MeshComponent>())
+            //    skyboxTexture = entity.Get<MeshComponent>().Materials[0].UniformTextures[Definitions.Shader.Uniform.ReflectionMap];
 
             UseCamera(cameraData);
             _viewSpaceBlock.Data = CreateViewSpace(cameraTransform, projectionSpace);

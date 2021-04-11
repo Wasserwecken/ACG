@@ -22,7 +22,7 @@ namespace Framework.ECS.GLTF2
         private static Dictionary<Image, ImageAsset> _images;
         private static Dictionary<Texture, TextureBaseAsset> _textures;
         private static Dictionary<Material, MaterialAsset> _materials;
-        private static Dictionary<Mesh, MeshAsset> _meshs;
+        private static Dictionary<Mesh, List<VertexPrimitiveAsset>> _meshs;
         private static Dictionary<PunctualLight, object> _lights;
         private static Dictionary<Camera, object> _cameras;
         private static Dictionary<Node, Entity> _entities;
@@ -46,7 +46,7 @@ namespace Framework.ECS.GLTF2
             foreach (var gltfMaterial in _gltfRoot.LogicalMaterials)
                 _materials.Add(gltfMaterial, CreatorMaterialAsset.Create(gltfMaterial, _textures));
 
-            _meshs = new Dictionary<Mesh, MeshAsset>();
+            _meshs = new Dictionary<Mesh, List<VertexPrimitiveAsset>>();
             foreach (var gltfMesh in _gltfRoot.LogicalMeshes)
                 _meshs.Add(gltfMesh, CreatorMeshAsset.Create(gltfMesh));
 
@@ -80,21 +80,23 @@ namespace Framework.ECS.GLTF2
             if (gltfNode.Camera != null && _cameras.TryGetValue(gltfNode.Camera, out var cameraComponent))
                 entity.Set(cameraComponent);
 
-            if (gltfNode.Mesh != null && _meshs.TryGetValue(gltfNode.Mesh, out var meshAsset))
+            if (gltfNode.Mesh != null && _meshs.TryGetValue(gltfNode.Mesh, out var primitives))
             {
-                var renderer = MeshComponent.Default;
-                renderer.Mesh = meshAsset;
-                renderer.Shaders.Add(_defaultShader);
-
-                foreach (var gltfPrimitive in gltfNode.Mesh.Primitives)
+                for (int i = 0; i < primitives.Count; i++)
                 {
-                    if (gltfPrimitive.Material == null)
-                        renderer.Materials.Add(Defaults.Material.PBR);
-                    else if (_materials.TryGetValue(gltfPrimitive.Material, out var materialAsset))
-                        renderer.Materials.Add(materialAsset);
-                }
+                    var primitive = primitives[i];
+                    var gltfPrimitive = gltfNode.Mesh.Primitives[i];
 
-                entity.Set(renderer);
+                    var subEntity = _world.CreateEntity();
+                    subEntity.Set(TransformComponent.Default);
+                    subEntity.Set(new ChildComponent() { Parent = entity });
+                    subEntity.Set(new PrimitiveComponent()
+                    {
+                        Shader = _defaultShader,
+                        Material = _materials.ContainsKey(gltfPrimitive.Material) ? _materials[gltfPrimitive.Material] : Defaults.Material.PBR,
+                        Primitive = primitive
+                    });
+                }
             }
 
             return entity;

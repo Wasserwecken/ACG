@@ -13,14 +13,14 @@ namespace Framework.ECS.GLTF2.Assets
         /// <summary>
         /// 
         /// </summary>
-        public static MeshAsset Create(Mesh gltfMesh)
+        public static List<VertexPrimitiveAsset> Create(Mesh gltfMesh)
         {
-            var mesh = new MeshAsset(gltfMesh.Name);
+            var primitives = new List<VertexPrimitiveAsset>();
             
             foreach (var gltfPrimitive in gltfMesh.Primitives)
-                mesh.Primitives.Add(CreatePrimitive(gltfPrimitive));
+                primitives.Add(CreatePrimitive(gltfPrimitive));
 
-            return mesh;
+            return primitives;
         }
 
 

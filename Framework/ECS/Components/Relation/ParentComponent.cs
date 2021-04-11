@@ -8,5 +8,13 @@ namespace Framework.ECS.Components.Relation
     public struct ParentComponent
     {
         public List<Entity> Children { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ParentComponent(params Entity[] children)
+        {
+            Children = new List<Entity>(children);
+        }
     }
 }

@@ -7,5 +7,13 @@ namespace Framework.ECS.Components.Relation
     public struct ChildComponent
     {
         public Entity Parent { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ChildComponent(Entity parent)
+        {
+            Parent = parent;
+        }
     }
 }

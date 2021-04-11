@@ -5,6 +5,7 @@ using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Textures;
 using Framework.Assets.Verticies;
+using Framework.ECS.Components.Relation;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2.Assets;
@@ -111,9 +112,9 @@ namespace Framework
         {
             public static class Mesh
             {
-                public static MeshAsset Plane { get; }
-                public static MeshAsset Cube { get; }
-                public static MeshAsset Sphere { get; }
+                public static List<VertexPrimitiveAsset> Plane { get; }
+                public static List<VertexPrimitiveAsset> Cube { get; }
+                public static List<VertexPrimitiveAsset> Sphere { get; }
 
                 static Mesh()
                 {
@@ -154,12 +155,19 @@ namespace Framework
                     NearClipping = 0.01f,
                     FieldOfView = 90f
                 });
-                entity.Set(new MeshComponent()
+
+                foreach(var primitive in Vertex.Mesh.Cube)
                 {
-                    Shaders = new List<ShaderProgramAsset>() { Shader.Program.Skybox },
-                    Materials = new List<MaterialAsset>() { Material.Skybox },
-                    Mesh = Vertex.Mesh.Cube
-                });
+                    var subEntity = world.CreateEntity();
+                    subEntity.Set(TransformComponent.Default);
+                    subEntity.Set(new ChildComponent(entity));
+                    subEntity.Set(new PrimitiveComponent()
+                    {
+                        Shader = Shader.Program.Skybox,
+                        Material = Material.Skybox,
+                        Primitive = primitive
+                    });
+                }
 
                 return entity;
             }
