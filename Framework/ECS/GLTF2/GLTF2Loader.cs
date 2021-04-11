@@ -89,7 +89,7 @@ namespace Framework.ECS.GLTF2
 
                     var subEntity = _world.CreateEntity();
                     subEntity.Set(TransformComponent.Default);
-                    subEntity.Set(new ChildComponent() { Parent = entity });
+                    subEntity.Set(new ChildComponent(entity));
                     subEntity.Set(new PrimitiveComponent()
                     {
                         Shader = _defaultShader,
@@ -109,12 +109,12 @@ namespace Framework.ECS.GLTF2
         {
             if (_entities.TryGetValue(gltfNode, out var childEntity) && gltfNode.VisualParent != null && _entities.TryGetValue(gltfNode.VisualParent, out var parentEntity))
             {
-                childEntity.Set(new ChildComponent() { Parent = parentEntity });
+                childEntity.Set(new ChildComponent(parentEntity));
 
                 if (parentEntity.Has<ParentComponent>())
                     parentEntity.Get<ParentComponent>().Children.Add(childEntity);
                 else
-                    parentEntity.Set(new ParentComponent() { Children = new List<Entity>() { childEntity } });
+                    parentEntity.Set(new ParentComponent(childEntity));
             }
         }
     }

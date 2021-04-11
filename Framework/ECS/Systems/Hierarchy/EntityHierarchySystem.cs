@@ -39,7 +39,7 @@ namespace Framework.ECS.Systems.Hierarchy
                     childComponent.Parent.Get<ParentComponent>().Children.Add(child);
 
                 else
-                    childComponent.Parent.Set(new ParentComponent() { Children = new List<Entity>() { child } });
+                    childComponent.Parent.Set(new ParentComponent(child));
             }
 
             foreach (var parent in parentEntities)
