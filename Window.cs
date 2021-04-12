@@ -66,7 +66,7 @@ namespace Window
                 new PrimitiveSyncSystem(_scene, _sceneComponents),
 
                 new RenderPassShadowSystem(_scene, _sceneComponents),
-                new CullingSystem(_scene, _sceneComponents),
+                new RenderPassCullingSystem(_scene, _sceneComponents),
                 new RenderPassGraphSystem(_scene, _sceneComponents),
                 new RenderPassDrawSystem(_scene, _sceneComponents)
 

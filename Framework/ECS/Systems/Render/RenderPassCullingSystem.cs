@@ -9,14 +9,14 @@ namespace Framework.ECS.Systems.Render
 {
     [With(typeof(RenderPassViewComponent))]
     [With(typeof(RenderPassGraphComponent))]
-    public class CullingSystem : AEntitySetSystem<bool>
+    public class RenderPassCullingSystem : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
 
         /// <summary>
         /// 
         /// </summary>
-        public CullingSystem(World world, Entity worldComponents) : base(world)
+        public RenderPassCullingSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
         }

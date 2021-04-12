@@ -8,6 +8,10 @@ namespace Framework.Assets.Framebuffer
         public override TextureTarget Target => TextureTarget.Texture2D;
         public override GenerateMipmapTarget MipMapTarget => GenerateMipmapTarget.Texture2D;
 
+        public PixelType PixelType { get; set; }
+        public PixelFormat Format { get; set; }
+        public PixelInternalFormat InternalFormat { get; set; }
+
         /// <summary>
         /// 
         /// </summary>

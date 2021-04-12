@@ -8,6 +8,7 @@ using Framework.Assets.Verticies;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
 
@@ -67,7 +68,24 @@ namespace Framework.ECS.Systems.Render
                 entity.Set(new RenderPassFrameBufferComponent()
                 {
                     FrameBuffer = new FramebufferAsset()
-                }); ;
+                    {
+                        Width = 2048,
+                        Height = 2048,
+                        TextureTargets = new List<FrameBufferTextureAsset>()
+                        {
+                            new FrameBufferTextureAsset("")
+                            {
+                                PixelType = PixelType.Float,
+                                Format = PixelFormat.DepthComponent,
+                                InternalFormat = PixelInternalFormat.DepthComponent
+                            }
+                        },
+                        StorageTargets = new List<FramebufferStorageAsset>()
+                        {
+                            new FramebufferStorageAsset("") { DataType = RenderbufferStorage.DepthComponent }
+                        }
+                    }
+                });
 
             if (!entity.Has<RenderPassShaderComponent>())
                 entity.Set(new RenderPassShaderComponent()
