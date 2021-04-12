@@ -3,6 +3,7 @@ using DefaultEcs.System;
 using Framework;
 using Framework.Assets.Framebuffer;
 using Framework.ECS.Components.Light;
+using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2;
@@ -17,7 +18,6 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using Project.ECS.Components;
 using Project.ECS.Systems;
-using System.Collections.Generic;
 
 namespace Window
 {
@@ -39,8 +39,8 @@ namespace Window
         {
             _scene = new World();
             _sceneComponents = _scene.CreateEntity();
+            _sceneComponents.Set(GlobalGPUDataComponent.Default);
             _sceneComponents.Set(new TimeComponent());
-            _sceneComponents.Set(RenderDataComponent.Default);
             _sceneComponents.Set(new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState });
             _sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
 
@@ -60,11 +60,17 @@ namespace Window
             );
 
             _renderPipeline = new SequentialSystem<bool>(
-                    new TimeSyncSystem(_scene, _sceneComponents),
-                    new LightSyncSystem(_scene, _sceneComponents),
-                    new TextureSyncSystem(_scene, _sceneComponents),
-                    new PrimitiveSyncSystem(_scene, _sceneComponents),
-                    new ForwardPassSystem(_scene, _sceneComponents)
+                new TimeSyncSystem(_scene, _sceneComponents),
+                new LightSyncSystem(_scene, _sceneComponents),
+                new TextureSyncSystem(_scene, _sceneComponents),
+                new PrimitiveSyncSystem(_scene, _sceneComponents),
+
+                new RenderPassShadowSystem(_scene, _sceneComponents),
+                new CullingSystem(_scene, _sceneComponents),
+                new RenderPassGraphSystem(_scene, _sceneComponents),
+                new RenderPassDrawSystem(_scene, _sceneComponents)
+
+            //new ForwardPassSystem(_scene, _sceneComponents)
             );
         }
 
@@ -76,8 +82,8 @@ namespace Window
             base.OnLoad();
 
             //var scenePath = "./Assets/foo.glb";
-            //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
-            var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
+            var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
+            //var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
             GLTF2Loader.Load(_scene, scenePath, Defaults.Shader.Program.MeshBlinnPhong);
 
             var cameraEntity = Defaults.Entities.Camera(_scene);
@@ -86,20 +92,7 @@ namespace Window
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(1f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
-            sunEntity.Set(new ShadowCasterComponent());
-
-            var foo = new FramebufferAsset("Test")
-            {
-                TextureTargets = new List<FrameBufferTextureAsset>()
-                {
-                    new FrameBufferTextureAsset("color"),
-                },
-                StorageTargets = new List<FramebufferStorageAsset>()
-                {
-                    new FramebufferStorageAsset("depth") { DataType = RenderbufferStorage.DepthComponent },
-                    new FramebufferStorageAsset("stencil") { DataType = RenderbufferStorage.DepthStencil },
-                }
-            };
+            sunEntity.Set(new ShadowCasterComponent() { NearClipping = -500, FarClipping = +500 });
         }
 
         /// <summary>
