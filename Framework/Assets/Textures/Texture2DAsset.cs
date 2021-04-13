@@ -1,7 +1,4 @@
 ﻿using OpenTK.Graphics.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Framework.Assets.Textures
 {
@@ -9,7 +6,18 @@ namespace Framework.Assets.Textures
     {
         public override TextureTarget Target => TextureTarget.Texture2D;
         public override GenerateMipmapTarget MipMapTarget => GenerateMipmapTarget.Texture2D;
-        public ImageAsset Image { get; set; }
+        public ImageAsset Image
+        {
+            get => _image;
+            set
+            {
+                _image = value;
+                SetPixelInfos(_image.Image);
+            }
+        }
+
+        private ImageAsset _image;
+
 
         /// <summary>
         /// 

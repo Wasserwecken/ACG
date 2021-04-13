@@ -1,10 +1,10 @@
 ﻿using Framework.Assets.Textures;
-using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
-using Framework.Assets.Framebuffer;
 using Framework.ECS.Components.Render;
 using DefaultEcs.System;
 using DefaultEcs;
+using ImageMagick;
+using ACG.Framework.Assets;
 
 namespace Framework.ECS.Systems.Sync
 {
@@ -18,47 +18,36 @@ namespace Framework.ECS.Systems.Sync
         public TextureSyncSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
-
-            if (Defaults.Texture.White.Handle <= 0) Push(Defaults.Texture.White);
-            if (Defaults.Texture.Gray.Handle <= 0) Push(Defaults.Texture.Gray);
-            if (Defaults.Texture.Black.Handle <= 0) Push(Defaults.Texture.Black);
-            if (Defaults.Texture.Normal.Handle <= 0) Push(Defaults.Texture.Normal);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        protected override void Update(bool state, ref PrimitiveComponent component)
+        protected override void PreUpdate(bool state)
         {
-            foreach (var textureUniform in component.Material.UniformTextures)
-                if (textureUniform.Value.Handle <= 0)
-                    Push(textureUniform.Value);
-        }
+            foreach(var texture in AssetRegister.Textures)
+                if (texture.Handle <= 0)
+                {
+                    texture.Handle = GL.GenTexture();
+                    GL.BindTexture(texture.Target, texture.Handle);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        private void Push(TextureBaseAsset texture)
-        {
-            texture.Handle = GL.GenTexture();
-            GL.BindTexture(texture.Target, texture.Handle);
+                    if (texture is Texture2DAsset texture2D)
+                        SpecificTexture2D(texture2D);
+                    else if (texture is TextureCubeAsset textureCube)
+                        SpecificTextureCube(textureCube);
+                    else if (texture is TextureRenderAsset textureRender)
+                        SpecificTextureRender(textureRender);
 
-            if (texture is Texture2DAsset texture2D)
-                SpecificTexture2D(texture2D);
-            else if (texture is TextureCubeAsset textureCube)
-                SpecificTextureCube(textureCube);
-            else if (texture is FrameBufferTextureAsset textureRender)
-                SpecificTextureRender(textureRender);
+                    GL.TexParameter(texture.Target, TextureParameterName.TextureWrapS, (int)texture.WrapModeS);
+                    GL.TexParameter(texture.Target, TextureParameterName.TextureWrapT, (int)texture.WrapModeT);
+                    GL.TexParameter(texture.Target, TextureParameterName.TextureMinFilter, (int)texture.MinFilter);
+                    GL.TexParameter(texture.Target, TextureParameterName.TextureMagFilter, (int)texture.MagFilter);
 
-            GL.TexParameter(texture.Target, TextureParameterName.TextureWrapS, (int)texture.WrapModeS);
-            GL.TexParameter(texture.Target, TextureParameterName.TextureWrapT, (int)texture.WrapModeT);
-            GL.TexParameter(texture.Target, TextureParameterName.TextureMinFilter, (int)texture.MinFilter);
-            GL.TexParameter(texture.Target, TextureParameterName.TextureMagFilter, (int)texture.MagFilter);
+                    if (texture.GenerateMipMaps)
+                        GL.GenerateMipmap(texture.MipMapTarget);
 
-            if (texture.GenerateMipMaps)
-                GL.GenerateMipmap(texture.MipMapTarget);
-
-            GL.BindTexture(texture.Target, 0);
+                    GL.BindTexture(texture.Target, 0);
+                }    
         }
 
         /// <summary>
@@ -66,15 +55,18 @@ namespace Framework.ECS.Systems.Sync
         /// </summary>
         private void SpecificTexture2D(Texture2DAsset texture)
         {
+            if (texture.Image.Image != null)
+                GetPixelInfos(texture.Image.Image, out texture.PixelType, out texture.Format, out texture.InternalFormat);
+
             GL.TexImage2D(
                 texture.Target,
                 0,
-                texture.Image.InternalFormat,
+                texture.InternalFormat,
                 texture.Image.Width,
                 texture.Image.Height,
                 0,
-                texture.Image.Format,
-                texture.Image.PixelType,
+                texture.Format,
+                texture.PixelType,
                 texture.Image.Data
             );
         }
@@ -84,16 +76,19 @@ namespace Framework.ECS.Systems.Sync
         /// </summary>
         private void SpecificTextureCube(TextureCubeAsset texture)
         {
+            if (texture.Images[0].Image != null)
+                GetPixelInfos(texture.Images[0].Image, out texture.PixelType, out texture.Format, out texture.InternalFormat);
+            
             for (int i = 0; i < 6; i++)
                 GL.TexImage2D(
                     TextureTarget.TextureCubeMapPositiveX + i,
                     0,
-                    texture.Images[i].InternalFormat,
+                    texture.InternalFormat,
                     texture.Images[i].Width,
                     texture.Images[i].Height,
                     0,
-                    texture.Images[i].Format,
-                    texture.Images[i].PixelType,
+                    texture.Format,
+                    texture.PixelType,
                     texture.Images[i].Data
                 );
 
@@ -103,19 +98,47 @@ namespace Framework.ECS.Systems.Sync
         /// <summary>
         /// 
         /// </summary>
-        private void SpecificTextureRender(FrameBufferTextureAsset texture)
+        private void SpecificTextureRender(TextureRenderAsset texture)
         {
-            //GL.TexImage2D(
-            //    texture.Target,
-            //    0,
-            //    texture.InternalFormat,
-            //    texture.Width,
-            //    texture.Height,
-            //    0,
-            //    texture.Format,
-            //    texture.PixelType,
-            //    default
-            //);
+            GL.TexImage2D(
+                texture.Target,
+                0,
+                texture.InternalFormat,
+                texture.Width,
+                texture.Height,
+                0,
+                texture.Format,
+                texture.PixelType,
+                default
+            );
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected void GetPixelInfos(MagickImage image, out PixelType type, out PixelFormat format, out PixelInternalFormat internalFormat)
+        {
+            switch (image.ChannelCount)
+            {
+                case 1:
+                    format = PixelFormat.Red;
+                    break;
+                case 2:
+                    format = PixelFormat.Rg;
+                    break;
+                case 3:
+                    format = PixelFormat.Rgb;
+                    break;
+                case 4:
+                    format = PixelFormat.Rgba;
+                    break;
+                default:
+                    format = default;
+                    break;
+            }
+
+            type = PixelType.UnsignedShort;
+            internalFormat = (PixelInternalFormat)format;
         }
     }
 }

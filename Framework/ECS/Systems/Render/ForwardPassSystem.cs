@@ -117,7 +117,7 @@ namespace Framework.ECS.Systems.Render
                 cameraData.FarClipping
             );
 
-
+            GL.Viewport(0, 0, aspectRatio.Width, aspectRatio.Height);
             UseCamera(cameraData);
             _viewSpaceBlock.Data = CreateViewSpace(cameraTransform, projectionSpace);
             _viewSpaceBlock.PushToGPU();

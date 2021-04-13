@@ -6,6 +6,7 @@ namespace Framework.ECS.Components.Light
 {
     public struct ShadowCasterComponent
     {
+        public int Resolution;
         public float NearClipping;
         public float FarClipping;
     }

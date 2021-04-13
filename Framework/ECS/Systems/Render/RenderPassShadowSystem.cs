@@ -4,6 +4,7 @@ using Framework.Assets.Framebuffer;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Shader.Block.Data;
+using Framework.Assets.Textures;
 using Framework.Assets.Verticies;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
@@ -38,39 +39,30 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         protected override void Update(bool state, in Entity entity)
         {
-            ValidateRenderPassComponents(entity);
+            CreateRenderPassComponents(entity);
 
             var transform = entity.Get<TransformComponent>();
+            var shadowCaster = entity.Get<ShadowCasterComponent>();
             ref var renderView = ref entity.Get<RenderPassDataComponent>();
 
             renderView.ViewSpace = CreateViewSpace(entity, renderView.Projection);
             renderView.Projection = CreateProjection(entity);
             renderView.WorldSpaceInverse = transform.WorldSpaceInverse;
-            renderView.RenderableCandidates = _shadowCandidates;
-            renderView.FrameBuffer = new FramebufferAsset()
+            
+            if (renderView.RenderableCandidates == null)
+                renderView.RenderableCandidates = _shadowCandidates;
+
+            if (renderView.FrameBuffer == null)
             {
-                Width = 2048,
-                Height = 2048,
-                TextureTargets = new List<FrameBufferTextureAsset>()
-                {
-                    new FrameBufferTextureAsset("")
-                    {
-                        PixelType = PixelType.Float,
-                        Format = PixelFormat.DepthComponent,
-                        InternalFormat = PixelInternalFormat.DepthComponent
-                    }
-                },
-                StorageTargets = new List<FramebufferStorageAsset>()
-                {
-                    new FramebufferStorageAsset("") { DataType = RenderbufferStorage.DepthComponent }
-                }
-            };
+                renderView.FrameBuffer = new FramebufferAsset(shadowCaster.Resolution, shadowCaster.Resolution);
+                renderView.FrameBuffer.TextureTargets.Add(new TextureRenderAsset("ShadowMap", FramebufferAttachment.DepthAttachment, shadowCaster.Resolution, shadowCaster.Resolution));
+            }
         }
 
         /// <summary>
         /// 
         /// </summary>
-        private void ValidateRenderPassComponents(Entity entity)
+        private void CreateRenderPassComponents(Entity entity)
         {
             if (!entity.Has<RenderPassDataComponent>())
                 entity.Set(new RenderPassDataComponent()

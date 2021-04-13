@@ -1,5 +1,6 @@
 ﻿using DefaultEcs;
 using DefaultEcs.System;
+using Framework.Assets.Framebuffer;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Shader.Block;
@@ -38,12 +39,9 @@ namespace Framework.ECS.Systems.Render
         {
             var renderData = entity.Get<RenderPassDataComponent>();
 
+            UseFrameBuffer(renderData.FrameBuffer);
             _viewSpaceBlock.Data = renderData.ViewSpace;
             _viewSpaceBlock.PushToGPU();
-
-
-            GL.ClearColor(.2f, .2f, .2f, 1f);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
             foreach (var shaderRelation in renderData.Graph)
             {
@@ -64,6 +62,17 @@ namespace Framework.ECS.Systems.Render
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void UseFrameBuffer(FramebufferAsset framebuffer)
+        {
+            GL.Viewport(0, 0, framebuffer.Width, framebuffer.Height);
+            GL.BindFramebuffer(framebuffer.Target, framebuffer.Handle);
+            GL.ClearColor(framebuffer.ClearColor);
+            GL.Clear(framebuffer.ClearMask);
         }
 
         /// <summary>
