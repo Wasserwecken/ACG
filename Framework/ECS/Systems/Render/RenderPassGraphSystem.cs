@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Framework.ECS.Systems.Render
 {
-    [With(typeof(RenderPassGraphComponent))]
+    [With(typeof(RenderPassDataComponent))]
     public class RenderPassGraphSystem : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
@@ -26,8 +26,7 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         protected override void Update(bool state, in Entity entity)
         {
-            ref var globalGPUData = ref _worldComponents.Get<GlobalGPUDataComponent>();
-            ref var renderGraph = ref entity.Get<RenderPassGraphComponent>();
+            ref var renderGraph = ref entity.Get<RenderPassDataComponent>();
 
             renderGraph.Graph.Clear();
 
@@ -43,23 +42,17 @@ namespace Framework.ECS.Systems.Render
                 if (!renderGraph.Graph.ContainsKey(shader))
                 {
                     renderGraph.Graph.Add(shader, new Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>());
-                    if (!globalGPUData.Shaders.Contains(shader))
-                        globalGPUData.Shaders.Add(shader);
                 }
 
                 if (!renderGraph.Graph[shader].ContainsKey(material))
                 {
                     renderGraph.Graph[shader].Add(material, new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>());
-                    if (!globalGPUData.Materials.Contains(material))
-                        globalGPUData.Materials.Add(material);
                 }
 
                 if (!renderGraph.Graph[shader][material].ContainsKey(transform))
                     renderGraph.Graph[shader][material].Add(transform, new List<VertexPrimitiveAsset>());
 
                 renderGraph.Graph[shader][material][transform].Add(verticies);
-                if (!globalGPUData.Primitives.Contains(verticies))
-                    globalGPUData.Primitives.Add(verticies);
             }
         }
     }

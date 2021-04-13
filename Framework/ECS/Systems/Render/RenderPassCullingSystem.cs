@@ -7,8 +7,7 @@ using System.Text;
 
 namespace Framework.ECS.Systems.Render
 {
-    [With(typeof(RenderPassViewComponent))]
-    [With(typeof(RenderPassGraphComponent))]
+    [With(typeof(RenderPassDataComponent))]
     public class RenderPassCullingSystem : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
@@ -26,16 +25,13 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         protected override void Update(bool state, in Entity entity)
         {
-            var renderConfig = entity.Get<RenderPassViewComponent>();
-            var renderGraph = entity.Get<RenderPassGraphComponent>();
+            ref var renderData = ref entity.Get<RenderPassDataComponent>();
 
-            renderGraph.Renderables.Clear();
+            renderData.Renderables.Clear();
 
-            foreach (var candidate in renderConfig.RenderableCandidates.GetEntities())
+            foreach (var candidate in renderData.RenderableCandidates.GetEntities())
                 if (!FilterCandidate(candidate, entity))
-                    renderGraph.Renderables.Add(candidate);
-
-            entity.Set(renderGraph);
+                    renderData.Renderables.Add(candidate);
         }
 
         /// <summary>

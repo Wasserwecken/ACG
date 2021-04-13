@@ -41,12 +41,30 @@ namespace Framework.ECS.Systems.Render
             ValidateRenderPassComponents(entity);
 
             var transform = entity.Get<TransformComponent>();
-            ref var renderView = ref entity.Get<RenderPassViewComponent>();
+            ref var renderView = ref entity.Get<RenderPassDataComponent>();
 
             renderView.ViewSpace = CreateViewSpace(entity, renderView.Projection);
             renderView.Projection = CreateProjection(entity);
             renderView.WorldSpaceInverse = transform.WorldSpaceInverse;
             renderView.RenderableCandidates = _shadowCandidates;
+            renderView.FrameBuffer = new FramebufferAsset()
+            {
+                Width = 2048,
+                Height = 2048,
+                TextureTargets = new List<FrameBufferTextureAsset>()
+                {
+                    new FrameBufferTextureAsset("")
+                    {
+                        PixelType = PixelType.Float,
+                        Format = PixelFormat.DepthComponent,
+                        InternalFormat = PixelInternalFormat.DepthComponent
+                    }
+                },
+                StorageTargets = new List<FramebufferStorageAsset>()
+                {
+                    new FramebufferStorageAsset("") { DataType = RenderbufferStorage.DepthComponent }
+                }
+            };
         }
 
         /// <summary>
@@ -54,37 +72,11 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         private void ValidateRenderPassComponents(Entity entity)
         {
-            if (!entity.Has<RenderPassViewComponent>())
-                entity.Set(new RenderPassViewComponent());
-
-            if (!entity.Has<RenderPassGraphComponent>())
-                entity.Set(new RenderPassGraphComponent()
+            if (!entity.Has<RenderPassDataComponent>())
+                entity.Set(new RenderPassDataComponent()
                 {
                     Renderables = new List<Entity>(),
-                    Graph = new Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>>()
-                });
-
-            if (!entity.Has<RenderPassFrameBufferComponent>())
-                entity.Set(new RenderPassFrameBufferComponent()
-                {
-                    FrameBuffer = new FramebufferAsset()
-                    {
-                        Width = 2048,
-                        Height = 2048,
-                        TextureTargets = new List<FrameBufferTextureAsset>()
-                        {
-                            new FrameBufferTextureAsset("")
-                            {
-                                PixelType = PixelType.Float,
-                                Format = PixelFormat.DepthComponent,
-                                InternalFormat = PixelInternalFormat.DepthComponent
-                            }
-                        },
-                        StorageTargets = new List<FramebufferStorageAsset>()
-                        {
-                            new FramebufferStorageAsset("") { DataType = RenderbufferStorage.DepthComponent }
-                        }
-                    }
+                    Graph = new Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>>(),
                 });
 
             if (!entity.Has<RenderPassShaderComponent>())

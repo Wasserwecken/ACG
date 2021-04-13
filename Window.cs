@@ -39,7 +39,6 @@ namespace Window
         {
             _scene = new World();
             _sceneComponents = _scene.CreateEntity();
-            _sceneComponents.Set(GlobalGPUDataComponent.Default);
             _sceneComponents.Set(new TimeComponent());
             _sceneComponents.Set(new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState });
             _sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });

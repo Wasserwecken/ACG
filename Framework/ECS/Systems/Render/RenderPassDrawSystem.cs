@@ -13,9 +13,7 @@ using System.Linq;
 
 namespace Framework.ECS.Systems.Render
 {
-    [With(typeof(RenderPassViewComponent))]
-    [With(typeof(RenderPassGraphComponent))]
-    [With(typeof(RenderPassFrameBufferComponent))]
+    [With(typeof(RenderPassDataComponent))]
     public class RenderPassDrawSystem : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
@@ -38,18 +36,16 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         protected override void Update(bool state, in Entity entity)
         {
-            var renderView = entity.Get<RenderPassViewComponent>();
-            var renderGraph = entity.Get<RenderPassGraphComponent>();
-            var renderBuffer = entity.Get<RenderPassFrameBufferComponent>();
+            var renderData = entity.Get<RenderPassDataComponent>();
 
-            _viewSpaceBlock.Data = renderView.ViewSpace;
+            _viewSpaceBlock.Data = renderData.ViewSpace;
             _viewSpaceBlock.PushToGPU();
 
 
             GL.ClearColor(.2f, .2f, .2f, 1f);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
-            foreach (var shaderRelation in renderGraph.Graph)
+            foreach (var shaderRelation in renderData.Graph)
             {
                 UseShader(shaderRelation.Key);
 
@@ -60,7 +56,7 @@ namespace Framework.ECS.Systems.Render
 
                     foreach (var transformRelation in materialRelation.Value)
                     {
-                        _primitiveSpaceBlock.Data = CreatePrimitiveSpace(transformRelation.Key, renderView.WorldSpaceInverse, renderView.Projection);
+                        _primitiveSpaceBlock.Data = CreatePrimitiveSpace(transformRelation.Key, renderData.WorldSpaceInverse, renderData.Projection);
                         _primitiveSpaceBlock.PushToGPU();
 
                         foreach (var primitive in transformRelation.Value)

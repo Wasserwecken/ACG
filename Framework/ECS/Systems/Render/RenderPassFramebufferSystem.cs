@@ -22,9 +22,9 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         protected override void Update(bool state, in Entity entity)
         {
-            var frameBuffer = entity.Get<RenderPassFrameBufferComponent>();
+            var renderData = entity.Get<RenderPassDataComponent>();
 
-            foreach(var texture in frameBuffer.FrameBuffer.TextureTargets)
+            foreach(var texture in renderData.FrameBuffer.TextureTargets)
             {
                 if (texture.Handle <= 0)
                 {
@@ -35,8 +35,8 @@ namespace Framework.ECS.Systems.Render
                         texture.Target,
                         0,
                         texture.InternalFormat,
-                        frameBuffer.FrameBuffer.Width,
-                        frameBuffer.FrameBuffer.Height,
+                        renderData.FrameBuffer.Width,
+                        renderData.FrameBuffer.Height,
                         0,
                         texture.Format,
                         texture.PixelType,
@@ -55,10 +55,10 @@ namespace Framework.ECS.Systems.Render
                 }
             }
 
-            if (frameBuffer.FrameBuffer.Handle <= 0)
+            if (renderData.FrameBuffer.Handle <= 0)
             {
-                frameBuffer.FrameBuffer.Handle = GL.GenFramebuffer();
-                GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer.FrameBuffer.Handle);
+                renderData.FrameBuffer.Handle = GL.GenFramebuffer();
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, renderData.FrameBuffer.Handle);
                 GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, 2343543, 0);
                 GL.DrawBuffer(DrawBufferMode.None);
                 GL.ReadBuffer(ReadBufferMode.None);
