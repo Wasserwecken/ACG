@@ -93,7 +93,7 @@ namespace Framework.ECS.GLTF2
                     subEntity.Set(new PrimitiveComponent()
                     {
                         Shader = _defaultShader,
-                        Material = _materials.ContainsKey(gltfPrimitive.Material) ? _materials[gltfPrimitive.Material] : Defaults.Material.PBR,
+                        Material = gltfPrimitive.Material != null && _materials.ContainsKey(gltfPrimitive.Material) ? _materials[gltfPrimitive.Material] : Defaults.Material.PBR,
                         Primitive = primitive
                     });
                 }
