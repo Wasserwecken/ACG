@@ -17,6 +17,7 @@ namespace Framework.Assets.Shader
         public ShaderBlockInfo[] Blocks;
         public Dictionary<string, int> IdentifierToLayout;
 
+
         /// <summary>
         /// 
         /// </summary>

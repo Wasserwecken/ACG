@@ -162,8 +162,8 @@ namespace Framework.ECS.Systems.Render
         {
             GL.UseProgram(shader.Handle);
             foreach (var block in ShaderBlockRegister.Blocks)
-                if (shader.IdentifierToLayout.TryGetValue(block.Name, out var blockLayout))
-                    GL.BindBufferBase(block.Target, blockLayout, block.Handle);
+                if (shader.IdentifierToLayout.TryGetValue(block.Key, out var blockLayout))
+                    GL.BindBufferBase(block.Value.Target, blockLayout, block.Value.Handle);
         }
 
         /// <summary>

@@ -37,20 +37,20 @@ namespace Framework.ECS.Systems.Render
             ref var renderPassData = ref entity.Get<RenderPassDataComponent>();
             var aspect = _worldComponents.Get<AspectRatioComponent>();
 
-            if (renderPassData.FrameBuffer == null)
-            {
-                renderPassData.FrameBuffer = new FramebufferAsset(aspect.Width, aspect.Height)
-                {
-                    DrawMode = DrawBufferMode.ColorAttachment0 | DrawBufferMode.ColorAttachment1 | DrawBufferMode.ColorAttachment2 | DrawBufferMode.ColorAttachment3,
-                    ReadMode = ReadBufferMode.Front
-                };
+            //if (renderPassData.FrameBuffer == null)
+            //{
+            //    renderPassData.FrameBuffer = new FramebufferAsset(aspect.Width, aspect.Height)
+            //    {
+            //        DrawMode = DrawBufferMode.ColorAttachment0 | DrawBufferMode.ColorAttachment1 | DrawBufferMode.ColorAttachment2 | DrawBufferMode.ColorAttachment3,
+            //        ReadMode = ReadBufferMode.Front
+            //    };
 
-                renderPassData.FrameBuffer.TextureTargets.Add(new TextureRenderAsset("DeferredPosition", FramebufferAttachment.ColorAttachment0, aspect.Width, aspect.Height));
-                renderPassData.FrameBuffer.TextureTargets.Add(new TextureRenderAsset("DeferredNormal", FramebufferAttachment.ColorAttachment1, aspect.Width, aspect.Height));
-                renderPassData.FrameBuffer.TextureTargets.Add(new TextureRenderAsset("DeferredAlbedo", FramebufferAttachment.ColorAttachment2, aspect.Width, aspect.Height));
-                renderPassData.FrameBuffer.TextureTargets.Add(new TextureRenderAsset("DeferredMREO", FramebufferAttachment.ColorAttachment3, aspect.Width, aspect.Height));
-                renderPassData.FrameBuffer.StorageTargets.Add(new FramebufferStorageAsset("DeferredDepth"));
-            }
+            //    renderPassData.FrameBuffer.TextureTargets.Add(new TextureRenderAsset("DeferredPosition", FramebufferAttachment.ColorAttachment0, aspect.Width, aspect.Height));
+            //    renderPassData.FrameBuffer.TextureTargets.Add(new TextureRenderAsset("DeferredNormal", FramebufferAttachment.ColorAttachment1, aspect.Width, aspect.Height));
+            //    renderPassData.FrameBuffer.TextureTargets.Add(new TextureRenderAsset("DeferredAlbedo", FramebufferAttachment.ColorAttachment2, aspect.Width, aspect.Height));
+            //    renderPassData.FrameBuffer.TextureTargets.Add(new TextureRenderAsset("DeferredMREO", FramebufferAttachment.ColorAttachment3, aspect.Width, aspect.Height));
+            //    renderPassData.FrameBuffer.StorageTargets.Add(new FramebufferStorageAsset("DeferredDepth"));
+            //}
 
             return renderPassData;
         }

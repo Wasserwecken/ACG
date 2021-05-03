@@ -8,13 +8,14 @@ namespace Framework.Assets.Framebuffer
 {
     public class FramebufferAsset
     {
+        public string Name { get; }
         public int Handle { get; set; }
-        public int Width { get; }
-        public int Height { get; }
+        public int Width { get; set; }
+        public int Height { get; set; }
 
-        public List<TextureRenderAsset> TextureTargets { get; }
-        public List<FramebufferStorageAsset> StorageTargets { get; }
-        public FramebufferTarget Target { get; }
+        public List<TextureRenderAsset> TextureTargets { get; set; }
+        public List<FramebufferStorageAsset> StorageTargets { get; set; }
+        public FramebufferTarget Target { get; set; }
         public DrawBufferMode DrawMode { get; set; }
         public ReadBufferMode ReadMode { get; set; }
 
@@ -24,12 +25,10 @@ namespace Framework.Assets.Framebuffer
         /// <summary>
         /// 
         /// </summary>
-        public FramebufferAsset(int width, int height)
+        public FramebufferAsset(string name)
         {
+            Name = name;
             AssetRegister.Framebuffers.Add(this);
-
-            Width = width;
-            Height = height;
 
             Target = FramebufferTarget.Framebuffer;
             DrawMode = DrawBufferMode.Front;

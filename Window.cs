@@ -2,6 +2,8 @@
 using DefaultEcs.System;
 using Framework;
 using Framework.Assets.Framebuffer;
+using Framework.Assets.Shader.Block;
+using Framework.Assets.Shader.Block.Data;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
@@ -71,8 +73,9 @@ namespace Window
                 new PrimitiveSyncSystem(_scene, _sceneComponents),
 
                 new ShadowPassSystem(_scene, _sceneComponents),
-                new ForwardPassSystemOLD(_scene, _sceneComponents)
-            ); ;
+                new ForwardPassSystemOLD(_scene, _sceneComponents),
+                new FrameBufferDebugSystem(_scene, _sceneComponents)
+            );
         }
 
         /// <summary>
@@ -93,7 +96,7 @@ namespace Window
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(1f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
-            sunEntity.Set(new ShadowCasterComponent() { Resolution = 1024, NearClipping = -500, FarClipping = +500 });
+            sunEntity.Set(new ShadowCasterComponent() { Resolution = 1024, NearClipping = -100, FarClipping = +100 });
         }
 
         /// <summary>

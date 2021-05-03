@@ -5,7 +5,6 @@ using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Shader.Block;
 using Framework.Assets.Shader.Block.Data;
-using Framework.Assets.Shader.Info.Block.Data;
 using Framework.Assets.Textures;
 using Framework.Assets.Verticies;
 using Framework.ECS.Components.Light;
@@ -13,6 +12,7 @@ using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using System.Collections.Generic;
 
 namespace Framework.ECS.Systems.Render
 {
@@ -36,18 +36,36 @@ namespace Framework.ECS.Systems.Render
         protected override RenderPassDataComponent ValidatePassData(Entity entity)
         {
             if (!entity.Has<RenderPassDataComponent>())
-                entity.Set(new RenderPassDataComponent());
-
-            var shadowCaster = entity.Get<ShadowCasterComponent>();
-            ref var renderPassData = ref entity.Get<RenderPassDataComponent>();
-
-            if (renderPassData.FrameBuffer == null)
             {
-                renderPassData.FrameBuffer = new FramebufferAsset(shadowCaster.Resolution, shadowCaster.Resolution) { DrawMode = DrawBufferMode.None, ReadMode = ReadBufferMode.None };
-                renderPassData.FrameBuffer.TextureTargets.Add(new TextureRenderAsset("ShadowMap", FramebufferAttachment.DepthAttachment, shadowCaster.Resolution, shadowCaster.Resolution));
+                var shadowCaster = entity.Get<ShadowCasterComponent>();
+                entity.Set(new RenderPassDataComponent()
+                {
+                    FrameBuffer = new FramebufferAsset("ShadowPass")
+                    {
+                        Width = shadowCaster.Resolution,
+                        Height = shadowCaster.Resolution,
+
+                        DrawMode = DrawBufferMode.None,
+                        ReadMode = ReadBufferMode.None,
+
+                        TextureTargets = new List<TextureRenderAsset>()
+                        {
+                            new TextureRenderAsset("ShadowMap")
+                            {
+                                Attachment = FramebufferAttachment.DepthAttachment,
+                                Width = shadowCaster.Resolution,
+                                Height = shadowCaster.Resolution,
+
+                                InternalFormat = PixelInternalFormat.DepthComponent,
+                                Format = PixelFormat.DepthComponent,
+                                PixelType = PixelType.Float
+                            }
+                        }
+                    }
+                });
             }
 
-            return renderPassData;
+            return entity.Get<RenderPassDataComponent>();
         }
 
         /// <summary>

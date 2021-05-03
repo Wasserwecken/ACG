@@ -20,6 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Defaults\Shader\FrameBuffer.frag" />
+    <None Remove="Assets\Defaults\Shader\ScreenQuad.vert" />
     <None Remove="Assets\Defaults\Shader\Shadow.frag" />
   </ItemGroup>
 

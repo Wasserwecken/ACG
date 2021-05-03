@@ -8,19 +8,15 @@ namespace Framework.Assets.Textures
         public override TextureTarget Target => TextureTarget.Texture2D;
         public override GenerateMipmapTarget MipMapTarget => GenerateMipmapTarget.Texture2D;
 
-        public int Width { get; }
-        public int Height { get; }
-        public FramebufferAttachment Attachment { get; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public FramebufferAttachment Attachment { get; set; }
         
         /// <summary>
         /// 
         /// </summary>
-        public TextureRenderAsset(string name, FramebufferAttachment attachment, int width, int height) : base(name)
+        public TextureRenderAsset(string name) : base(name)
         {
-            Width = width;
-            Height = height;
-
-            Attachment = attachment;
             MinFilter = TextureMinFilter.Nearest;
             MagFilter = TextureMagFilter.Nearest;
         }

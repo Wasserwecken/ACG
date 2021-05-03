@@ -4,6 +4,7 @@ using DefaultEcs.System;
 using Framework.Assets.Shader.Block;
 using Framework.Assets.Shader.Block.Data;
 using Framework.ECS.Components.Light;
+using System.Runtime.InteropServices;
 using Framework.ECS.Components.Transform;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;

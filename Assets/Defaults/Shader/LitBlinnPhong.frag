@@ -191,7 +191,5 @@ void main()
     vec3 surfaceColor = emmision + evaluate_lights(baseColor.xyz, metallicRoughness.y, metallicRoughness.x, surfaceNormal);
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
 
-    corrected = texture(ShadowMap, _vertexUV.UV0).r * vec3(1.0);
-        
     OutputColor = vec4(corrected, baseColor.w);
 }

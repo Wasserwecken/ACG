@@ -26,7 +26,7 @@ namespace Framework.Assets.Shader.Block
             Target = target;
             UsageHint = usageHint;
 
-            ShaderBlockRegister.Blocks.Add(this);
+            ShaderBlockRegister.Add(this);
         }
 
         /// <summary>

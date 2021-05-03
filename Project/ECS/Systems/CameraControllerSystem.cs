@@ -36,10 +36,10 @@ namespace Project.ECS.Systems
             var moveInput = Vector3.Zero;
             if (input.Keyboard.IsKeyDown(Keys.W)) moveInput.Z += 1;
             if (input.Keyboard.IsKeyDown(Keys.S)) moveInput.Z -= 1;
-            if (input.Keyboard.IsKeyDown(Keys.A)) moveInput.X -= 1;
             if (input.Keyboard.IsKeyDown(Keys.D)) moveInput.X += 1;
-            if (input.Keyboard.IsKeyDown(Keys.Q)) moveInput.Y += 1;
-            if (input.Keyboard.IsKeyDown(Keys.E)) moveInput.Y -= 1;
+            if (input.Keyboard.IsKeyDown(Keys.A)) moveInput.X -= 1;
+            if (input.Keyboard.IsKeyDown(Keys.E)) moveInput.Y += 1;
+            if (input.Keyboard.IsKeyDown(Keys.Q)) moveInput.Y -= 1;
             if (moveInput.LengthSquared > float.Epsilon) moveInput.Normalize();
             if (input.Keyboard.IsKeyDown(Keys.LeftShift)) moveInput *= 3.0f;
 

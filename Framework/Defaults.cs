@@ -22,31 +22,38 @@ namespace Framework
         {
             public static class Source
             {
+                public static ShaderSourceAsset VertexScreenQuad { get; }
                 public static ShaderSourceAsset VertexMesh { get; }
                 public static ShaderSourceAsset VertexSkybox { get; }
+
                 public static ShaderSourceAsset FragmentLitBlinnPhong { get; }
                 public static ShaderSourceAsset FragmentSkybox { get; }
                 public static ShaderSourceAsset FragmentShadow { get; }
+                public static ShaderSourceAsset FragmentFrameBuffer { get; }
 
                 static Source()
                 {
+                    VertexScreenQuad = new ShaderSourceAsset(ShaderType.VertexShader, Path.Combine(Definitions.Directories.DefaultShader, "ScreenQuad.vert"));
                     VertexMesh = new ShaderSourceAsset(ShaderType.VertexShader, Path.Combine(Definitions.Directories.DefaultShader, "mesh.vert"));
                     VertexSkybox = new ShaderSourceAsset(ShaderType.VertexShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.vert"));
 
-                    FragmentSkybox = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.frag"));
                     FragmentLitBlinnPhong = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitBlinnPhong.frag"));
+                    FragmentSkybox = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.frag"));
                     FragmentShadow = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "Shadow.frag"));
+                    FragmentFrameBuffer = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "FrameBuffer.frag"));
                 }
             }
 
             public static class Program
             {
+                public static ShaderProgramAsset FrameBuffer { get; }
                 public static ShaderProgramAsset Skybox { get; }
                 public static ShaderProgramAsset Shadow { get; }
                 public static ShaderProgramAsset MeshBlinnPhong { get; }
 
                 static Program()
                 {
+                    FrameBuffer = new ShaderProgramAsset("FrameBuffer", Source.VertexScreenQuad, Source.FragmentFrameBuffer);
                     Skybox = new ShaderProgramAsset("Skybox", Source.VertexSkybox, Source.FragmentSkybox);
                     Shadow = new ShaderProgramAsset("Shadow", Source.VertexMesh, Source.FragmentShadow);
                     MeshBlinnPhong = new ShaderProgramAsset("MeshBlinnPhong", Source.VertexMesh, Source.FragmentLitBlinnPhong);
