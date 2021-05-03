@@ -96,7 +96,7 @@ namespace Window
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(1f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
-            sunEntity.Set(new ShadowCasterComponent() { Resolution = 1024, NearClipping = -100, FarClipping = +100 });
+            sunEntity.Set(new ShadowCasterComponent() { Resolution = 1024, NearClipping = -10, FarClipping = +10 });
         }
 
         /// <summary>

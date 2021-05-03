@@ -80,13 +80,15 @@ namespace Framework.ECS.Systems.Render
             return new ShaderViewSpace
             {
                 WorldToView = transform.WorldSpaceInverse,
+                WorldToViewInverse = transform.WorldSpace,
                 WorldToProjection = transform.WorldSpaceInverse * projection,
 
                 WorldToViewRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation(),
                 WorldToProjectionRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation() * projection,
 
                 ViewPosition = new Vector4(transform.Position, 1),
-                ViewDirection = new Vector4(-transform.Forward, 0)
+                ViewDirection = new Vector4(-transform.Forward, 0),
+                ViewProjection = projection
             };
         }
 

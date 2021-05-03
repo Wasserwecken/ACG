@@ -10,5 +10,5 @@ out vec4 FragColor;
 
 void main()
 {    
-    FragColor = fract(texture(BufferMap, _vertexScreenQuad.UV0) * 10.0);
+    FragColor = fract(texture(BufferMap, _vertexScreenQuad.UV0) * 1.0);
 }

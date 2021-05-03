@@ -15,6 +15,7 @@ namespace Framework.ECS.Systems.Sync
         /// </summary>
         public TimeSyncSystem(World world, Entity worldComponents) : base(world)
         {
+
         }
 
         /// <summary>
