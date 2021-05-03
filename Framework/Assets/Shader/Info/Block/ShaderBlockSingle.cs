@@ -8,7 +8,18 @@ namespace Framework.Assets.Shader.Block
     [DebuggerDisplay("Handle: {Handle}, Name: {Name}")]
     public class ShaderBlockSingle<TBlockType> : IShaderBlock where TBlockType : struct
     {
+        private static ShaderBlockSingle<TBlockType> _instance;
         public static int BlockSize = Marshal.SizeOf(typeof(TBlockType));
+        public static ShaderBlockSingle<TBlockType> Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    _instance = new ShaderBlockSingle<TBlockType>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+                return _instance;
+            }
+        }
+
         public int Handle { get; private set; }
         public string Name { get; private set; }
         public BufferRangeTarget Target { get; private set; }
@@ -18,7 +29,7 @@ namespace Framework.Assets.Shader.Block
         /// <summary>
         /// 
         /// </summary>
-        public ShaderBlockSingle(BufferRangeTarget target, BufferUsageHint usageHint)
+        private ShaderBlockSingle(BufferRangeTarget target, BufferUsageHint usageHint)
         {
             Handle = -1;
             Name = typeof(TBlockType).Name;

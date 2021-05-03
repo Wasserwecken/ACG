@@ -20,14 +20,11 @@ namespace Framework.ECS.Systems.Render
     [With(typeof(ShadowCasterComponent))]
     public class ShadowPassSystem : RenderPassBaseSystem
     {
-        private readonly ShaderBlockSingle<ShaderShadowSpace> _shadowBlock;
-
         /// <summary>
         /// 
         /// </summary>
         public ShadowPassSystem(World world, Entity worldComponents) : base(world, worldComponents)
         {
-            _shadowBlock = new ShaderBlockSingle<ShaderShadowSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
         }
 
         /// <summary>
@@ -77,8 +74,8 @@ namespace Framework.ECS.Systems.Render
             var transform = entity.Get<TransformComponent>();
             var projection = Matrix4.CreateOrthographic(10f, 10f, shadowCaster.NearClipping, shadowCaster.FarClipping);
 
-            _shadowBlock.Data = new ShaderShadowSpace() { ShadowSpace = transform.WorldSpaceInverse * projection };
-            _shadowBlock.PushToGPU();
+            ShaderBlockSingle<ShaderShadowSpace>.Instance.Data = new ShaderShadowSpace() { ShadowSpace = transform.WorldSpaceInverse * projection };
+            ShaderBlockSingle<ShaderShadowSpace>.Instance.PushToGPU();
 
             return new ShaderViewSpace
             {

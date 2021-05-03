@@ -24,9 +24,6 @@ namespace Framework.ECS.Systems.Render
         private readonly Entity _worldComponents;
         private EntitySet _graphSet;
 
-        private readonly ShaderBlockSingle<ShaderViewSpace> _viewSpaceBlock;
-        private readonly ShaderBlockSingle<ShaderPrimitiveSpace> _primitiveSpaceBlock;
-
         private readonly List<MaterialAsset> _materials;
         private readonly List<TextureBaseAsset> _textures;
         private readonly List<ShaderProgramAsset> _shaders;
@@ -45,9 +42,6 @@ namespace Framework.ECS.Systems.Render
         {
             _worldComponents = worldComponents;
             _graphSet = World.GetEntities().With<TransformComponent>().With<PrimitiveComponent>().AsSet();
-
-            _viewSpaceBlock = new ShaderBlockSingle<ShaderViewSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
-            _primitiveSpaceBlock = new ShaderBlockSingle<ShaderPrimitiveSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
 
             _materials = new List<MaterialAsset>();
             _textures = new List<TextureBaseAsset>();
@@ -121,8 +115,9 @@ namespace Framework.ECS.Systems.Render
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GL.Viewport(0, 0, aspectRatio.Width, aspectRatio.Height);
             UseCamera(cameraData);
-            _viewSpaceBlock.Data = CreateViewSpace(cameraTransform, projectionSpace);
-            _viewSpaceBlock.PushToGPU();
+
+            ShaderBlockSingle<ShaderViewSpace>.Instance.Data = CreateViewSpace(cameraTransform, projectionSpace);
+            ShaderBlockSingle<ShaderViewSpace>.Instance.PushToGPU();
 
             foreach (var shaderRelation in _graph)
             {
@@ -136,8 +131,8 @@ namespace Framework.ECS.Systems.Render
 
                     foreach (var transformRelation in materialRelation.Value)
                     {
-                        _primitiveSpaceBlock.Data = CreatePrimitiveSpace(transformRelation.Key, cameraTransform, projectionSpace);
-                        _primitiveSpaceBlock.PushToGPU();
+                        ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.Data = CreatePrimitiveSpace(transformRelation.Key, cameraTransform, projectionSpace);
+                        ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.PushToGPU();
 
                         foreach (var primitive in transformRelation.Value)
                             Draw(primitive);

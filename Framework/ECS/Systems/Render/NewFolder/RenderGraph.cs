@@ -14,16 +14,11 @@ namespace Framework.ECS.Systems.Render
 {
     public class RenderGraph : Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>>
     {
-        private static readonly ShaderBlockSingle<ShaderViewSpace> _viewSpaceBlock;
-        private static readonly ShaderBlockSingle<ShaderPrimitiveSpace> _primitiveSpaceBlock;
-
         /// <summary>
         /// 
         /// </summary>
         static RenderGraph()
         {
-            _viewSpaceBlock = new ShaderBlockSingle<ShaderViewSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
-            _primitiveSpaceBlock = new ShaderBlockSingle<ShaderPrimitiveSpace>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
         }
 
         /// <summary>
@@ -31,8 +26,8 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         public void Draw(ShaderViewSpace viewSpace)
         {
-            _viewSpaceBlock.Data = viewSpace;
-            _viewSpaceBlock.PushToGPU();
+            ShaderBlockSingle<ShaderViewSpace>.Instance.Data = viewSpace;
+            ShaderBlockSingle<ShaderViewSpace>.Instance.PushToGPU();
 
             foreach (var shaderRelation in this)
             {
@@ -42,8 +37,8 @@ namespace Framework.ECS.Systems.Render
                     Renderer.UseMaterial(materialRelation.Key, shaderRelation.Key);
                     foreach (var transformRelation in materialRelation.Value)
                     {
-                        _primitiveSpaceBlock.Data = Renderer.CreatePrimitiveSpace(transformRelation.Key, viewSpace);
-                        _primitiveSpaceBlock.PushToGPU();
+                        ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.Data = Renderer.CreatePrimitiveSpace(transformRelation.Key, viewSpace);
+                        ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.PushToGPU();
 
                         foreach (var primitive in transformRelation.Value)
                             Renderer.Draw(primitive);
