@@ -32,6 +32,11 @@ in VertexColor
     vec4 Color;
 } _vertexColor;
 
+in VertexShadow
+{
+    vec4 ShadowPosition;
+} _vertexShadow;
+
 // INPUT GLOBAL UNIFORMS
 layout (std430) buffer ShaderTime {
     float Frame;
@@ -123,21 +128,31 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 n
     return (surfaceDiffuse + specular) * lightColor * luminance;
 }
 
+
+float evaluate_shadow(vec4 shadowPosition)
+{
+    vec3 projectedPosition = (shadowPosition.xyz / shadowPosition.w) * 0.5 + 0.5;
+    float shadowDepth = texture(ShadowMap, projectedPosition.xy).r - 0.005;
+
+    return projectedPosition.z > shadowDepth ? 1.0 : 0.0;
+}
+
 vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfaceNormal)
 {
     vec3 viewDirection = normalize(_viewSpace.ViewPosition - _vertexPosition.PositionWorld.xyz);
     vec3 reflectionColor = texture(ReflectionMap, reflect(-viewDirection, surfaceNormal)).xyz;
     vec3 specularColor = mix(vec3(1.0), baseColor, metalic);
     float glossy = mix(128.0, 0.0, roughness * roughness);
-    vec3 result = reflectionColor * baseColor * metalic;
+    vec3 result = reflectionColor * baseColor * metalic * 0.1;
     
     for(int i = 0; i < _directionalLights.length(); i++)
     {
+        float shadow = evaluate_shadow(_vertexShadow.ShadowPosition);
         vec3 lightColor = _directionalLights[i].Color.xyz;
         vec3 lightDirection = _directionalLights[i].Direction.xyz;
         vec3 halfwayDirection = normalize(lightDirection + viewDirection);
 
-        result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor);
+        result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * shadow;
         result += _directionalLights[i].Color.w * baseColor * lightColor;
     }
     
@@ -177,7 +192,6 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
 
     return result;
 }
-
 
 void main()
 {

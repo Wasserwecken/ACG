@@ -214,26 +214,7 @@ namespace Framework.ECS.Systems.Render
                     GL.UniformMatrix4(layout, false, ref foo);
                 }
 
-            var textureUnit = TextureUnit.Texture0;
-            foreach (var uniform in material.UniformTextures)
-                if (shader.IdentifierToLayout.TryGetValue(uniform.Key, out var layout))
-                {
-                    GL.Uniform1(layout, layout);
-                    GL.ActiveTexture(textureUnit + layout);
-                    GL.BindTexture(uniform.Value.Target, uniform.Value.Handle);
-                }
-
-            foreach (var frameBuffer in AssetRegister.Framebuffers)
-                foreach (var renderTexture in frameBuffer.TextureTargets)
-                    if (shader.IdentifierToLayout.TryGetValue(renderTexture.Name, out var layout))
-                    {
-                        GL.Uniform1(layout, layout);
-                        GL.ActiveTexture(textureUnit + layout);
-                        GL.BindTexture(renderTexture.Target, layout);
-                    }
-
-            foreach (var uniformTexture in shader.Uniforms.Where
-                (f => f.Type == ActiveUniformType.Sampler2D && !material.UniformTextures.ContainsKey(f.Name)))
+            foreach (var uniformTexture in shader.Uniforms.Where(f => f.Type == ActiveUniformType.Sampler2D))
             {
                 GL.Uniform1(uniformTexture.Layout, uniformTexture.Layout);
                 GL.ActiveTexture(TextureUnit.Texture0 + uniformTexture.Layout);
@@ -243,6 +224,23 @@ namespace Framework.ECS.Systems.Render
                 else
                     GL.BindTexture(Defaults.Texture.White.Target, Defaults.Texture.White.Handle);
             }
+
+            foreach (var uniform in material.UniformTextures)
+                if (shader.IdentifierToLayout.TryGetValue(uniform.Key, out var layout))
+                {
+                    GL.Uniform1(layout, layout);
+                    GL.ActiveTexture(TextureUnit.Texture0 + layout);
+                    GL.BindTexture(uniform.Value.Target, uniform.Value.Handle);
+                }
+
+            foreach (var frameBuffer in AssetRegister.Framebuffers)
+                foreach (var renderTexture in frameBuffer.TextureTargets)
+                    if (shader.IdentifierToLayout.TryGetValue(renderTexture.Name, out var layout))
+                    {
+                        GL.Uniform1(layout, layout);
+                        GL.ActiveTexture(TextureUnit.Texture0 + layout);
+                        GL.BindTexture(renderTexture.Target, renderTexture.Handle);
+                    }
         }
 
         /// <summary>

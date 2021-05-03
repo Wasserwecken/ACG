@@ -72,6 +72,11 @@ out VertexColor
     vec4 Color;
 } _vertexColor;
 
+out VertexShadow
+{
+    vec4 ShadowPosition;
+} _vertexShadow;
+
 // LOGIC
 void main(void)
 {
@@ -93,5 +98,8 @@ void main(void)
     _vertexPosition.PositionLocal = vec4(BufferVertex, 1.0);
     _vertexPosition.PositionWorld = _primitiveSpace.LocalToWorld * _vertexPosition.PositionLocal;
     _vertexPosition.PositionView = _primitiveSpace.LocalToView * _vertexPosition.PositionLocal;
+
+    _vertexShadow.ShadowPosition = _shadowSpace.ShadowSpace * _vertexPosition.PositionWorld;
+
     gl_Position = _primitiveSpace.LocalToProjection * _vertexPosition.PositionLocal;
 }
