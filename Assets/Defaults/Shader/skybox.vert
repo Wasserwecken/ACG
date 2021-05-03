@@ -3,11 +3,13 @@ layout (location = 0) in vec3 BufferVertex;
 
 layout (std430) buffer ShaderViewSpace {
     mat4 WorldToView;
+    mat4 WorldToViewInverse;
     mat4 WorldToProjection;
     mat4 WorldToViewRotation;
     mat4 WorldToProjectionRotation;
     vec3 ViewPosition;
     vec3 ViewDirection;
+    mat4 ViewProjection;
 } _viewSpace;
 
 out VertexUV

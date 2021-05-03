@@ -11,11 +11,13 @@ namespace Framework.Assets.Framebuffer
         public int Handle { get; set; }
         public int Width { get; }
         public int Height { get; }
-        public bool HasColorOutput { get; set; }
 
         public List<TextureRenderAsset> TextureTargets { get; }
         public List<FramebufferStorageAsset> StorageTargets { get; }
         public FramebufferTarget Target { get; }
+        public DrawBufferMode DrawMode { get; set; }
+        public ReadBufferMode ReadMode { get; set; }
+
         public Color4 ClearColor { get; set; }
         public ClearBufferMask ClearMask { get; set; }
 
@@ -30,6 +32,9 @@ namespace Framework.Assets.Framebuffer
             Height = height;
 
             Target = FramebufferTarget.Framebuffer;
+            DrawMode = DrawBufferMode.Front;
+            ReadMode = ReadBufferMode.Front;
+
             ClearColor = Color4.Black;
             ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit;
 

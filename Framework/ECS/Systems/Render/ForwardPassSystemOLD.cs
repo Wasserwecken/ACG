@@ -1,4 +1,5 @@
-﻿using DefaultEcs;
+﻿using ACG.Framework.Assets;
+using DefaultEcs;
 using DefaultEcs.System;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader;
@@ -18,7 +19,7 @@ namespace Framework.ECS.Systems.Render
 {
     [With(typeof(TransformComponent))]
     [With(typeof(PerspectiveCameraComponent))]
-    public class ForwardPassSystem : AEntitySetSystem<bool>
+    public class ForwardPassSystemOLD : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
         private EntitySet _graphSet;
@@ -40,7 +41,7 @@ namespace Framework.ECS.Systems.Render
         /// <summary>
         /// 
         /// </summary>
-        public ForwardPassSystem(World world, Entity worldComponents) : base(world)
+        public ForwardPassSystemOLD(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
             _graphSet = World.GetEntities().With<TransformComponent>().With<PrimitiveComponent>().AsSet();
@@ -117,6 +118,7 @@ namespace Framework.ECS.Systems.Render
                 cameraData.FarClipping
             );
 
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             GL.Viewport(0, 0, aspectRatio.Width, aspectRatio.Height);
             UseCamera(cameraData);
             _viewSpaceBlock.Data = CreateViewSpace(cameraTransform, projectionSpace);
@@ -217,13 +219,23 @@ namespace Framework.ECS.Systems.Render
                     GL.UniformMatrix4(layout, false, ref foo);
                 }
 
+            var textureUnit = TextureUnit.Texture0;
             foreach (var uniform in material.UniformTextures)
                 if (shader.IdentifierToLayout.TryGetValue(uniform.Key, out var layout))
                 {
                     GL.Uniform1(layout, layout);
-                    GL.ActiveTexture(TextureUnit.Texture0 + layout);
+                    GL.ActiveTexture(textureUnit + layout);
                     GL.BindTexture(uniform.Value.Target, uniform.Value.Handle);
                 }
+
+            foreach (var frameBuffer in AssetRegister.Framebuffers)
+                foreach (var renderTexture in frameBuffer.TextureTargets)
+                    if (shader.IdentifierToLayout.TryGetValue(renderTexture.Name, out var layout))
+                    {
+                        GL.Uniform1(layout, layout);
+                        GL.ActiveTexture(textureUnit + layout);
+                        GL.BindTexture(renderTexture.Target, layout);
+                    }
 
             foreach (var uniformTexture in shader.Uniforms.Where
                 (f => f.Type == ActiveUniformType.Sampler2D && !material.UniformTextures.ContainsKey(f.Name)))

@@ -15,18 +15,6 @@ namespace Framework.ECS.Components.Render
 {
     public struct RenderPassDataComponent
     {
-        public Matrix4 Projection;
-        public Matrix4 WorldSpaceInverse;
-        public ShaderViewSpace ViewSpace;
-        public EntitySet RenderableCandidates;
-
         public FramebufferAsset FrameBuffer;
-
-        public List<Entity> Renderables;
-        public Dictionary<ShaderProgramAsset,
-                    Dictionary<MaterialAsset,
-                        Dictionary<TransformComponent,
-                            List<VertexPrimitiveAsset>>>> Graph;
-
     }
 }

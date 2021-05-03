@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Assets\Defaults\Shader\Unlit.frag" />
+    <None Remove="Assets\Defaults\Shader\Shadow.frag" />
   </ItemGroup>
 
 </Project>

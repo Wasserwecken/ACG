@@ -18,6 +18,8 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using Project.ECS.Components;
 using Project.ECS.Systems;
+using System;
+using System.Diagnostics;
 
 namespace Window
 {
@@ -29,6 +31,8 @@ namespace Window
         private readonly SequentialSystem<bool> _framePipeline;
         private readonly SequentialSystem<bool> _renderPipeline;
 
+        private readonly Stopwatch _renderWatch;
+
         /// <summary>
         /// 
         /// </summary>
@@ -37,6 +41,8 @@ namespace Window
         public Window(GameWindowSettings gameSettings, NativeWindowSettings nativeSettings)
             : base(gameSettings, nativeSettings)
         {
+            _renderWatch = new Stopwatch();
+
             _scene = new World();
             _sceneComponents = _scene.CreateEntity();
             _sceneComponents.Set(new TimeComponent());
@@ -64,13 +70,9 @@ namespace Window
                 new TextureSyncSystem(_scene, _sceneComponents),
                 new PrimitiveSyncSystem(_scene, _sceneComponents),
 
-                new RenderPassShadowSystem(_scene, _sceneComponents),
-                new RenderPassCullingSystem(_scene, _sceneComponents),
-                new RenderPassGraphSystem(_scene, _sceneComponents),
-                new RenderPassDrawSystem(_scene, _sceneComponents),
-
-                new ForwardPassSystem(_scene, _sceneComponents)
-            );
+                new ShadowPassSystem(_scene, _sceneComponents),
+                new ForwardPassSystemOLD(_scene, _sceneComponents)
+            ); ;
         }
 
         /// <summary>
@@ -111,10 +113,14 @@ namespace Window
         {
             base.OnRenderFrame(args);
 
+            _renderWatch.Restart();
+
             _framePipeline.Update(true);
             _renderPipeline.Update(true);
-
             Context.SwapBuffers();
+
+            var time = _renderWatch.ElapsedMilliseconds;
+            Title = $"{1000 / MathF.Max(float.Epsilon, time):F1} fps / {time} ms";
         }
 
         /// <summary>

@@ -51,12 +51,18 @@ layout (std430) buffer ShaderPrimitiveSpace {
 
 layout (std430) buffer ShaderViewSpace {
     mat4 WorldToView;
+    mat4 WorldToViewInverse;
     mat4 WorldToProjection;
     mat4 WorldToViewRotation;
     mat4 WorldToProjectionRotation;
     vec3 ViewPosition;
     vec3 ViewDirection;
+    mat4 ViewProjection;
 } _viewSpace;
+
+layout (std430) buffer ShaderShadowSpace {
+    mat4 ShadowSpace;
+} _shadowSpace;
 
 // INPUT GLOBAL UNIFORMS LIGHT
 struct DirectionalLight
@@ -93,6 +99,7 @@ layout (std430) buffer ShaderSpotLight {
 
 // ENVIRONMENT
 uniform samplerCube ReflectionMap;
+uniform sampler2D ShadowMap;
 
 // INPUT SPECIFIC UNIFORMS
 uniform vec4 BaseColor;
@@ -183,6 +190,8 @@ void main()
     vec3 surfaceNormal = mix(_vertexNormal.NormalWorld, textureNormal, Normal);
     vec3 surfaceColor = emmision + evaluate_lights(baseColor.xyz, metallicRoughness.y, metallicRoughness.x, surfaceNormal);
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
-    
+
+    corrected = texture(ShadowMap, _vertexUV.UV0).r * vec3(1.0);
+        
     OutputColor = vec4(corrected, baseColor.w);
 }

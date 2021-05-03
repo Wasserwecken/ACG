@@ -34,11 +34,8 @@ namespace ACG.Framework.ECS.Systems.Sync
                     foreach(var texture in framebuffer.TextureTargets)
                         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, texture.Attachment, texture.Target, texture.Handle, 0);
 
-                    if (!framebuffer.HasColorOutput)
-                    {
-                        GL.DrawBuffer(DrawBufferMode.None);
-                        GL.ReadBuffer(ReadBufferMode.None);
-                    }
+                    GL.DrawBuffer(DrawBufferMode.None);
+                    GL.ReadBuffer(ReadBufferMode.None);
 
                     GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
                 }

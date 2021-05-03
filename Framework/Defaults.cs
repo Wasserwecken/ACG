@@ -24,36 +24,31 @@ namespace Framework
             {
                 public static ShaderSourceAsset VertexMesh { get; }
                 public static ShaderSourceAsset VertexSkybox { get; }
-                public static ShaderSourceAsset FragmentUnlit { get; }
-                public static ShaderSourceAsset FragmentLitPBR { get; }
                 public static ShaderSourceAsset FragmentLitBlinnPhong { get; }
                 public static ShaderSourceAsset FragmentSkybox { get; }
+                public static ShaderSourceAsset FragmentShadow { get; }
 
                 static Source()
                 {
                     VertexMesh = new ShaderSourceAsset(ShaderType.VertexShader, Path.Combine(Definitions.Directories.DefaultShader, "mesh.vert"));
                     VertexSkybox = new ShaderSourceAsset(ShaderType.VertexShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.vert"));
 
-                    FragmentUnlit = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "Unlit.frag"));
-                    FragmentLitPBR = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitPBR.frag"));
                     FragmentSkybox = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.frag"));
                     FragmentLitBlinnPhong = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitBlinnPhong.frag"));
+                    FragmentShadow = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "Shadow.frag"));
                 }
             }
 
             public static class Program
             {
                 public static ShaderProgramAsset Skybox { get; }
-                public static ShaderProgramAsset MeshUnlit { get; }
-
-                public static ShaderProgramAsset MeshPBR { get; }
+                public static ShaderProgramAsset Shadow { get; }
                 public static ShaderProgramAsset MeshBlinnPhong { get; }
 
                 static Program()
                 {
                     Skybox = new ShaderProgramAsset("Skybox", Source.VertexSkybox, Source.FragmentSkybox);
-                    MeshUnlit = new ShaderProgramAsset("MeshUnlit", Source.VertexMesh, Source.FragmentUnlit);
-                    MeshPBR = new ShaderProgramAsset("MeshLitPBR", Source.VertexMesh, Source.FragmentLitPBR);
+                    Shadow = new ShaderProgramAsset("Shadow", Source.VertexMesh, Source.FragmentShadow);
                     MeshBlinnPhong = new ShaderProgramAsset("MeshBlinnPhong", Source.VertexMesh, Source.FragmentLitBlinnPhong);
                 }
             }
@@ -92,11 +87,14 @@ namespace Framework
         public static class Material
         {
             public static MaterialAsset Skybox { get; }
+            public static MaterialAsset Shadow { get; }
             public static MaterialAsset PBR { get; }
 
             static Material()
             {
-                Skybox = new MaterialAsset("Default skybox");
+                Shadow = new MaterialAsset("Shadow");
+
+                Skybox = new MaterialAsset("Skybox");
                 Skybox.CullingMode = CullFaceMode.Front;
                 Skybox.DepthTest = DepthFunction.Lequal;
                 Skybox.SetUniform("ReflectionMap", Texture.SkyboxCoast);

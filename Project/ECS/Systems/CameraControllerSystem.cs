@@ -33,20 +33,26 @@ namespace Project.ECS.Systems
             var input = _worldComponents.Get<InputComponent>();
             var time = _worldComponents.Get<TimeComponent>();
 
-            var moveInput = Vector2.Zero;
-            if (input.Keyboard.IsKeyDown(Keys.W)) moveInput.Y += 1;
-            if (input.Keyboard.IsKeyDown(Keys.S)) moveInput.Y -= 1;
+            var moveInput = Vector3.Zero;
+            if (input.Keyboard.IsKeyDown(Keys.W)) moveInput.Z += 1;
+            if (input.Keyboard.IsKeyDown(Keys.S)) moveInput.Z -= 1;
             if (input.Keyboard.IsKeyDown(Keys.A)) moveInput.X -= 1;
             if (input.Keyboard.IsKeyDown(Keys.D)) moveInput.X += 1;
-            moveInput *= time.DeltaFrame * controller.MoveSpeed;
+            if (input.Keyboard.IsKeyDown(Keys.Q)) moveInput.Y += 1;
+            if (input.Keyboard.IsKeyDown(Keys.E)) moveInput.Y -= 1;
+            if (moveInput.LengthSquared > float.Epsilon) moveInput.Normalize();
+            if (input.Keyboard.IsKeyDown(Keys.LeftShift)) moveInput *= 3.0f;
+
+            moveInput = moveInput * time.DeltaFrame * controller.MoveSpeed;
 
             var lookInput = Vector2.Zero;
             lookInput.X = input.Mouse.Delta.X;
             lookInput.Y = input.Mouse.Delta.Y;
             lookInput *= controller.LookSpeed * 0.005f;
 
+            transform.Position += transform.Up * moveInput.Y;
             transform.Position += transform.Right * moveInput.X;
-            transform.Position += transform.Forward * -moveInput.Y;
+            transform.Position += transform.Forward * -moveInput.Z;
             transform.Forward = transform.Forward.Rotate(lookInput.X, Vector3.UnitY);
             transform.Forward = transform.Forward.Rotate(lookInput.Y, transform.Right);
         }
