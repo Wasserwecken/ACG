@@ -128,10 +128,11 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 n
 }
 
 
-float evaluate_shadow(vec4 shadowPosition)
+float evaluate_shadow(vec4 shadowPosition, vec3 surfaceNormal, vec3 lightDirection)
 {
     vec3 projectedPosition = (shadowPosition.xyz / shadowPosition.w) * 0.5 + 0.5;
-    float shadowDepth = texture(ShadowMap, projectedPosition.xy).r + 0.001;
+    float bias = max(0.05 * (1.0 - dot(surfaceNormal, lightDirection)), 0.001);
+    float shadowDepth = texture(ShadowMap, projectedPosition.xy).r + bias;
 
     return projectedPosition.z < shadowDepth ? 1.0 : 0.0;
 }
@@ -146,10 +147,10 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
     
     for(int i = 0; i < _directionalLights.length(); i++)
     {
-        float shadow = evaluate_shadow(_vertexShadow.ShadowPosition);
         vec3 lightColor = _directionalLights[i].Color.xyz;
         vec3 lightDirection = _directionalLights[i].Direction.xyz;
         vec3 halfwayDirection = normalize(lightDirection + viewDirection);
+        float shadow = evaluate_shadow(_vertexShadow.ShadowPosition, surfaceNormal, lightDirection);
 
         result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * shadow;
         result += _directionalLights[i].Color.w * baseColor * lightColor;
@@ -203,13 +204,6 @@ void main()
     vec3 surfaceNormal = mix(_vertexNormal.NormalWorld, textureNormal, Normal);
     vec3 surfaceColor = emmision + evaluate_lights(baseColor.xyz, metallicRoughness.y, metallicRoughness.x, surfaceNormal);
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
-
-
-//    vec3 projectedPosition = (_vertexShadow.ShadowPosition.xyz / _vertexShadow.ShadowPosition.w) * 0.5 + 0.5;
-//    corrected = vec3(1.0) * texture(ShadowMap, projectedPosition.xy).r;
-//    corrected = fract(corrected * 100.0);
-//    corrected *= fract(vec3(projectedPosition.xy * 100.0, 1.0));
-
 
     OutputColor = vec4(corrected, baseColor.w);
 }
