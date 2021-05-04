@@ -88,7 +88,7 @@ namespace Framework.ECS.Systems.Sync
                 var light = entity.Get<PointLightComponent>();
                 var transform = entity.Get<TransformComponent>();
 
-                result[index].Color = new Vector4(light.Color / 30, light.AmbientFactor);
+                result[index].Color = new Vector4(light.Color, light.AmbientFactor);
                 result[index].Position = new Vector4(transform.Position, 0f);
                 index++;
             }

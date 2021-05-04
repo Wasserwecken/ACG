@@ -143,7 +143,7 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
     vec3 reflectionColor = texture(ReflectionMap, reflect(-viewDirection, surfaceNormal)).xyz;
     vec3 specularColor = mix(vec3(1.0), baseColor, metalic);
     float glossy = mix(128.0, 0.0, roughness * roughness);
-    vec3 result = reflectionColor * baseColor * metalic * 0.1;
+    vec3 result = reflectionColor * baseColor * metalic;
     
     for(int i = 0; i < _directionalLights.length(); i++)
     {
@@ -162,12 +162,11 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
         vec3 lightColor = _pointLights[i].Color.xyz;
         float lightDistance = length(lightDiff);
         vec3 lightDirection = normalize(lightDiff);
-        vec3 halfwayDirection = normalize(lightDirection + _viewSpace.ViewDirection);
-        float attenuationSqrared = 1.0 / (1.0 + (lightDistance * lightDistance));
-        float attenuationLinear = 1.0 / (1.0 + lightDistance);
+        vec3 halfwayDirection = normalize(lightDirection + viewDirection);
+        float attenuation = 1.0 / pow(1.0 + lightDistance, 4.0);
 
-        result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuationSqrared;
-        result += _pointLights[i].Color.w * baseColor * lightColor * attenuationLinear;
+        result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuation;
+        result += _pointLights[i].Color.w * baseColor * lightColor * attenuation;
     }   
     
     for(int i = 0; i < _spotLights.length(); i++)

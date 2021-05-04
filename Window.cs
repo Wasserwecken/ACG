@@ -98,6 +98,15 @@ namespace Window
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(0.3f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
             sunEntity.Set(new ShadowCasterComponent() { Resolution = 2048, NearClipping = -50, FarClipping = +50, Width = 50 });
+
+            var rand = new Random();
+            for (int i = 0; i < 100; i++)
+            {
+                var pointLight = _scene.CreateEntity();
+                var position = new Vector3((float)rand.NextDouble() - 0.5f, (float)rand.NextDouble() - 0.5f, (float)rand.NextDouble() - 0.5f);
+                pointLight.Set(new TransformComponent(position * 10.0f));
+                pointLight.Set(new PointLightComponent() { Color = Vector3.One, AmbientFactor = 0.001f });
+            }
         }
 
         /// <summary>
