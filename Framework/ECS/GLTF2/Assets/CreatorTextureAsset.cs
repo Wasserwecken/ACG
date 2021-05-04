@@ -11,10 +11,10 @@ namespace Framework.ECS.GLTF2.Assets
         {
             return new Texture2DAsset(gltfTexture.Name)
             {
-                WrapModeS = (OpenTK.Graphics.OpenGL.TextureWrapMode)gltfTexture.Sampler.WrapS,
-                WrapModeT = (OpenTK.Graphics.OpenGL.TextureWrapMode)gltfTexture.Sampler.WrapT,
-                MagFilter = (TextureMagFilter)gltfTexture.Sampler.MagFilter,
-                MinFilter = (TextureMinFilter)gltfTexture.Sampler.MinFilter,
+                WrapModeS = gltfTexture.Sampler != null ? (OpenTK.Graphics.OpenGL.TextureWrapMode)gltfTexture.Sampler.WrapS : OpenTK.Graphics.OpenGL.TextureWrapMode.Repeat,
+                WrapModeT = gltfTexture.Sampler != null ? (OpenTK.Graphics.OpenGL.TextureWrapMode)gltfTexture.Sampler.WrapT : OpenTK.Graphics.OpenGL.TextureWrapMode.Repeat,
+                MagFilter = gltfTexture.Sampler != null ? (TextureMagFilter)gltfTexture.Sampler.MagFilter : TextureMagFilter.Linear,
+                MinFilter = gltfTexture.Sampler != null ? (TextureMinFilter)gltfTexture.Sampler.MinFilter : TextureMinFilter.Linear,
                 Image = images[gltfTexture.PrimaryImage]
             };
         }

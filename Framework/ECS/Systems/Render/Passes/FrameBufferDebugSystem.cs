@@ -48,11 +48,11 @@ namespace Framework.ECS.Systems.Render
         protected override void PostUpdate(bool state)
         {
             var aspect = _worldComponents.Get<AspectRatioComponent>();
-            var gridWidth = aspect.Width / 2;
-            var gridHeight = aspect.Height / 2;
+            var gridWidth = aspect.Width / 5;
+            var gridHeight = gridWidth;
 
             var shader = Defaults.Shader.Program.FrameBuffer;
-            var material = new MaterialAsset("FramebufferDebug");
+            var material = new MaterialAsset("FramebufferDebug") { DepthTest = DepthFunction.Always };
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             Renderer.UseShader(shader);
@@ -60,10 +60,10 @@ namespace Framework.ECS.Systems.Render
             for (int i = 0; i < _renderTextures.Count; i++)
             {
                 GL.Viewport(
-                    i * gridWidth,
-                    i * gridHeight,
-                    (i + 1) * gridWidth,
-                    (i + 1) * gridHeight
+                    i * gridWidth + 10,
+                    i * gridHeight + 10,
+                    (i + 1) * gridWidth - 10,
+                    (i + 1) * gridHeight - 10
                 );
 
                 material.SetUniform("BufferMap", _renderTextures[i]);

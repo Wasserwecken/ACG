@@ -88,15 +88,17 @@ namespace Window
             //var scenePath = "./Assets/foo.glb";
             //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
             var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
+            //var scenePath = "./Assets/Samples/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf";
             GLTF2Loader.Load(_scene, scenePath, Defaults.Shader.Program.MeshBlinnPhong);
 
             var cameraEntity = Defaults.Entities.Camera(_scene);
             cameraEntity.Set(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
 
             var sunEntity = _scene.CreateEntity();
-            sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(1f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
+            sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(0.3f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
+            //sunEntity.Set(new TransformComponent(Vector3.Zero, Vector3.UnitZ));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
-            sunEntity.Set(new ShadowCasterComponent() { Resolution = 1024, NearClipping = -100, FarClipping = +100 });
+            sunEntity.Set(new ShadowCasterComponent() { Resolution = 1024 * 2, NearClipping = -50, FarClipping = +50, Width = 50 });
         }
 
         /// <summary>

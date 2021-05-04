@@ -56,7 +56,6 @@ layout (std430) buffer ShaderPrimitiveSpace {
 
 layout (std430) buffer ShaderViewSpace {
     mat4 WorldToView;
-    mat4 WorldToViewInverse;
     mat4 WorldToProjection;
     mat4 WorldToViewRotation;
     mat4 WorldToProjectionRotation;
@@ -132,9 +131,9 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 n
 float evaluate_shadow(vec4 shadowPosition)
 {
     vec3 projectedPosition = (shadowPosition.xyz / shadowPosition.w) * 0.5 + 0.5;
-    float shadowDepth = texture(ShadowMap, projectedPosition.xy).r - 0.005;
+    float shadowDepth = texture(ShadowMap, projectedPosition.xy).r + 0.001;
 
-    return projectedPosition.z > shadowDepth ? 1.0 : 0.0;
+    return projectedPosition.z < shadowDepth ? 1.0 : 0.0;
 }
 
 vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfaceNormal)
@@ -204,6 +203,13 @@ void main()
     vec3 surfaceNormal = mix(_vertexNormal.NormalWorld, textureNormal, Normal);
     vec3 surfaceColor = emmision + evaluate_lights(baseColor.xyz, metallicRoughness.y, metallicRoughness.x, surfaceNormal);
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
+
+
+//    vec3 projectedPosition = (_vertexShadow.ShadowPosition.xyz / _vertexShadow.ShadowPosition.w) * 0.5 + 0.5;
+//    corrected = vec3(1.0) * texture(ShadowMap, projectedPosition.xy).r;
+//    corrected = fract(corrected * 100.0);
+//    corrected *= fract(vec3(projectedPosition.xy * 100.0, 1.0));
+
 
     OutputColor = vec4(corrected, baseColor.w);
 }

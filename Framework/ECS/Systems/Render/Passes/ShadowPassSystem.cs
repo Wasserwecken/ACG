@@ -72,7 +72,9 @@ namespace Framework.ECS.Systems.Render
         {
             var shadowCaster = entity.Get<ShadowCasterComponent>();
             var transform = entity.Get<TransformComponent>();
-            var projection = Matrix4.CreateOrthographic(100f, 100f, shadowCaster.NearClipping, shadowCaster.FarClipping);
+            var projection = Matrix4.CreateOrthographic(shadowCaster.Width, shadowCaster.Width, shadowCaster.NearClipping, shadowCaster.FarClipping);
+
+            transform.Forward = -transform.Forward;
 
             ShaderBlockSingle<ShaderShadowSpace>.Instance.Data = new ShaderShadowSpace() { ShadowSpace = transform.WorldSpaceInverse * projection };
             ShaderBlockSingle<ShaderShadowSpace>.Instance.PushToGPU();
@@ -80,7 +82,6 @@ namespace Framework.ECS.Systems.Render
             return new ShaderViewSpace
             {
                 WorldToView = transform.WorldSpaceInverse,
-                WorldToViewInverse = transform.WorldSpace,
                 WorldToProjection = transform.WorldSpaceInverse * projection,
 
                 WorldToViewRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation(),

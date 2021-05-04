@@ -41,7 +41,7 @@ namespace Project.ECS.Systems
             if (input.Keyboard.IsKeyDown(Keys.E)) moveInput.Y += 1;
             if (input.Keyboard.IsKeyDown(Keys.Q)) moveInput.Y -= 1;
             if (moveInput.LengthSquared > float.Epsilon) moveInput.Normalize();
-            if (input.Keyboard.IsKeyDown(Keys.LeftShift)) moveInput *= 3.0f;
+            if (input.Keyboard.IsKeyDown(Keys.LeftShift)) moveInput *= 5.0f;
 
             moveInput = moveInput * time.DeltaFrame * controller.MoveSpeed;
 

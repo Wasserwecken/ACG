@@ -5,7 +5,6 @@ namespace Framework.Assets.Shader.Block.Data
     public struct ShaderViewSpace
     {
         public Matrix4 WorldToView;
-        public Matrix4 WorldToViewInverse;
         public Matrix4 WorldToProjection;
         public Matrix4 WorldToViewRotation;
         public Matrix4 WorldToProjectionRotation;

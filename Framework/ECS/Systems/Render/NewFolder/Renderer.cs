@@ -118,12 +118,12 @@ namespace Framework.ECS.Systems.Render
             return new ShaderPrimitiveSpace
             {
                 LocalToWorld = primitiveTransform.WorldSpace,
-                LocalToView = primitiveTransform.WorldSpace * viewSpace.WorldToViewInverse,
-                LocalToProjection = primitiveTransform.WorldSpace * viewSpace.WorldToViewInverse * viewSpace.ViewProjection,
+                LocalToView = primitiveTransform.WorldSpace * viewSpace.WorldToView,
+                LocalToProjection = primitiveTransform.WorldSpace * viewSpace.WorldToView * viewSpace.ViewProjection,
 
                 LocalToWorldRotation = primitiveTransform.WorldSpace.ClearScale(),
-                LocalToViewRotation = (primitiveTransform.WorldSpace * viewSpace.WorldToViewInverse).ClearScale().ClearTranslation(),
-                LocalToProjectionRotation = (primitiveTransform.WorldSpace * viewSpace.WorldToViewInverse).ClearScale().ClearTranslation() * viewSpace.ViewProjection,
+                LocalToViewRotation = (primitiveTransform.WorldSpace * viewSpace.WorldToView).ClearScale().ClearTranslation(),
+                LocalToProjectionRotation = (primitiveTransform.WorldSpace * viewSpace.WorldToView).ClearScale().ClearTranslation() * viewSpace.ViewProjection,
             };
         }
 
