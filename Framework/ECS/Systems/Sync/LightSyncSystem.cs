@@ -67,7 +67,7 @@ namespace Framework.ECS.Systems.Sync
 
                 result[index].Color = new Vector4(light.Color, light.AmbientFactor);
                 result[index].Direction = new Vector4(-transform.Forward, 0f);
-                result[index].Shadow = new Vector4(light.ShadowStrength);
+                //result[index].Shadow = new Vector4(light.ShadowStrength);
                 index++;
             }
 

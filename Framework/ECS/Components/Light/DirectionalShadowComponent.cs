@@ -4,12 +4,12 @@ using System.Text;
 
 namespace Framework.ECS.Components.Light
 {
-    public struct ShadowCasterComponent
+    public struct DirectionalShadowComponent
     {
         public int Resolution;
-        public float Width;
+        public float Strength;
         public float NearClipping;
         public float FarClipping;
-
+        public float Width;
     }
 }

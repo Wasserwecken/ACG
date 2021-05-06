@@ -1,15 +1,14 @@
-﻿using DefaultEcs;
+﻿using ACG.Framework.Assets;
+using DefaultEcs;
 using DefaultEcs.System;
 using Framework.Assets.Materials;
 using Framework.Assets.Textures;
-using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using OpenTK.Graphics.OpenGL;
 using System.Collections.Generic;
 
 namespace Framework.ECS.Systems.Render
 {
-    [With(typeof(RenderPassDataComponent))]
     public class FrameBufferDebugSystem : AEntitySetSystem<bool>
     {
         protected readonly Entity _worldComponents;
@@ -30,23 +29,10 @@ namespace Framework.ECS.Systems.Render
         protected override void PreUpdate(bool state)
         {
             _renderTextures.Clear();
-        }
+            foreach (var buffer in AssetRegister.Framebuffers)
+                foreach (var texture in buffer.TextureTargets)
+                    _renderTextures.Add(texture);
 
-        /// <summary>
-        /// 
-        /// </summary>
-        protected override void Update(bool state, in Entity entity)
-        {
-            var passData = entity.Get<RenderPassDataComponent>();
-            foreach (var texture in passData.FrameBuffer.TextureTargets)
-                _renderTextures.Add(texture);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected override void PostUpdate(bool state)
-        {
             var aspect = _worldComponents.Get<AspectRatioComponent>();
             var gridWidth = aspect.Width / 5;
             var gridHeight = gridWidth;

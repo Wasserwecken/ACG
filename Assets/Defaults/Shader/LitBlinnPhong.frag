@@ -32,11 +32,6 @@ in VertexColor
     vec4 Color;
 } _vertexColor;
 
-in VertexShadow
-{
-    vec4 ShadowPosition;
-} _vertexShadow;
-
 // INPUT GLOBAL UNIFORMS
 layout (std430) buffer ShaderTime {
     float Frame;
@@ -71,9 +66,11 @@ layout (std430) buffer ShaderShadowSpace {
 // INPUT GLOBAL UNIFORMS LIGHT
 struct DirectionalLight
 {
- vec4 Color;
- vec4 Direction;
- vec4 Shadow;
+    vec4 Color;
+    vec4 Direction;
+    vec4 ShadowArea;
+    mat4 ShadowSpace;
+    vec4 ShadowStrength;
 };
 
 struct PointLight
@@ -128,11 +125,12 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 n
 }
 
 
-float evaluate_shadow(vec4 shadowPosition, vec3 surfaceNormal, vec3 lightDirection)
+float evaluate_shadow(vec4 shadowPosition, vec4 shadowArea, vec3 surfaceNormal, vec3 lightDirection)
 {
     vec3 projectedPosition = (shadowPosition.xyz / shadowPosition.w) * 0.5 + 0.5;
+    vec2 shadowUV = shadowArea.xy + projectedPosition.xy * shadowArea.zw;
     float bias = max(0.05 * (1.0 - dot(surfaceNormal, lightDirection)), 0.001);
-    float shadowDepth = texture(ShadowMap, projectedPosition.xy).r + bias;
+    float shadowDepth = texture(ShadowMap, shadowUV).r + bias;
 
     return projectedPosition.z < shadowDepth ? 1.0 : 0.0;
 }
@@ -150,10 +148,16 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
         vec3 lightColor = _directionalLights[i].Color.xyz;
         vec3 lightDirection = _directionalLights[i].Direction.xyz;
         vec3 halfwayDirection = normalize(lightDirection + viewDirection);
-        float shadow = evaluate_shadow(_vertexShadow.ShadowPosition, surfaceNormal, lightDirection);
 
-        result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * shadow;
-        result += _directionalLights[i].Color.w * baseColor * lightColor;
+        vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor);
+
+        if (_directionalLights[i].ShadowStrength.x > 0.001)
+        {
+            vec4 shadowSpacePosition = _directionalLights[i].ShadowSpace * _vertexPosition.PositionWorld;
+            surfaceColor *= evaluate_shadow(shadowSpacePosition, _directionalLights[i].ShadowArea, surfaceNormal, lightDirection);
+        }
+
+        result += surfaceColor + _directionalLights[i].Color.w * baseColor * lightColor;
     }
     
     for(int i = 0; i < _pointLights.length(); i++)

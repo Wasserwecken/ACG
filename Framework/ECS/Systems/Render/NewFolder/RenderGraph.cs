@@ -14,12 +14,7 @@ namespace Framework.ECS.Systems.Render
 {
     public class RenderGraph : Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>>
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        static RenderGraph()
-        {
-        }
+        private readonly Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>> _graph;
 
         /// <summary>
         /// 

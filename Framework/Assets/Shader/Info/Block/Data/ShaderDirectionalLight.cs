@@ -6,6 +6,8 @@ namespace Framework.Assets.Shader.Block.Data
     {
         public Vector4 Color;
         public Vector4 Direction;
-        public Vector4 Shadow;
+        public Vector4 ShadowArea;
+        public Matrix4 ShadowSpace;
+        public Vector4 ShadowStrength;
     }
 }

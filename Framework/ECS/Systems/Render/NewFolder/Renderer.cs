@@ -23,10 +23,7 @@ namespace Framework.ECS.Systems.Render
             if (framebuffer.Handle <= 0)
                 GPUSync.Push(framebuffer);
 
-            GL.Viewport(0, 0, framebuffer.Width, framebuffer.Height);
             GL.BindFramebuffer(framebuffer.Target, framebuffer.Handle);
-            GL.ClearColor(framebuffer.ClearColor);
-            GL.Clear(framebuffer.ClearMask);
         }
 
         /// <summary>
