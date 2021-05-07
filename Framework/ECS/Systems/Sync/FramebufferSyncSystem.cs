@@ -31,7 +31,7 @@ namespace ACG.Framework.ECS.Systems.Sync
                     framebuffer.Handle = GL.GenFramebuffer();
                     GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer.Handle);
 
-                    foreach(var texture in framebuffer.TextureTargets)
+                    foreach(var texture in framebuffer.Textures)
                         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, texture.Attachment, texture.Target, texture.Handle, 0);
 
                     GL.DrawBuffer(DrawBufferMode.None);

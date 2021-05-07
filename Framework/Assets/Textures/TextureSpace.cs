@@ -4,12 +4,17 @@ namespace Framework.Assets.Textures
 {
     public class TextureSpace
     {
-        public readonly int Resolution;
         public readonly Vector3 Space;
-        public bool IsFull;
-        public bool IsLeaf;
-        public bool HasChildren;
-        public TextureSpace[] Children;
+        public int Resolution { get; private set; }
+        public bool IsFull { get; private set; }
+        public bool IsLeaf { get; private set; }
+        public bool HasChildren { get; private set; }
+        public TextureSpace[] Children { get; private set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public TextureSpace(int resolution) : this(resolution, new Vector3(0f, 0f, 1f)) { }
 
         /// <summary>
         /// 
@@ -22,24 +27,6 @@ namespace Framework.Assets.Textures
             Children = null;
             Space = space;
             Resolution = resolution;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void Clear()
-        {
-            IsFull = false;
-            IsLeaf = false;
-            HasChildren = false;
-
-            if (Children != null)
-            {
-                Children[0].Clear();
-                Children[1].Clear();
-                Children[2].Clear();
-                Children[3].Clear();
-            }
         }
 
         /// <summary>
@@ -87,6 +74,24 @@ namespace Framework.Assets.Textures
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Clear()
+        {
+            IsFull = false;
+            IsLeaf = false;
+            HasChildren = false;
+
+            if (Children != null)
+            {
+                Children[0].Clear();
+                Children[1].Clear();
+                Children[2].Clear();
+                Children[3].Clear();
+            }
         }
     }
 }

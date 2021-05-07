@@ -46,7 +46,7 @@ namespace Framework.ECS.Systems.RenderPipeline
         protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
             // GLOBAL PREPERATION
-            ref var shaderInfo = ref _worldComponents.Get<DirectionalLightInfoComponent>();
+            ref var shaderInfo = ref _worldComponents.Get<DirectionalLightCollectionComponent>();
             shaderInfo.ShadowSpacer.Clear();
 
             Renderer.UseFrameBuffer(shaderInfo.ShadowBuffer);
@@ -56,23 +56,18 @@ namespace Framework.ECS.Systems.RenderPipeline
             foreach (ref readonly var entity in entities)
             {
                 // DATA COLLECTION
-                var shadowConfig = entity.Get<DirectionalShadowComponent>();
                 var transform = entity.Get<TransformComponent>();
                 var lightConfig = entity.Get<DirectionalLightComponent>();
+                var shadowConfig = entity.Get<DirectionalShadowComponent>();
                 var viewSpace = CreateViewSpace(shadowConfig, transform);
                 
                 if (shadowConfig.Strength > float.Epsilon)
                 {
                     // DATA PREPERATION
                     shaderInfo.ShadowSpacer.Add(shadowConfig.Resolution, out var shadowMapSpace);
-                    SetShadowData(ref shaderInfo.Data[lightConfig.InfoId], shadowConfig, viewSpace, shadowMapSpace);
-
-                    // RENDER PREPERATION
-                    var viewPort = shadowMapSpace * new Vector3(
-                        shaderInfo.ShadowBuffer.Width,
-                        shaderInfo.ShadowBuffer.Height,
-                        shaderInfo.ShadowBuffer.Width);
-                    GL.Viewport((int)viewPort.X, (int)viewPort.Y, (int)viewPort.Z, (int)viewPort.Z);
+                    shaderInfo.Data[lightConfig.InfoId].ShadowArea = new Vector4(shadowMapSpace, shadowMapSpace.Z);
+                    shaderInfo.Data[lightConfig.InfoId].ShadowSpace = viewSpace.WorldToProjection;
+                    shaderInfo.Data[lightConfig.InfoId].ShadowStrength = new Vector4(shadowConfig.Strength, 0f, 0f, 0f);
 
                     // BUILD RENDER GRAPH
                     _renderGraph.Clear();
@@ -83,6 +78,13 @@ namespace Framework.ECS.Systems.RenderPipeline
                             canidate.Get<TransformComponent>(),
                             canidate.Get<PrimitiveComponent>().Primitive
                         );
+
+                    // VIEWPORT PREPERATION
+                    var viewPort = shadowMapSpace * new Vector3(
+                        shaderInfo.ShadowBuffer.Width,
+                        shaderInfo.ShadowBuffer.Height,
+                        shaderInfo.ShadowBuffer.Width);
+                    GL.Viewport((int)viewPort.X, (int)viewPort.Y, (int)viewPort.Z, (int)viewPort.Z);
 
                     // DRAW RENDER GRAPH
                     ShaderBlockSingle<ShaderViewSpace>.Instance.Data = viewSpace;
@@ -107,6 +109,7 @@ namespace Framework.ECS.Systems.RenderPipeline
                 }
             }
 
+            // PUSH DATA TO GPU
             _directionalInfoBlock.Data = shaderInfo.Data;
             _directionalInfoBlock.PushToGPU();
         }
@@ -131,16 +134,6 @@ namespace Framework.ECS.Systems.RenderPipeline
                 ViewDirection = new Vector4(-transform.Forward, 0),
                 ViewProjection = projection
             };
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void SetShadowData(ref ShaderDirectionalLight entry, DirectionalShadowComponent shadowConfig, ShaderViewSpace viewSpace, Vector3 shadowMapSpace)
-        {
-            entry.ShadowArea = new Vector4(shadowMapSpace, shadowMapSpace.Z);
-            entry.ShadowSpace = viewSpace.WorldToProjection;
-            entry.ShadowStrength = new Vector4(shadowConfig.Strength, 0f, 0f, 0f);
         }
 
         /// <summary>

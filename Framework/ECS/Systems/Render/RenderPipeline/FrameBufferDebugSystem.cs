@@ -4,10 +4,12 @@ using DefaultEcs.System;
 using Framework.Assets.Materials;
 using Framework.Assets.Textures;
 using Framework.ECS.Components.Scene;
+using Framework.ECS.Systems.Render;
 using OpenTK.Graphics.OpenGL;
+using System;
 using System.Collections.Generic;
 
-namespace Framework.ECS.Systems.Render
+namespace Framework.ECS.Systems.RenderPipeline
 {
     public class FrameBufferDebugSystem : AEntitySetSystem<bool>
     {
@@ -30,11 +32,12 @@ namespace Framework.ECS.Systems.Render
         {
             _renderTextures.Clear();
             foreach (var buffer in AssetRegister.Framebuffers)
-                foreach (var texture in buffer.TextureTargets)
+                foreach (var texture in buffer.Textures)
                     _renderTextures.Add(texture);
 
             var aspect = _worldComponents.Get<AspectRatioComponent>();
-            var gridWidth = aspect.Width / 5;
+            var tileCount = 3;
+            var gridWidth = aspect.Width / tileCount;
             var gridHeight = gridWidth;
 
             var shader = Defaults.Shader.Program.FrameBuffer;
@@ -45,11 +48,14 @@ namespace Framework.ECS.Systems.Render
 
             for (int i = 0; i < _renderTextures.Count; i++)
             {
+                var margin = 10;
+                var x = i % tileCount;
+                var y = i == 0 ? 0 : i / tileCount;
                 GL.Viewport(
-                    i * gridWidth + 10,
-                    i * gridHeight + 10,
-                    (i + 1) * gridWidth - 10,
-                    (i + 1) * gridHeight - 10
+                    x * gridWidth + margin,
+                    y * gridHeight + margin,
+                    (x + 1) + gridWidth - margin,
+                    (y + 1) + gridHeight - margin
                 );
 
                 material.SetUniform("BufferMap", _renderTextures[i]);

@@ -13,8 +13,8 @@ namespace Framework.Assets.Framebuffer
         public int Width { get; set; }
         public int Height { get; set; }
 
-        public List<TextureRenderAsset> TextureTargets { get; set; }
-        public List<FramebufferStorageAsset> StorageTargets { get; set; }
+        public List<TextureRenderAsset> Textures { get; set; }
+        public List<FramebufferStorageAsset> Storages { get; set; }
         public FramebufferTarget Target { get; set; }
         public DrawBufferMode DrawMode { get; set; }
         public ReadBufferMode ReadMode { get; set; }
@@ -37,8 +37,8 @@ namespace Framework.Assets.Framebuffer
             ClearColor = Color4.Black;
             ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit;
 
-            TextureTargets = new List<TextureRenderAsset>();
-            StorageTargets = new List<FramebufferStorageAsset>();
+            Textures = new List<TextureRenderAsset>();
+            Storages = new List<FramebufferStorageAsset>();
         }
     }
 }

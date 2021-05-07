@@ -3,12 +3,10 @@
 namespace Framework.ECS.Components.Light
 {
     [DebuggerDisplay("Resolution: {Resolution}, Strength: {StrengthCount}")]
-    public struct DirectionalShadowComponent
+    public struct PointShadowComponent
     {
         public int Resolution;
         public float Strength;
         public float NearClipping;
-        public float FarClipping;
-        public float Width;
     }
 }

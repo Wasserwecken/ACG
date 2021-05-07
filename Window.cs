@@ -51,11 +51,11 @@ namespace Window
             _sceneComponents.Set(new TimeComponent());
             _sceneComponents.Set(new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState });
             _sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
-            _sceneComponents.Set(new DirectionalLightInfoComponent()
+            _sceneComponents.Set(new DirectionalLightCollectionComponent()
             {
                 Data = new ShaderDirectionalLight[0],
                 ShadowSpacer = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
-                ShadowBuffer = new FramebufferAsset("DiirectionalShadowPass")
+                ShadowBuffer = new FramebufferAsset("DirectionalShadowPass")
                 {
                     Width = 4096,
                     Height = 4096,
@@ -63,7 +63,7 @@ namespace Window
                     DrawMode = DrawBufferMode.None,
                     ReadMode = ReadBufferMode.None,
 
-                    TextureTargets = new List<TextureRenderAsset>()
+                    Textures = new List<TextureRenderAsset>()
                     {
                         new TextureRenderAsset("ShadowMap")
                         {
@@ -77,7 +77,34 @@ namespace Window
                         }
                     }
                 }
-            }); ;
+            });
+            _sceneComponents.Set(new PointLightCollectionComponent()
+            {
+                Data = new ShaderPointLight[0],
+                ShadowSpacer = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
+                ShadowBuffer = new FramebufferAsset("PointShadowPass")
+                {
+                    Width = 4096,
+                    Height = 4096,
+
+                    DrawMode = DrawBufferMode.None,
+                    ReadMode = ReadBufferMode.None,
+
+                    Textures = new List<TextureRenderAsset>()
+                    {
+                        new TextureRenderAsset("PointShadowMap")
+                        {
+                            Attachment = FramebufferAttachment.DepthAttachment,
+                            Width = 4096,
+                            Height = 4096,
+
+                            InternalFormat = PixelInternalFormat.DepthComponent,
+                            Format = PixelFormat.DepthComponent,
+                            PixelType = PixelType.Float
+                        }
+                    }
+                }
+            });
 
 
             _fixedPipeline = new SequentialSystem<bool>(
@@ -103,6 +130,8 @@ namespace Window
 
                 new DirectionalLightSystem(_scene, _sceneComponents),
                 new DirectionalShadowPassSystem(_scene, _sceneComponents),
+                new PointLightSystem(_scene, _sceneComponents),
+                new PointShadowPassSystem(_scene, _sceneComponents),
 
                 //new ShadowPassSystem(_scene, _sceneComponents),
                 new ForwardPassSystemOLD(_scene, _sceneComponents),
@@ -128,23 +157,25 @@ namespace Window
 
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(0.3f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
-            sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
-            sunEntity.Set(new DirectionalShadowComponent() { Resolution = 1024 * 2, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +35 });
-            sunEntity.Set(new TransformRotatorComponent() { Speed = 0.2f });
+            sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.Zero, AmbientFactor = 0.005f });
+            sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +35 });
+            sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var sunEntity2 = _scene.CreateEntity();
             sunEntity2.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-1f, Vector3.UnitX).Rotate(-0.3f, Vector3.UnitY)));
-            sunEntity2.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
-            sunEntity2.Set(new DirectionalShadowComponent() { Resolution = 256 * 1, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +35 });
+            sunEntity2.Set(new DirectionalLightComponent() { Color = Vector3.Zero, AmbientFactor = 0.005f });
+            sunEntity2.Set(new DirectionalShadowComponent() { Resolution = 1024, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +35 });
             sunEntity2.Set(new TransformRotatorComponent() { Speed = 0.1f });
 
             var rand = new Random();
-            for (int i = 0; i < 0; i++)
+            for (int i = 0; i < 1; i++)
             {
                 var pointLight = _scene.CreateEntity();
                 var position = new Vector3((float)rand.NextDouble() - 0.5f, (float)rand.NextDouble() - 0.5f, (float)rand.NextDouble() - 0.5f);
-                pointLight.Set(new TransformComponent(position * 10.0f));
-                pointLight.Set(new PointLightComponent() { Color = Vector3.One, AmbientFactor = 0.001f });
+                //pointLight.Set(new TransformComponent(position * 10.0f));
+                pointLight.Set(new TransformComponent(Vector3.UnitY * 4));
+                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f), AmbientFactor = 0.001f, Range = 5f });
+                pointLight.Set(new PointShadowComponent() { Resolution = 2048 * 2, Strength = 1f, NearClipping = 1f });
             }
         }
 

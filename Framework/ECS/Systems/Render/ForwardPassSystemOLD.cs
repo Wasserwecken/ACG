@@ -234,7 +234,7 @@ namespace Framework.ECS.Systems.Render
                 }
 
             foreach (var frameBuffer in AssetRegister.Framebuffers)
-                foreach (var renderTexture in frameBuffer.TextureTargets)
+                foreach (var renderTexture in frameBuffer.Textures)
                     if (shader.IdentifierToLayout.TryGetValue(renderTexture.Name, out var layout))
                     {
                         GL.Uniform1(layout, layout);

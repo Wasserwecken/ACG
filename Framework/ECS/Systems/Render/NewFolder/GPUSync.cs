@@ -20,7 +20,7 @@ namespace Framework.ECS.Systems.Render
             framebuffer.Handle = GL.GenFramebuffer();
             GL.BindFramebuffer(framebuffer.Target, framebuffer.Handle);
 
-            foreach (var texture in framebuffer.TextureTargets)
+            foreach (var texture in framebuffer.Textures)
             {
                 if (texture.Handle <= 0) Push(texture);
                 GL.FramebufferTexture2D(framebuffer.Target, texture.Attachment, texture.Target, texture.Handle, 0);

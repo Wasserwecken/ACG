@@ -75,8 +75,11 @@ struct DirectionalLight
 
 struct PointLight
 {
- vec4 Color;
- vec4 Position;
+    vec4 Color;
+    vec4 Position;
+    vec4 ShadowArea;
+    mat4 ShadowSpace;
+    vec4 ShadowStrength;
 };
 
 struct SpotLight
