@@ -17,7 +17,9 @@ namespace Framework.Assets.Textures
         /// </summary>
         public TextureCubeAsset(string name) : base(name)
         {
-            WrapModeR = TextureWrapMode.Repeat;
+            WrapModeR = TextureWrapMode.ClampToEdge;
+            WrapModeS = TextureWrapMode.ClampToEdge;
+            WrapModeT = TextureWrapMode.ClampToEdge;
             Images = new ImageAsset[6];
         }
     }

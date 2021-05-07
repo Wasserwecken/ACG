@@ -127,13 +127,13 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 n
     return (surfaceDiffuse + specular) * lightColor * luminance;
 }
 
-vec2 sample_Cube(vec3 direction)
+vec2 sample_Cube(vec3 direction, out float depthScale)
 {
 	vec3 directionAbs = abs(direction);
 	float ma;
 	vec2 uv;
     vec2 faceId;
-
+    
 	if(directionAbs.z >= directionAbs.x && directionAbs.z >= directionAbs.y)
 	{
         faceId.x = 0.0;
@@ -157,9 +157,9 @@ vec2 sample_Cube(vec3 direction)
 	}
 
     uv = uv * ma + 0.5;
-    uv = uv + faceId;
-    uv = uv / vec2(3.0, 2.0);
-	return uv;
+    depthScale = length(vec3(uv * 2.0 - 1.0, 1.0));
+
+	return (uv + faceId) / vec2(3.0, 2.0);
 }
 
 float evaluate_shadow(vec4 shadowPosition, vec4 shadowArea, vec3 surfaceNormal, vec3 lightDirection)
@@ -204,16 +204,25 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
         float lightDistance = length(lightDiff);
         vec3 lightDirection = normalize(lightDiff);
         vec3 halfwayDirection = normalize(lightDirection + viewDirection);
-        float attenuation = 1.0 / pow(1.0 + lightDistance, 4.0);
+        float near = _pointLights[i].ShadowStrength.y;
+        float far = _pointLights[i].Position.w;
+        float attenuation = pow(1 - clamp(lightDistance / far, 0, 1), 3.0);
 
         vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuation;
 
-        if (_pointLights[i].ShadowStrength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
+        if (_pointLights[i].ShadowStrength.x > 0.001 && far > lightDistance)
         {
-            vec2 shadowUV = sample_Cube(lightDirection);
+            float depthScale;
+            vec2 cubeUV = sample_Cube(lightDirection, depthScale);
+            vec2 shadowUV = _pointLights[i].ShadowArea.xy + cubeUV * _pointLights[i].ShadowArea.zw;
             float shadowDepth = texture(PointShadowMap, shadowUV).r;
-            float shadow = lightDistance < shadowDepth * _pointLights[i].ShadowStrength.y ? 1.0 : 0.0;
-            surfaceColor = vec3(shadowDepth) * 0.2;
+            float lightDepth = (lightDistance / depthScale);
+
+            shadowDepth = shadowDepth * 2.0 - 1.0;
+            shadowDepth = (2.0 * near * far) / (far + near - shadowDepth * (far - near));
+            shadowDepth += max(0.05 * (1.0 - dot(surfaceNormal, lightDirection)), 0.1);
+
+            surfaceColor *= vec3(lightDepth < shadowDepth ? 1.0 : 0.0);
         }
 
         result += surfaceColor + _pointLights[i].Color.w * baseColor * lightColor * attenuation;
