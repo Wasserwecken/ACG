@@ -66,8 +66,7 @@ namespace Framework.ECS.Systems.RenderPipeline
                     // DATA PREPERATION
                     shaderInfo.ShadowSpacer.Add(shadowConfig.Resolution, out var shadowMapSpace);
                     shaderInfo.Data[lightConfig.InfoId].ShadowArea = new Vector4(shadowMapSpace, shadowMapSpace.Z);
-                    shaderInfo.Data[lightConfig.InfoId].ShadowSpace = Matrix4.CreateTranslation(transform.Position).Inverted();
-                    shaderInfo.Data[lightConfig.InfoId].ShadowStrength = new Vector4(shadowConfig.Strength, 0f, 0f, 0f);
+                    shaderInfo.Data[lightConfig.InfoId].ShadowStrength = new Vector4(shadowConfig.Strength, lightConfig.Range - shadowConfig.NearClipping, 0f, 0f);
 
                     // BUILD RENDER GRAPH
                     _renderGraph.Clear();
@@ -128,12 +127,12 @@ namespace Framework.ECS.Systems.RenderPipeline
             var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1f, shadowConfig.NearClipping, lightConfig.Range);
             var orientations = new Matrix4[]
             {
-                Matrix4.LookAt(transform.Position, transform.Position + Vector3.UnitX, Vector3.UnitY),
-                Matrix4.LookAt(transform.Position, transform.Position + Vector3.UnitY, Vector3.UnitX),
                 Matrix4.LookAt(transform.Position, transform.Position + Vector3.UnitZ, Vector3.UnitY),
-                Matrix4.LookAt(transform.Position, transform.Position + -Vector3.UnitX, Vector3.UnitY),
-                Matrix4.LookAt(transform.Position, transform.Position + -Vector3.UnitY, Vector3.UnitX),
-                Matrix4.LookAt(transform.Position, transform.Position + -Vector3.UnitZ, Vector3.UnitY)
+                Matrix4.LookAt(transform.Position, transform.Position + Vector3.UnitY, Vector3.UnitX),
+                Matrix4.LookAt(transform.Position, transform.Position + Vector3.UnitX, Vector3.UnitY),
+                Matrix4.LookAt(transform.Position, transform.Position + -Vector3.UnitZ, Vector3.UnitY),
+                Matrix4.LookAt(transform.Position, transform.Position + -Vector3.UnitY, -Vector3.UnitX),
+                Matrix4.LookAt(transform.Position, transform.Position + -Vector3.UnitX, Vector3.UnitY)
             };
 
             var result = new ShaderViewSpace[orientations.Length];

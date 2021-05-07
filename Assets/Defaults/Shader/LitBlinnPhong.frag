@@ -78,7 +78,6 @@ struct PointLight
     vec4 Color;
     vec4 Position;
     vec4 ShadowArea;
-    mat4 ShadowSpace;
     vec4 ShadowStrength;
 };
 
@@ -103,7 +102,8 @@ layout (std430) buffer ShaderSpotLight {
 
 // ENVIRONMENT
 uniform samplerCube ReflectionMap;
-uniform sampler2D ShadowMap;
+uniform sampler2D DirectionalShadowMap;
+uniform sampler2D PointShadowMap;
 
 // INPUT SPECIFIC UNIFORMS
 uniform vec4 BaseColor;
@@ -127,13 +127,47 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 n
     return (surfaceDiffuse + specular) * lightColor * luminance;
 }
 
+vec2 sample_Cube(vec3 direction)
+{
+	vec3 directionAbs = abs(direction);
+	float ma;
+	vec2 uv;
+    vec2 faceId;
+
+	if(directionAbs.z >= directionAbs.x && directionAbs.z >= directionAbs.y)
+	{
+        faceId.x = 0.0;
+		faceId.y = direction.z < 0.0 ? 0.0 : 1.0;
+		ma = 0.5 / directionAbs.z;
+		uv = vec2(direction.z > 0.0 ? -direction.x : direction.x, -direction.y);
+	}
+	else if(directionAbs.y >= directionAbs.x)
+	{
+        faceId.x = 1.0;
+		faceId.y = direction.y < 0.0 ? 0.0 : 1.0;
+		ma = 0.5 / directionAbs.y;
+		uv = vec2(direction.z, direction.y < 0.0 ? -direction.x : direction.x);
+	}
+	else
+	{
+        faceId.x = 2.0;
+		faceId.y = direction.x < 0.0 ? 0.0 : 1.0;
+		ma = 0.5 / directionAbs.x;
+		uv = vec2(direction.x > 0.0 ? direction.z : -direction.z, -direction.y);
+	}
+
+    uv = uv * ma + 0.5;
+    uv = uv + faceId;
+    uv = uv / vec2(3.0, 2.0);
+	return uv;
+}
 
 float evaluate_shadow(vec4 shadowPosition, vec4 shadowArea, vec3 surfaceNormal, vec3 lightDirection)
 {
     vec3 projectedPosition = (shadowPosition.xyz / shadowPosition.w) * 0.5 + 0.5;
     vec2 shadowUV = shadowArea.xy + projectedPosition.xy * shadowArea.zw;
     float bias = max(0.05 * (1.0 - dot(surfaceNormal, lightDirection)), 0.001);
-    float shadowDepth = texture(ShadowMap, shadowUV).r + bias;
+    float shadowDepth = texture(DirectionalShadowMap, shadowUV).r + bias;
 
     return projectedPosition.z < shadowDepth ? 1.0 : 0.0;
 }
@@ -172,8 +206,17 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
         vec3 halfwayDirection = normalize(lightDirection + viewDirection);
         float attenuation = 1.0 / pow(1.0 + lightDistance, 4.0);
 
-        result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuation;
-        result += _pointLights[i].Color.w * baseColor * lightColor * attenuation;
+        vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuation;
+
+        if (_pointLights[i].ShadowStrength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
+        {
+            vec2 shadowUV = sample_Cube(lightDirection);
+            float shadowDepth = texture(PointShadowMap, shadowUV).r;
+            float shadow = lightDistance < shadowDepth * _pointLights[i].ShadowStrength.y ? 1.0 : 0.0;
+            surfaceColor = vec3(shadowDepth) * 0.2;
+        }
+
+        result += surfaceColor + _pointLights[i].Color.w * baseColor * lightColor * attenuation;
     }   
     
     for(int i = 0; i < _spotLights.length(); i++)

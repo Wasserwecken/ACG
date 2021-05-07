@@ -65,7 +65,7 @@ namespace Window
 
                     Textures = new List<TextureRenderAsset>()
                     {
-                        new TextureRenderAsset("ShadowMap")
+                        new TextureRenderAsset("DirectionalShadowMap")
                         {
                             Attachment = FramebufferAttachment.DepthAttachment,
                             Width = 4096,
@@ -168,14 +168,14 @@ namespace Window
             sunEntity2.Set(new TransformRotatorComponent() { Speed = 0.1f });
 
             var rand = new Random();
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 4; i++)
             {
                 var pointLight = _scene.CreateEntity();
                 var position = new Vector3((float)rand.NextDouble() - 0.5f, (float)rand.NextDouble() - 0.5f, (float)rand.NextDouble() - 0.5f);
-                //pointLight.Set(new TransformComponent(position * 10.0f));
-                pointLight.Set(new TransformComponent(Vector3.UnitY * 4));
-                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f), AmbientFactor = 0.001f, Range = 5f });
-                pointLight.Set(new PointShadowComponent() { Resolution = 2048 * 2, Strength = 1f, NearClipping = 1f });
+                pointLight.Set(new TransformComponent(position * 10.0f));
+                //pointLight.Set(new TransformComponent(Vector3.UnitY * 4));
+                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f) * 5, AmbientFactor = 0.001f, Range = 5f });
+                pointLight.Set(new PointShadowComponent() { Resolution = 2048, Strength = 1f, NearClipping = 1f });
             }
         }
 

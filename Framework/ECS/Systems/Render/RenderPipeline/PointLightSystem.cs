@@ -38,9 +38,8 @@ namespace Framework.ECS.Systems.RenderPipeline
                 entities[i].Get<PointLightComponent>().InfoId = i;
 
                 shaderInfo.Data[i].Color = new Vector4(lightConfig.Color, lightConfig.AmbientFactor);
-                shaderInfo.Data[i].Position = new Vector4(transform.Position, 0f);
+                shaderInfo.Data[i].Position = new Vector4(transform.Position, lightConfig.Range);
                 shaderInfo.Data[i].ShadowArea = Vector4.Zero;
-                shaderInfo.Data[i].ShadowSpace = Matrix4.Zero;
                 shaderInfo.Data[i].ShadowStrength = Vector4.Zero;
             }
         }
