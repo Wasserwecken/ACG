@@ -124,16 +124,13 @@ namespace Window
 
             _renderPipeline = new SequentialSystem<bool>(
                 new TimeSyncSystem(_scene, _sceneComponents),
-                //new LightSyncSystem(_scene, _sceneComponents),
                 new TextureSyncSystem(_scene, _sceneComponents),
-                new PrimitiveSyncSystem(_scene, _sceneComponents),
 
                 new DirectionalLightSystem(_scene, _sceneComponents),
                 new DirectionalShadowPassSystem(_scene, _sceneComponents),
                 new PointLightSystem(_scene, _sceneComponents),
                 new PointShadowPassSystem(_scene, _sceneComponents),
 
-                //new ShadowPassSystem(_scene, _sceneComponents),
                 new ForwardPassSystemOLD(_scene, _sceneComponents),
                 new FrameBufferDebugSystem(_scene, _sceneComponents)
             );
@@ -168,14 +165,14 @@ namespace Window
             sunEntity2.Set(new TransformRotatorComponent() { Speed = 0.1f });
 
             var rand = new Random();
-            for (int i = 0; i < 50; i++)
+            for (int i = 0; i < 10; i++)
             {
                 var pointLight = _scene.CreateEntity();
-                var position = new Vector3((float)rand.NextDouble() * 2f - 1f, (float)rand.NextDouble(), (float)rand.NextDouble() * 0.5f - 0.25f);
-                pointLight.Set(new TransformComponent(position * 10.0f));
+                var position = new Vector3((float)rand.NextDouble() * 2f - 1f, 0.3f, (float)rand.NextDouble() * 0.25f - 0.125f);
+                pointLight.Set(new TransformComponent(position * 8.0f));
                // pointLight.Set(new TransformComponent(new Vector3(0f, 4f, -0.8f)));
-                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f), AmbientFactor = 0.001f, Range = 5f });
-                pointLight.Set(new PointShadowComponent() { Resolution = 512, Strength = 1f, NearClipping = 0.1f });
+                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f), AmbientFactor = 0.001f, Range = 7f });
+                pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 0.1f });
             }
         }
 
