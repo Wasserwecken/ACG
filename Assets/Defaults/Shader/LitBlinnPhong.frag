@@ -207,7 +207,7 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
         float lightDistance = length(lightDiff);
         vec3 lightDirection = normalize(lightDiff);
         vec3 halfwayDirection = normalize(lightDirection + viewDirection);
-        float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 3.0);
+        float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 2.0);
 
         vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuation;
 
@@ -254,9 +254,9 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
 
 void main()
 {
-    vec4 baseColor = texture(BaseColorMap, _vertexUV.UV0);
+    vec4 baseColor = pow(texture(BaseColorMap, _vertexUV.UV0), vec4(2.2));
 
-    if (baseColor.w < AlphaCutoff)
+   if (baseColor.w < AlphaCutoff)
         discard;
 
     vec2 metallicRoughness = texture(MetallicRoughnessMap, _vertexUV.UV0).yz * MREO.xy;
