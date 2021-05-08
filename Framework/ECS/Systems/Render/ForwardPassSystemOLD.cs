@@ -135,7 +135,7 @@ namespace Framework.ECS.Systems.Render
                         ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.PushToGPU();
 
                         foreach (var primitive in transformRelation.Value)
-                            Draw(primitive);
+                            Renderer.Draw(primitive);
                     }
                 }
             }

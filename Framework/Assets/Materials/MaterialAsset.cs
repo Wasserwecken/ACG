@@ -6,7 +6,7 @@ using OpenTK.Mathematics;
 
 namespace Framework.Assets.Materials
 {
-    [DebuggerDisplay("Name: {Name}, Uniforms: {_uniformCount}")]
+    [DebuggerDisplay("Name: {Name}, Uniforms: {_uniformCount}, IsTransparent: {IsTransparent}, IsCulling: {IsCulling}, Culling: {CullingMode}")]
     public class MaterialAsset
     {
         public string Name { get; set; }

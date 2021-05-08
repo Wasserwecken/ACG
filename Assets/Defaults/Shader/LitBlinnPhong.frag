@@ -105,6 +105,9 @@ uniform samplerCube ReflectionMap;
 uniform sampler2D DirectionalShadowMap;
 uniform sampler2D PointShadowMap;
 
+// INPUT GENERAL UNIFORMS
+uniform float AlphaCutoff;
+
 // INPUT SPECIFIC UNIFORMS
 uniform vec4 BaseColor;
 uniform vec4 MREO;
@@ -252,12 +255,16 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
 void main()
 {
     vec4 baseColor = texture(BaseColorMap, _vertexUV.UV0);
+
+    if (baseColor.w < AlphaCutoff)
+        discard;
+
     vec2 metallicRoughness = texture(MetallicRoughnessMap, _vertexUV.UV0).yz * MREO.xy;
     vec3 emmision = texture(EmissiveMap, _vertexUV.UV0).xyz * MREO.z;
     float occlusion = texture(OcclusionMap, _vertexUV.UV0).x * MREO.w;
-    vec3 textureNormal = normalize(_vertexTangent.TangentSpaceWorld * (texture(NormalMap, _vertexUV.UV0).xyz * 2.0 - 1.0));
+    vec3 textureNormal = _vertexTangent.TangentSpaceWorld * (texture(NormalMap, _vertexUV.UV0).xyz * 2.0 - 1.0);
 
-    vec3 surfaceNormal = mix(_vertexNormal.NormalWorld, textureNormal, Normal);
+    vec3 surfaceNormal = normalize(mix(_vertexNormal.NormalWorld, textureNormal, Normal));
     vec3 surfaceColor = emmision + evaluate_lights(baseColor.xyz, metallicRoughness.y, metallicRoughness.x, surfaceNormal);
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
 

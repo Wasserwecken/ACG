@@ -14,8 +14,9 @@ namespace Framework.ECS.GLTF2.Assets
         {
             var material = new MaterialAsset(gltfMaterial.Name);
             material.IsTransparent = gltfMaterial.Alpha != AlphaMode.OPAQUE;
-            material.CullingMode = gltfMaterial.DoubleSided ? CullFaceMode.FrontAndBack : material.CullingMode;
+            material.IsCulling = !gltfMaterial.DoubleSided;
 
+            material.SetUniform("AlphaCutoff", gltfMaterial.AlphaCutoff);
             material.SetUniform(Definitions.Shader.Uniform.MREO, Vector4.Zero);
             foreach (var channel in gltfMaterial.Channels)
             {
@@ -65,6 +66,12 @@ namespace Framework.ECS.GLTF2.Assets
                         material.SetUniform(Definitions.Shader.Uniform.Normal, channel.Parameter.X);
                         if (channel.Texture != null)
                             material.SetUniform(Definitions.Shader.Uniform.NormalMap, textures[channel.Texture]);
+                        break;
+
+                    default:
+                        material.SetUniform(channel.Key, channel.Parameter.ToOpenTK());
+                        if (channel.Texture != null)
+                            material.SetUniform($"{channel.Key}Map", textures[channel.Texture]);
                         break;
                 }
             }

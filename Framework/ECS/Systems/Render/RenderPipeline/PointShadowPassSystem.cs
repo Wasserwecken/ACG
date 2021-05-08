@@ -70,15 +70,21 @@ namespace Framework.ECS.Systems.RenderPipeline
 
                     // BUILD RENDER GRAPH
                     _renderGraph.Clear();
-                    foreach (ref readonly var canidate in _renderCandidates.GetEntities())
-                        AddToGraph(
-                            Defaults.Shader.Program.Shadow,
-                            Defaults.Material.Shadow,
-                            canidate.Get<TransformComponent>(),
-                            canidate.Get<PrimitiveComponent>().Primitive
-                        );
+                    foreach (ref readonly var candidate in _renderCandidates.GetEntities())
+                    {
+                        var candidatePrimitive = candidate.Get<PrimitiveComponent>();
+                        var candidateTransform = candidate.Get<TransformComponent>();
 
-                    for(int i = 0; i < viewSpaces.Length; i++)
+                        if (candidatePrimitive.IsShadowCaster)
+                            AddToGraph(
+                                Defaults.Shader.Program.Shadow,
+                                Defaults.Material.Shadow,
+                                candidateTransform,
+                                candidatePrimitive.Primitive
+                            );
+                    }
+
+                    for (int i = 0; i < viewSpaces.Length; i++)
                     {
                         // VIEWPORT PREPERATION
                         var viewPort = shadowMapSpace * new Vector3(

@@ -168,6 +168,7 @@ namespace Framework
                     subEntity.Set(new ChildComponent(entity));
                     subEntity.Set(new PrimitiveComponent()
                     {
+                        IsShadowCaster = false,
                         Shader = Shader.Program.Skybox,
                         Material = Material.Skybox,
                         Primitive = primitive

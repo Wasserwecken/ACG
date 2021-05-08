@@ -153,19 +153,13 @@ namespace Window
             cameraEntity.Set(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
 
             var sunEntity = _scene.CreateEntity();
-            sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(0.3f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
+            sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +35 });
-            sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
-
-            var sunEntity2 = _scene.CreateEntity();
-            sunEntity2.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-1f, Vector3.UnitX).Rotate(-0.3f, Vector3.UnitY)));
-            sunEntity2.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
-            sunEntity2.Set(new DirectionalShadowComponent() { Resolution = 1024, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +35 });
-            sunEntity2.Set(new TransformRotatorComponent() { Speed = 0.1f });
+            //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var rand = new Random();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 3; i++)
             {
                 var pointLight = _scene.CreateEntity();
                 var position = new Vector3((float)rand.NextDouble() * 2f - 1f, 0.3f, (float)rand.NextDouble() * 0.25f - 0.125f);
