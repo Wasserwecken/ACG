@@ -21,7 +21,7 @@ namespace Framework.ECS.Systems.RenderPipeline
     [With(typeof(PointShadowComponent))]
     public class PointShadowPassSystem : AEntitySetSystem<bool>
     {
-        private readonly Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>> _renderGraph;
+        private readonly Dictionary<TransformComponent, List<VertexPrimitiveAsset>> _renderGraph;
         private readonly Entity _worldComponents;
         protected readonly EntitySet _renderCandidates;
         private readonly ShaderBlockArray<ShaderPointLight> _pointInfoBlock;
@@ -32,7 +32,7 @@ namespace Framework.ECS.Systems.RenderPipeline
         public PointShadowPassSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
-            _renderGraph = new Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>>();
+            _renderGraph = new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>();
             _pointInfoBlock = new ShaderBlockArray<ShaderPointLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _renderCandidates = World.GetEntities()
                 .With<TransformComponent>()
@@ -50,6 +50,9 @@ namespace Framework.ECS.Systems.RenderPipeline
             shaderInfo.ShadowSpacer.Clear();
 
             Renderer.UseFrameBuffer(shaderInfo.ShadowBuffer);
+            Renderer.UseShader(Defaults.Shader.Program.Shadow);
+            Renderer.UseMaterial(Defaults.Material.Shadow, Defaults.Shader.Program.Shadow);
+
             GL.ClearColor(shaderInfo.ShadowBuffer.ClearColor);
             GL.Clear(shaderInfo.ShadowBuffer.ClearMask);
 
@@ -78,8 +81,6 @@ namespace Framework.ECS.Systems.RenderPipeline
 
                         if (candidatePrimitive.IsShadowCaster)
                             AddToGraph(
-                                Defaults.Shader.Program.Shadow,
-                                Defaults.Material.Shadow,
                                 candidateTransform,
                                 candidatePrimitive.Primitive
                             );
@@ -102,21 +103,13 @@ namespace Framework.ECS.Systems.RenderPipeline
                         ShaderBlockSingle<ShaderViewSpace>.Instance.Data = viewSpaces[i];
                         ShaderBlockSingle<ShaderViewSpace>.Instance.PushToGPU();
 
-                        foreach (var shaderRelation in _renderGraph)
+                        foreach (var transformRelation in _renderGraph)
                         {
-                            Renderer.UseShader(shaderRelation.Key);
-                            foreach (var materialRelation in shaderRelation.Value)
-                            {
-                                Renderer.UseMaterial(materialRelation.Key, shaderRelation.Key);
-                                foreach (var transformRelation in materialRelation.Value)
-                                {
-                                    ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.Data = Renderer.CreatePrimitiveSpace(transformRelation.Key, viewSpaces[i]);
-                                    ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.PushToGPU();
+                            ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.Data = Renderer.CreatePrimitiveSpace(transformRelation.Key, viewSpaces[i]);
+                            ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.PushToGPU();
 
-                                    foreach (var primitive in transformRelation.Value)
-                                        Renderer.Draw(primitive);
-                                }
-                            }
+                            foreach (var primitive in transformRelation.Value)
+                                Renderer.Draw(primitive);
                         }
 
                     }
@@ -165,18 +158,12 @@ namespace Framework.ECS.Systems.RenderPipeline
         /// <summary>
         /// 
         /// </summary>
-        protected virtual void AddToGraph(ShaderProgramAsset shader, MaterialAsset material, TransformComponent transform, VertexPrimitiveAsset verticies)
+        protected virtual void AddToGraph(TransformComponent transform, VertexPrimitiveAsset verticies)
         {
-            if (!_renderGraph.ContainsKey(shader))
-                _renderGraph.Add(shader, new Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>());
+            if (!_renderGraph.ContainsKey(transform))
+                _renderGraph.Add(transform, new List<VertexPrimitiveAsset>());
 
-            if (!_renderGraph[shader].ContainsKey(material))
-                _renderGraph[shader].Add(material, new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>());
-
-            if (!_renderGraph[shader][material].ContainsKey(transform))
-                _renderGraph[shader][material].Add(transform, new List<VertexPrimitiveAsset>());
-
-            _renderGraph[shader][material][transform].Add(verticies);
+            _renderGraph[transform].Add(verticies);
         }
     }
 }

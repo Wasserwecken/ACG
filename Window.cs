@@ -159,14 +159,14 @@ namespace Window
             sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var rand = new Random();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 3; i++)
             {
                 var pointLight = _scene.CreateEntity();
-                var position = new Vector3((float)rand.NextDouble() * 2f - 1f, (float)rand.NextDouble() * 1f, (float)rand.NextDouble() * 0.25f - 0.125f);
+                var position = new Vector3( i - 1, 0.3f, (float)rand.NextDouble() * 0.25f - 0.125f);
                 pointLight.Set(new TransformComponent(position * 8.0f));
                 //pointLight.Set(new TransformComponent(new Vector3(0f, 2f, 0f)));
-                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f) * 2, AmbientFactor = 0.001f, Range = 5f });
-                pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 1f });
+                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f) * 2, AmbientFactor = 0.001f, Range = 8f });
+                pointLight.Set(new PointShadowComponent() { Resolution = 512, Strength = 1f, NearClipping = 0.1f });
             }
         }
 
