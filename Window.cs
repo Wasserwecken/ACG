@@ -153,20 +153,20 @@ namespace Window
             cameraEntity.Set(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
 
             var sunEntity = _scene.CreateEntity();
-            sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
+            sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
-            sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +35 });
-            //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
+            sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
+            sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var rand = new Random();
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 4; i++)
             {
                 var pointLight = _scene.CreateEntity();
-                var position = new Vector3((float)rand.NextDouble() * 2f - 1f, 0.3f, (float)rand.NextDouble() * 0.25f - 0.125f);
+                var position = new Vector3((float)rand.NextDouble() * 2f - 1f, (float)rand.NextDouble() * 1f, (float)rand.NextDouble() * 0.25f - 0.125f);
                 pointLight.Set(new TransformComponent(position * 8.0f));
-               // pointLight.Set(new TransformComponent(new Vector3(0f, 4f, -0.8f)));
-                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f), AmbientFactor = 0.001f, Range = 7f });
-                pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 0.1f });
+                //pointLight.Set(new TransformComponent(new Vector3(0f, 2f, 0f)));
+                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f) * 2, AmbientFactor = 0.001f, Range = 5f });
+                pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 1f });
             }
         }
 
@@ -191,10 +191,11 @@ namespace Window
 
             _framePipeline.Update(true);
             _renderPipeline.Update(true);
-            Context.SwapBuffers();
 
             var time = _renderWatch.ElapsedMilliseconds;
-            Title = $"{1000 / MathF.Max(float.Epsilon, time):F1} fps / {time} ms / {args.Time:F3} sec";
+            Title = $"{1000 / MathF.Max(float.Epsilon, time):F1} fps / {time} ms";
+            
+            Context.SwapBuffers();
         }
 
         /// <summary>

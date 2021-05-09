@@ -73,6 +73,10 @@ struct DirectionalLight
     vec4 ShadowStrength;
 };
 
+layout (std430) buffer ShaderDirectionalLight {
+    DirectionalLight _directionalLights[];
+};
+
 struct PointLight
 {
     vec4 Color;
@@ -81,19 +85,15 @@ struct PointLight
     vec4 ShadowStrength;
 };
 
+layout (std430) buffer ShaderPointLight {
+    PointLight _pointLights[];
+};
+
 struct SpotLight
 {
  vec4 Color;
  vec4 Position;
  vec4 Direction;
-};
-
-layout (std430) buffer ShaderDirectionalLight {
-    DirectionalLight _directionalLights[];
-};
-
-layout (std430) buffer ShaderPointLight {
-    PointLight _pointLights[];
 };
 
 layout (std430) buffer ShaderSpotLight {
@@ -122,6 +122,26 @@ uniform sampler2D NormalMap;
 out vec4 OutputColor;
 
 // LOGIC
+mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
+{
+    // http://www.thetenthplanet.de/archives/1180
+    // get edge vectors of the pixel triangle
+    vec3 dp1 = dFdx( p );
+    vec3 dp2 = dFdy( p );
+    vec2 duv1 = dFdx( uv );
+    vec2 duv2 = dFdy( uv );
+ 
+    // solve the linear system
+    vec3 dp2perp = cross( dp2, N );
+    vec3 dp1perp = cross( N, dp1 );
+    vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+    vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+ 
+    // construct a scale-invariant frame 
+    float invmax = inversesqrt( max( dot(T,T), dot(B,B) ) );
+    return mat3( T * invmax, B * invmax, N );
+}
+
 vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 normal, vec3 halfway, vec3 lightDirection, vec3 lightColor)
 {
     float luminance = max(dot(normal, lightDirection), 0.0);
@@ -165,19 +185,9 @@ vec2 sample_Cube(vec3 direction, out float depthScale)
 	return (uv + faceId) / vec2(3.0, 2.0);
 }
 
-float evaluate_shadow(vec4 shadowPosition, vec4 shadowArea, vec3 surfaceNormal, vec3 lightDirection)
+vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfaceNormal, vec3 positionViewDiff)
 {
-    vec3 projectedPosition = (shadowPosition.xyz / shadowPosition.w) * 0.5 + 0.5;
-    vec2 shadowUV = shadowArea.xy + projectedPosition.xy * shadowArea.zw;
-    float bias = max(0.05 * (1.0 - dot(surfaceNormal, lightDirection)), 0.001);
-    float shadowDepth = texture(DirectionalShadowMap, shadowUV).r + bias;
-
-    return projectedPosition.z < shadowDepth ? 1.0 : 0.0;
-}
-
-vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfaceNormal)
-{
-    vec3 viewDirection = normalize(_viewSpace.ViewPosition - _vertexPosition.PositionWorld.xyz);
+    vec3 viewDirection = -normalize(positionViewDiff);
     vec3 reflectionColor = texture(ReflectionMap, reflect(-viewDirection, surfaceNormal)).xyz;
     vec3 specularColor = mix(vec3(1.0), baseColor, metalic);
     float glossy = mix(128.0, 0.0, roughness * roughness);
@@ -188,13 +198,18 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
         vec3 lightColor = _directionalLights[i].Color.xyz;
         vec3 lightDirection = _directionalLights[i].Direction.xyz;
         vec3 halfwayDirection = normalize(lightDirection + viewDirection);
-
         vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor);
 
         if (_directionalLights[i].ShadowStrength.x > 0.001)
         {
-            vec4 shadowSpacePosition = _directionalLights[i].ShadowSpace * _vertexPosition.PositionWorld;
-            surfaceColor *= evaluate_shadow(shadowSpacePosition, _directionalLights[i].ShadowArea, surfaceNormal, lightDirection);
+            vec4 shadowPosition = _directionalLights[i].ShadowSpace * _vertexPosition.PositionWorld;
+
+            vec3 projectedPosition = (shadowPosition.xyz / shadowPosition.w) * 0.5 + 0.5;
+            vec2 shadowUV = _directionalLights[i].ShadowArea.xy + projectedPosition.xy * _directionalLights[i].ShadowArea.zw;
+            float bias = 0.002 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0) + 0.001);
+            float shadowDepth = texture(DirectionalShadowMap, shadowUV).r;
+
+            surfaceColor *= projectedPosition.z < shadowDepth + bias ? 1.0 : 0.0;
         }
 
         result += surfaceColor + _directionalLights[i].Color.w * baseColor * lightColor;
@@ -207,23 +222,21 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
         float lightDistance = length(lightDiff);
         vec3 lightDirection = normalize(lightDiff);
         vec3 halfwayDirection = normalize(lightDirection + viewDirection);
-        float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 2.0);
+        float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 3.0);
 
         vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuation;
 
         if (_pointLights[i].ShadowStrength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
         {
-            float depthScale;
-            vec2 shadowUV = _pointLights[i].ShadowArea.xy + sample_Cube(lightDirection, depthScale) * _pointLights[i].ShadowArea.zw;
-            float lightDepth = (lightDistance / depthScale);
             float near = _pointLights[i].ShadowStrength.y;
             float far = _pointLights[i].Position.w;
+            float depthScale;
+            vec2 shadowUV = _pointLights[i].ShadowArea.xy + sample_Cube(lightDirection, depthScale) * _pointLights[i].ShadowArea.wz;
+            float lightDepth = ((1 / (lightDistance / depthScale)) - (1 / near)) / ((1 / far) - (1 / near));
+            float shadowDepth = texture(PointShadowMap, shadowUV).r;
+            float bias = 0.002 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0) + 0.001);
 
-            float shadowDepth = texture(PointShadowMap, shadowUV).r * 2.0 - 1.0;
-            shadowDepth = (2.0 * near * far) / (far + near - shadowDepth * (far - near));
-            shadowDepth += max(0.05 * (1.0 - dot(surfaceNormal, lightDirection)), 0.1);
-
-            surfaceColor *= vec3(lightDepth < shadowDepth ? 1.0 : 0.0);
+            surfaceColor *= lightDepth < shadowDepth + bias ? 1.0 : 0.0;
         }
 
         result += surfaceColor + _pointLights[i].Color.w * baseColor * lightColor * attenuation;
@@ -259,13 +272,16 @@ void main()
    if (baseColor.w < AlphaCutoff)
         discard;
 
+    vec3 positionViewDiff = _vertexPosition.PositionWorld.xyz - _viewSpace.ViewPosition;
     vec2 metallicRoughness = texture(MetallicRoughnessMap, _vertexUV.UV0).yz * MREO.xy;
     vec3 emmision = texture(EmissiveMap, _vertexUV.UV0).xyz * MREO.z;
     float occlusion = texture(OcclusionMap, _vertexUV.UV0).x * MREO.w;
-    vec3 textureNormal = _vertexTangent.TangentSpaceWorld * (texture(NormalMap, _vertexUV.UV0).xyz * 2.0 - 1.0);
 
-    vec3 surfaceNormal = normalize(mix(_vertexNormal.NormalWorld, textureNormal, Normal));
-    vec3 surfaceColor = emmision + evaluate_lights(baseColor.xyz, metallicRoughness.y, metallicRoughness.x, surfaceNormal);
+    vec3 textureNormal = (texture(NormalMap, _vertexUV.UV0).xyz * 2.0 - 1.0) * vec3(1.0, 1.0, 0.3 / Normal);
+    mat3 tangenSpace = cotangent_frame(normalize(_vertexNormal.NormalLocal), positionViewDiff, _vertexUV.UV0);
+    vec3 surfaceNormal = normalize(tangenSpace * textureNormal);
+
+    vec3 surfaceColor = emmision + evaluate_lights(baseColor.xyz, metallicRoughness.y, metallicRoughness.x, surfaceNormal, positionViewDiff);
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
 
     OutputColor = vec4(corrected, baseColor.w);

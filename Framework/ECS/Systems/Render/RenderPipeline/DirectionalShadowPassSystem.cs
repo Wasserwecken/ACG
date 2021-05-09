@@ -9,6 +9,7 @@ using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.Systems.Render;
+using Framework.Extensions;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;

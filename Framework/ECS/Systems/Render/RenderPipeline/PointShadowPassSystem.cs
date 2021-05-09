@@ -61,11 +61,12 @@ namespace Framework.ECS.Systems.RenderPipeline
                 var shadowConfig = entity.Get<PointShadowComponent>();
                 var viewSpaces = CreateViewSpace(shadowConfig, lightConfig, transform);
 
-                if (shadowConfig.Strength > float.Epsilon)
+                if (shadowConfig.Strength > float.Epsilon && shaderInfo.ShadowSpacer.Add(shadowConfig.Resolution, out var shadowMapSpace))
                 {
                     // DATA PREPERATION
-                    shaderInfo.ShadowSpacer.Add(shadowConfig.Resolution, out var shadowMapSpace);
-                    shaderInfo.Data[lightConfig.InfoId].ShadowArea = new Vector4(shadowMapSpace, shadowMapSpace.Z);
+                    var foo = (shadowConfig.Resolution / 3f) % (shadowConfig.Resolution / 3) > 0.5f ? 2f : 1f;
+                    var widthCorrection = (shadowConfig.Resolution - foo) / shadowConfig.Resolution;
+                    shaderInfo.Data[lightConfig.InfoId].ShadowArea = new Vector4(shadowMapSpace, shadowMapSpace.Z * widthCorrection);
                     shaderInfo.Data[lightConfig.InfoId].ShadowStrength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, 0f, 0f);
 
                     // BUILD RENDER GRAPH
@@ -91,9 +92,11 @@ namespace Framework.ECS.Systems.RenderPipeline
                             shaderInfo.ShadowBuffer.Width,
                             shaderInfo.ShadowBuffer.Height,
                             shaderInfo.ShadowBuffer.Width);
-                        var x = (int)viewPort.X + (i % 3) * ((int)viewPort.Z / 3);
-                        var y = (int)viewPort.Y + (i < 3 ? 0 : 1) * ((int)viewPort.Z / 2);
-                        GL.Viewport(x, y, (int)viewPort.Z / 3, (int)viewPort.Z / 2);
+                        var width = (int)viewPort.Z / 3;
+                        var height = (int)viewPort.Z / 2;
+                        var x = (int)viewPort.X + (i % 3) * width;
+                        var y = (int)viewPort.Y + (i < 3 ? 0 : height);
+                        GL.Viewport(x, y, width, height);
 
                         // DRAW RENDER GRAPH
                         ShaderBlockSingle<ShaderViewSpace>.Instance.Data = viewSpaces[i];
