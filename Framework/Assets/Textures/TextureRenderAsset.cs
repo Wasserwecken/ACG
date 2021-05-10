@@ -17,8 +17,8 @@ namespace Framework.Assets.Textures
         /// </summary>
         public TextureRenderAsset(string name) : base(name)
         {
-            MinFilter = TextureMinFilter.Linear;
-            MagFilter = TextureMagFilter.Linear;
+            MinFilter = TextureMinFilter.Nearest;
+            MagFilter = TextureMagFilter.Nearest;
         }
     }
 }

@@ -68,7 +68,7 @@ namespace Framework.ECS.Systems.RenderPipeline
                     shaderInfo.ShadowSpacer.Add(shadowConfig.Resolution, out var shadowMapSpace);
                     shaderInfo.Data[lightConfig.InfoId].ShadowArea = new Vector4(shadowMapSpace, shadowMapSpace.Z);
                     shaderInfo.Data[lightConfig.InfoId].ShadowSpace = viewSpace.WorldToProjection;
-                    shaderInfo.Data[lightConfig.InfoId].ShadowStrength = new Vector4(shadowConfig.Strength, 0f, 0f, 0f);
+                    shaderInfo.Data[lightConfig.InfoId].ShadowStrength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, shadowConfig.FarClipping, shadowConfig.Width);
 
                     // BUILD RENDER GRAPH
                     _renderGraph.Clear();

@@ -142,6 +142,20 @@ mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
     return mat3( T * invmax, B * invmax, N );
 }
 
+vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi)
+{
+  float goldenAngle = 2.399963229;
+  float r = sqrt(sampleIndex + 0.5) / sqrt(samplesCount);
+  float theta = sampleIndex * goldenAngle + phi;
+  return vec2(r * cos(theta), r * sin(theta));
+}
+
+float ShadowHash(vec2 point)
+{
+  vec3 seed = vec3(0.06711056f, 0.00583715f, 52.9829189f);
+  return fract(seed.z * fract(dot(point, seed.xy)));
+}
+
 vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 normal, vec3 halfway, vec3 lightDirection, vec3 lightColor)
 {
     float luminance = max(dot(normal, lightDirection), 0.0);
@@ -185,6 +199,12 @@ vec2 sample_Cube(vec3 direction, out float depthScale)
 	return (uv + faceId) / vec2(3.0, 2.0);
 }
 
+float LinearizeDepth(float depth, float near, float far)
+{
+    float z = depth * 2.0 - 1.0; // back to NDC 
+    return (2.0 * near * far) / (far + near - z * (far - near));	
+}
+
 vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfaceNormal, vec3 positionViewDiff)
 {
     vec3 viewDirection = -normalize(positionViewDiff);
@@ -192,6 +212,9 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
     vec3 specularColor = mix(vec3(1.0), baseColor, metalic);
     float glossy = mix(128.0, 0.0, roughness * roughness);
     vec3 result = reflectionColor * baseColor * metalic;
+    
+    float shadowSampleSeed = ShadowHash(gl_FragCoord.xy);
+    int shadowSampleCount = 32;
     
     for(int i = 0; i < _directionalLights.length(); i++)
     {
@@ -202,14 +225,27 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
 
         if (_directionalLights[i].ShadowStrength.x > 0.001)
         {
-            vec4 shadowPosition = _directionalLights[i].ShadowSpace * _vertexPosition.PositionWorld;
+            float shadowWidth = _directionalLights[i].ShadowStrength.w;
+            vec2 shadowClipping = _directionalLights[i].ShadowStrength.yz;
+            vec2 shadowAtlasStart = _directionalLights[i].ShadowArea.xy;
+            vec2 shadowAtlasSize = _directionalLights[i].ShadowArea.zw;
+            vec2 shadowMapPixels = vec2(textureSize(DirectionalShadowMap, 0));
 
-            vec3 projectedPosition = (shadowPosition.xyz / shadowPosition.w) * 0.5 + 0.5;
-            vec2 shadowUV = _directionalLights[i].ShadowArea.xy + projectedPosition.xy * _directionalLights[i].ShadowArea.zw;
-            float bias = 0.002 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0) + 0.001);
-            float shadowDepth = texture(DirectionalShadowMap, shadowUV).r;
+            vec4 shadowWorldPosition = _directionalLights[i].ShadowSpace * _vertexPosition.PositionWorld;
+            vec3 shadowScreenPosition = (shadowWorldPosition.xyz / shadowWorldPosition.w) * 0.5 + 0.5;
+            float shadowBias = 0.003 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0)) + 0.001;
+            float penumbra = 0.1 * (shadowWidth / shadowMapPixels.x);
+            float occluderCount = 0.0;
+            
+            for (int i = 0; i < shadowSampleCount; i++)
+            {
+                vec2 sampleUV = shadowScreenPosition.xy + VogelDiskSample(i, shadowSampleCount, shadowSampleSeed) * penumbra;
+                float sampleDepth = texture(DirectionalShadowMap, shadowAtlasStart + sampleUV * shadowAtlasSize).r;
 
-            surfaceColor *= projectedPosition.z < shadowDepth + bias ? 1.0 : 0.0;
+                occluderCount += shadowScreenPosition.z > sampleDepth + shadowBias? 1 : 0;
+            }
+
+            surfaceColor *= 1 - (occluderCount / float(shadowSampleCount));
         }
 
         result += surfaceColor + _directionalLights[i].Color.w * baseColor * lightColor;
