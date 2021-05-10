@@ -131,8 +131,8 @@ namespace Window
                 new PointLightSystem(_scene, _sceneComponents),
                 new PointShadowPassSystem(_scene, _sceneComponents),
 
-                new ForwardPassSystemOLD(_scene, _sceneComponents),
-                new FrameBufferDebugSystem(_scene, _sceneComponents)
+                new ForwardPassSystemOLD(_scene, _sceneComponents)
+                //new FrameBufferDebugSystem(_scene, _sceneComponents)
             );
         }
 
@@ -159,10 +159,11 @@ namespace Window
             //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var rand = new Random();
-            for (int i = 0; i < 0; i++)
+            int pointLightCount = 3;
+            for (int i = 0; i < pointLightCount; i++)
             {
                 var pointLight = _scene.CreateEntity();
-                //var position = new Vector3( i - 1, 0.3f, (float)rand.NextDouble() * 0.25f - 0.125f);
+                //var position = new Vector3((float)rand.NextDouble() * 2f - 1f, (float)rand.NextDouble() * 0.8f, (float)rand.NextDouble() * 0.25f - 0.125f);
                 var position = new Vector3( i - 1, 0.3f, 0f);
                 pointLight.Set(new TransformComponent(position * 8.0f));
                 //pointLight.Set(new TransformComponent(new Vector3(0f, 2f, 0f)));
@@ -194,7 +195,7 @@ namespace Window
             _renderPipeline.Update(true);
 
             var time = _renderWatch.ElapsedMilliseconds;
-            Title = $"{1000 / MathF.Max(float.Epsilon, time):F1} fps / {time} ms";
+            Title = $"{1000 / MathF.Max(float.Epsilon, time):F1} fps / {time} ms / {args.Time} sec";
             
             Context.SwapBuffers();
         }

@@ -1,4 +1,17 @@
 ﻿#version 430 core
+// CONSTANTS
+const float SQRT205 = 0.70710678118;
+const float SQRT2 = 1.41421356237;
+const float SQRT305 = 0.86602540378;
+const float SQRT3 = 1.73205080756;
+const float PI025 = 0.78539816339;
+const float PI05 = 1.57079632674;
+const float PI = 3.14159265359;
+const float PI2 = 6.28318530718;
+const float RADTODEG = 57.295779513;
+const float DEGTORAD = 0.01745329252;
+
+
 // INPUT VERTEX
 in VertexPosition
 {
@@ -145,9 +158,26 @@ mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
 vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi)
 {
   float goldenAngle = 2.399963229;
-  float r = sqrt(sampleIndex + 0.5) / sqrt(samplesCount);
   float theta = sampleIndex * goldenAngle + phi;
+  float r = sqrt(sampleIndex + 0.5) / sqrt(samplesCount);
   return vec2(r * cos(theta), r * sin(theta));
+}
+
+vec3 VogelConeSample(int sampleIndex, int samplesCount, float phi, vec3 direction, float angle)
+{
+    float goldenAngle = 2.399963229;
+    float theta = sampleIndex * goldenAngle + phi;
+    float z = 1.0 - ((1.0 - cos(angle)) * sqrt(sampleIndex + 0.5) / sqrt(samplesCount));
+    float r = sqrt(1 - (z * z));
+    vec3 result = vec3(r * cos(theta), r * sin(theta), z);
+    
+    // rotate towards view direction
+    vec3 f = -direction;
+    vec3 s = normalize(cross(f, vec3(0.0, 1.0, 0.0)));
+    vec3 u = cross(s, f);
+    mat3 rotationMatrix = mat3(s, u, -f);
+
+    return rotationMatrix * result;
 }
 
 float ShadowHash(vec2 point)
@@ -164,11 +194,17 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 n
     return (surfaceDiffuse + specular) * lightColor * luminance;
 }
 
-vec2 sample_Cube(vec3 direction, out float depthScale)
+float LinearizeDepth(float depth, float near, float far)
+{
+    float z = depth * 2.0 - 1.0; // back to NDC 
+    return (2.0 * near * far) / (far + near - z * (far - near));	
+}
+
+float SamplePointShadowDepth(vec3 direction, vec2 atlasStart, vec2 atlasSize, vec2 clipping)
 {
 	vec3 directionAbs = abs(direction);
 	float ma;
-	vec2 uv;
+	vec2 faceUV;
     vec2 faceId;
     
 	if(directionAbs.z >= directionAbs.x && directionAbs.z >= directionAbs.y)
@@ -176,33 +212,28 @@ vec2 sample_Cube(vec3 direction, out float depthScale)
         faceId.x = 0.0;
 		faceId.y = direction.z < 0.0 ? 0.0 : 1.0;
 		ma = 0.5 / directionAbs.z;
-		uv = vec2(direction.z > 0.0 ? -direction.x : direction.x, -direction.y);
+		faceUV = vec2(direction.z > 0.0 ? -direction.x : direction.x, -direction.y);
 	}
 	else if(directionAbs.y >= directionAbs.x)
 	{
         faceId.x = 1.0;
 		faceId.y = direction.y < 0.0 ? 0.0 : 1.0;
 		ma = 0.5 / directionAbs.y;
-		uv = vec2(direction.z, direction.y < 0.0 ? -direction.x : direction.x);
+		faceUV = vec2(direction.z, direction.y < 0.0 ? -direction.x : direction.x);
 	}
 	else
 	{
         faceId.x = 2.0;
 		faceId.y = direction.x < 0.0 ? 0.0 : 1.0;
 		ma = 0.5 / directionAbs.x;
-		uv = vec2(direction.x > 0.0 ? direction.z : -direction.z, -direction.y);
+		faceUV = vec2(direction.x > 0.0 ? direction.z : -direction.z, -direction.y);
 	}
 
-    uv = uv * ma + 0.5;
-    depthScale = length(vec3(uv * 2.0 - 1.0, 1.0));
+    faceUV = faceUV * ma + 0.5;
 
-	return (uv + faceId) / vec2(3.0, 2.0);
-}
-
-float LinearizeDepth(float depth, float near, float far)
-{
-    float z = depth * 2.0 - 1.0; // back to NDC 
-    return (2.0 * near * far) / (far + near - z * (far - near));	
+    float depthCorrection = length(vec3(faceUV * 2.0 - 1.0, 1.0));
+    vec2 shadowUV = atlasStart + ((faceUV + faceId) / vec2(3.0, 2.0)) * atlasSize;
+    return LinearizeDepth(texture(PointShadowMap, shadowUV).r, clipping.x, clipping.y) * depthCorrection;
 }
 
 vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfaceNormal, vec3 positionViewDiff)
@@ -214,7 +245,9 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
     vec3 result = reflectionColor * baseColor * metalic;
     
     float shadowSampleSeed = ShadowHash(gl_FragCoord.xy);
-    int shadowSampleCount = 32;
+    int shadowSampleCount = 8;
+    vec2 directionalShadowPixels = vec2(textureSize(DirectionalShadowMap, 0));
+    vec2 pointShadowPixels = vec2(textureSize(PointShadowMap, 0));
     
     for(int i = 0; i < _directionalLights.length(); i++)
     {
@@ -229,20 +262,19 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
             vec2 shadowClipping = _directionalLights[i].ShadowStrength.yz;
             vec2 shadowAtlasStart = _directionalLights[i].ShadowArea.xy;
             vec2 shadowAtlasSize = _directionalLights[i].ShadowArea.zw;
-            vec2 shadowMapPixels = vec2(textureSize(DirectionalShadowMap, 0));
 
             vec4 shadowWorldPosition = _directionalLights[i].ShadowSpace * _vertexPosition.PositionWorld;
             vec3 shadowScreenPosition = (shadowWorldPosition.xyz / shadowWorldPosition.w) * 0.5 + 0.5;
             float shadowBias = 0.003 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0)) + 0.001;
-            float penumbra = 0.1 * (shadowWidth / shadowMapPixels.x);
+            float penumbra = 0.1 * (shadowWidth / directionalShadowPixels.x);
             float occluderCount = 0.0;
             
             for (int i = 0; i < shadowSampleCount; i++)
             {
-                vec2 sampleUV = shadowScreenPosition.xy + VogelDiskSample(i, shadowSampleCount, shadowSampleSeed) * penumbra;
+                vec2 sampleUV = shadowScreenPosition.xy + VogelDiskSample(i, shadowSampleCount, shadowSampleSeed * PI) * penumbra;
                 float sampleDepth = texture(DirectionalShadowMap, shadowAtlasStart + sampleUV * shadowAtlasSize).r;
 
-                occluderCount += shadowScreenPosition.z > sampleDepth + shadowBias? 1 : 0;
+                occluderCount += shadowScreenPosition.z > sampleDepth + shadowBias ? 1 : 0;
             }
 
             surfaceColor *= 1 - (occluderCount / float(shadowSampleCount));
@@ -264,15 +296,23 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
 
         if (_pointLights[i].ShadowStrength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
         {
-            float near = _pointLights[i].ShadowStrength.y;
-            float far = _pointLights[i].Position.w;
-            float depthScale;
-            vec2 shadowUV = _pointLights[i].ShadowArea.xy + sample_Cube(lightDirection, depthScale) * _pointLights[i].ShadowArea.wz;
-            float lightDepth = ((1 / (lightDistance / depthScale)) - (1 / near)) / ((1 / far) - (1 / near));
-            float shadowDepth = texture(PointShadowMap, shadowUV).r;
-            float bias = 0.002 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0) + 0.001);
+            vec2 shadowClipping = vec2(_pointLights[i].ShadowStrength.y, _pointLights[i].Position.w);
+            vec2 shadowAtlasStart = _pointLights[i].ShadowArea.xy;
+            vec2 shadowAtlasSize = _pointLights[i].ShadowArea.wz;
 
-            surfaceColor *= lightDepth < shadowDepth + bias ? 1.0 : 0.0;
+            float shadowBias = 0.2 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0)) + 0.01;
+            float penumbra = 0.01 * lightDistance;
+            float occluderCount = 0.0;
+
+            for (int i = 0; i < shadowSampleCount; i++)
+            {
+                vec3 sampleDirection = VogelConeSample(i, shadowSampleCount, shadowSampleSeed * PI, lightDirection, penumbra);
+                float sampleDepth = SamplePointShadowDepth(sampleDirection, shadowAtlasStart, shadowAtlasSize, shadowClipping);
+
+                occluderCount += lightDistance > sampleDepth + shadowBias ? 1 : 0;
+            }
+  
+            surfaceColor *= 1 - (occluderCount / float(shadowSampleCount));
         }
 
         result += surfaceColor + _pointLights[i].Color.w * baseColor * lightColor * attenuation;
