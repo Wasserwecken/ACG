@@ -8,11 +8,11 @@ layout (location = 4) in vec2 BufferUV1;
 layout (location = 5) in vec4 BufferColor;
 
 // INPUT GLOBAL UNIFORMS
-layout (std430) buffer ShaderTime {
-    float Frame;
-    float Fixed;
+layout (std430) buffer ShaderTimeBlock {
     float Total;
     float TotalSin;
+    float Frame;
+    float Fixed;
 } _time;
 
 layout (std430) buffer ShaderPrimitiveSpace {

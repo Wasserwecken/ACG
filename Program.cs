@@ -1,6 +1,7 @@
 ﻿using Framework.ECS;
 using Framework.ECS.Components;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using System;
 using System.IO;
@@ -20,6 +21,9 @@ namespace Window
 
             using (var window = new Window(gameSettings, nativeSettings))
             {
+                window.RenderFrequency = 0f;
+                window.VSync = VSyncMode.Off;
+
                 window.Run();
             }
         }

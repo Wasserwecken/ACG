@@ -10,7 +10,7 @@ namespace Framework.Assets.Shader.Block
     public class ShaderBlockSingle<TBlockType> : IShaderBlock where TBlockType : struct
     {
         public int BlockSize = Marshal.SizeOf(typeof(TBlockType));
-        public int Handle { get; private set; }
+        public int Handle { get; set; }
         public bool IsGlobal { get; private set; }
         public string Name { get; private set; }
         public BufferRangeTarget Target { get; private set; }

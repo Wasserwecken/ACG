@@ -34,9 +34,8 @@ namespace Framework.ECS.Systems.Render
         {
             GL.UseProgram(shader.Handle);
 
-            foreach (var block in AssetRegister.ShaderBlocks)
-                if (block.IsGlobal)
-                    UseShaderBlock(block, shader);
+            foreach (var binding in shader.BlockBindings.Values)
+                GL.BindBufferBase(binding.Target, binding.Layout, binding.Handle);
         }
 
         /// <summary>
@@ -105,7 +104,7 @@ namespace Framework.ECS.Systems.Render
                     GL.BindTexture(uniform.Value.Target, uniform.Value.Handle);
                 }
 
-            foreach (var uniformTexture in shader.Uniforms.Where
+            foreach (var uniformTexture in shader.UniformInfos.Where
                 (f => f.Type == ActiveUniformType.Sampler2D && !material.UniformTextures.ContainsKey(f.Name)))
             {
                 GL.Uniform1(uniformTexture.Layout, uniformTexture.Layout);

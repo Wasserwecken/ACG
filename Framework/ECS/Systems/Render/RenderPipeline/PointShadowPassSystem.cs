@@ -1,10 +1,7 @@
 ﻿using DefaultEcs;
 using DefaultEcs.System;
-using Framework.Assets.Materials;
-using Framework.Assets.Shader;
 using Framework.Assets.Shader.Block;
 using Framework.Assets.Shader.Block.Data;
-using Framework.Assets.Verticies;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
@@ -12,7 +9,6 @@ using Framework.ECS.Systems.Render;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;
-using System.Collections.Generic;
 
 namespace Framework.ECS.Systems.RenderPipeline
 {

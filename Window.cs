@@ -37,6 +37,7 @@ namespace Window
         private readonly SequentialSystem<bool> _framePipeline;
         private readonly SequentialSystem<bool> _renderPipeline;
 
+        private readonly Stopwatch _frameWatch;
         private readonly Stopwatch _renderWatch;
 
         /// <summary>
@@ -47,6 +48,7 @@ namespace Window
         public Window(GameWindowSettings gameSettings, NativeWindowSettings nativeSettings)
             : base(gameSettings, nativeSettings)
         {
+            _frameWatch = new Stopwatch();
             _renderWatch = new Stopwatch();
 
             _scene = new World();
@@ -56,10 +58,8 @@ namespace Window
             _sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
             _sceneComponents.Set(new GlobalShaderBlocksComponent()
             {
-                DirectionalLights = new ShaderBlockArray<ShaderDirectionalLight>(true, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw),
                 PointLights = new ShaderBlockArray<ShaderPointLight>(true, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw),
-                SpotLights = new ShaderBlockArray<ShaderSpotLight>(true, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw),
-                Time = new ShaderBlockSingle<ShaderTime>(true, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw)
+                SpotLights = new ShaderBlockArray<ShaderSpotLight>(true, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw)
             });
             _sceneComponents.Set(new DirectionalShadowBufferComponent()
             {
@@ -132,7 +132,7 @@ namespace Window
             );
 
             _renderPipeline = new SequentialSystem<bool>(
-                new TimeSyncSystem(_scene, _sceneComponents),
+                new ShaderTimeSystem(_scene, _sceneComponents),
                 new TextureSyncSystem(_scene, _sceneComponents),
 
                 new DirectionalLightSystem(_scene, _sceneComponents),
@@ -140,8 +140,8 @@ namespace Window
                 new PointLightSystem(_scene, _sceneComponents),
                 new PointShadowPassSystem(_scene, _sceneComponents),
 
-                new ForwardPassSystemOLD(_scene, _sceneComponents),
-                new FrameBufferDebugSystem(_scene, _sceneComponents)
+                new ForwardPassSystemOLD(_scene, _sceneComponents)
+                //new FrameBufferDebugSystem(_scene, _sceneComponents)
             );
         }
 
@@ -198,15 +198,18 @@ namespace Window
         {
             base.OnRenderFrame(args);
 
-            _renderWatch.Restart();
-
+            _frameWatch.Restart();
             _framePipeline.Update(true);
-            _renderPipeline.Update(true);
+            var frameTime = _frameWatch.Elapsed.TotalMilliseconds;
 
-            var time = _renderWatch.ElapsedMilliseconds;
-            Title = $"{1000 / MathF.Max(float.Epsilon, time):F1} fps / {time} ms / {args.Time} sec";
-            
+            _renderWatch.Restart();
+            _renderPipeline.Update(true);
+            var renderTime = _frameWatch.Elapsed.TotalMilliseconds;
+
             Context.SwapBuffers();
+            
+            var total = frameTime + renderTime;
+            Title = $"{1000 / Math.Max(double.Epsilon, total):F1} fps | Total: {total:F2} ms | Update: {frameTime:F2} ms | Render {renderTime:F2}";
         }
 
         /// <summary>

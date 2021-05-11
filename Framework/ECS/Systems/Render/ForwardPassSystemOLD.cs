@@ -125,6 +125,9 @@ namespace Framework.ECS.Systems.Render
             foreach (var block in AssetRegister.ShaderBlocks)
                 if (shader.IdentifierToLayout.TryGetValue(block.Name, out var blockLayout))
                     GL.BindBufferBase(block.Target, blockLayout, block.Handle);
+
+            foreach (var binding in shader.BlockBindings.Values)
+                GL.BindBufferBase(binding.Target, binding.Layout, binding.Handle);
         }
 
         /// <summary>
@@ -180,7 +183,7 @@ namespace Framework.ECS.Systems.Render
                     GL.UniformMatrix4(layout, false, ref foo);
                 }
 
-            foreach (var uniformTexture in shader.Uniforms.Where(f => f.Type == ActiveUniformType.Sampler2D))
+            foreach (var uniformTexture in shader.UniformInfos.Where(f => f.Type == ActiveUniformType.Sampler2D))
             {
                 GL.Uniform1(uniformTexture.Layout, uniformTexture.Layout);
                 GL.ActiveTexture(TextureUnit.Texture0 + uniformTexture.Layout);

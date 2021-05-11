@@ -1,10 +1,9 @@
-﻿using DefaultEcs;
+﻿using ACG.Framework.Assets;
+using DefaultEcs;
 using DefaultEcs.System;
-using Framework.Assets.Materials;
-using Framework.Assets.Shader;
 using Framework.Assets.Shader.Block;
 using Framework.Assets.Shader.Block.Data;
-using Framework.Assets.Verticies;
+using Framework.Assets.Shader.Info.Block.Data;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
@@ -12,7 +11,6 @@ using Framework.ECS.Systems.Render;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;
-using System.Collections.Generic;
 
 namespace Framework.ECS.Systems.RenderPipeline
 {
@@ -23,13 +21,15 @@ namespace Framework.ECS.Systems.RenderPipeline
     {
         private readonly Entity _worldComponents;
         protected readonly EntitySet _renderCandidates;
-        
+        protected readonly ShaderDirectionalShadowBlock _block;
+
         /// <summary>
         /// 
         /// </summary>
         public DirectionalShadowPassSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
+            _block = new ShaderDirectionalShadowBlock();
             _renderCandidates = World.GetEntities()
                 .With<TransformComponent>()
                 .With<PrimitiveComponent>()
@@ -39,11 +39,20 @@ namespace Framework.ECS.Systems.RenderPipeline
         /// <summary>
         /// 
         /// </summary>
+        protected override void PreUpdate(bool state)
+        {
+            var lightCount = World.GetEntities().With<TransformComponent>().With<DirectionalLightComponent>().AsSet().Count;
+            _block.Shadows = new ShaderDirectionalShadowBlock.ShaderDirectionalShadow[lightCount];
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
             // GLOBAL PREPERATION
             ref var shaderInfo = ref _worldComponents.Get<DirectionalShadowBufferComponent>();
-            ref var shaderBlocks = ref _worldComponents.Get<GlobalShaderBlocksComponent>();
+
             shaderInfo.ShadowSpacer.Clear();
 
             Renderer.UseFrameBuffer(shaderInfo.ShadowBuffer);
@@ -70,9 +79,9 @@ namespace Framework.ECS.Systems.RenderPipeline
 
                     // SHADOW DATA
                     shaderInfo.ShadowSpacer.Add(shadowConfig.Resolution, out var shadowMapSpace);
-                    shaderBlocks.DirectionalLights.Data[lightConfig.InfoId].ShadowArea = new Vector4(shadowMapSpace, shadowMapSpace.Z);
-                    shaderBlocks.DirectionalLights.Data[lightConfig.InfoId].ShadowSpace = shadowConfig.ShaderViewSpace.Data.WorldToProjection;
-                    shaderBlocks.DirectionalLights.Data[lightConfig.InfoId].ShadowStrength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, shadowConfig.FarClipping, shadowConfig.Width);
+                    _block.Shadows[lightConfig.InfoId].Area = new Vector4(shadowMapSpace, shadowMapSpace.Z);
+                    _block.Shadows[lightConfig.InfoId].Space = shadowConfig.ShaderViewSpace.Data.WorldToProjection;
+                    _block.Shadows[lightConfig.InfoId].Strength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, shadowConfig.FarClipping, shadowConfig.Width);
 
                     // VIEWPORT PREPERATION
                     var viewPort = shadowMapSpace * new Vector3(
@@ -94,8 +103,17 @@ namespace Framework.ECS.Systems.RenderPipeline
                     }
                 }
             }
+        }
 
-            shaderBlocks.DirectionalLights.PushToGPU();
+        /// <summary>
+        /// 
+        /// </summary>
+        protected override void PostUpdate(bool state)
+        {
+            GPUSync.Push(_block);
+
+            foreach (var shader in AssetRegister.Shaders)
+                shader.SetBlockBinding(_block.Name, _block.Handle, _block.Target);
         }
 
         /// <summary>
