@@ -171,7 +171,7 @@ namespace Framework
                         IsShadowCaster = false,
                         Shader = Shader.Program.Skybox,
                         Material = Material.Skybox,
-                        Primitive = primitive
+                        Verticies = primitive
                     });
                 }
 

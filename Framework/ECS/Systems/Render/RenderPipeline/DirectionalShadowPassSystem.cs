@@ -9,7 +9,6 @@ using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.Systems.Render;
-using Framework.Extensions;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;
@@ -22,10 +21,8 @@ namespace Framework.ECS.Systems.RenderPipeline
     [With(typeof(DirectionalShadowComponent))]
     public class DirectionalShadowPassSystem : AEntitySetSystem<bool>
     {
-        private readonly Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>> _renderGraph;
         private readonly Entity _worldComponents;
         protected readonly EntitySet _renderCandidates;
-        private readonly ShaderBlockArray<ShaderDirectionalLight> _directionalInfoBlock;
         
         /// <summary>
         /// 
@@ -33,8 +30,6 @@ namespace Framework.ECS.Systems.RenderPipeline
         public DirectionalShadowPassSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
-            _renderGraph = new Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>>();
-            _directionalInfoBlock = new ShaderBlockArray<ShaderDirectionalLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _renderCandidates = World.GetEntities()
                 .With<TransformComponent>()
                 .With<PrimitiveComponent>()
@@ -47,10 +42,14 @@ namespace Framework.ECS.Systems.RenderPipeline
         protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
             // GLOBAL PREPERATION
-            ref var shaderInfo = ref _worldComponents.Get<DirectionalLightCollectionComponent>();
+            ref var shaderInfo = ref _worldComponents.Get<DirectionalShadowBufferComponent>();
+            ref var shaderBlocks = ref _worldComponents.Get<GlobalShaderBlocksComponent>();
             shaderInfo.ShadowSpacer.Clear();
 
             Renderer.UseFrameBuffer(shaderInfo.ShadowBuffer);
+            Renderer.UseShader(Defaults.Shader.Program.Shadow);
+            Renderer.UseMaterial(Defaults.Material.Shadow, Defaults.Shader.Program.Shadow);
+
             GL.ClearColor(shaderInfo.ShadowBuffer.ClearColor);
             GL.Clear(shaderInfo.ShadowBuffer.ClearMask);
 
@@ -60,31 +59,20 @@ namespace Framework.ECS.Systems.RenderPipeline
                 var transform = entity.Get<TransformComponent>();
                 var lightConfig = entity.Get<DirectionalLightComponent>();
                 var shadowConfig = entity.Get<DirectionalShadowComponent>();
-                var viewSpace = CreateViewSpace(shadowConfig, transform);
                 
                 if (shadowConfig.Strength > float.Epsilon)
                 {
-                    // DATA PREPERATION
+                    // VIEW SPACE SETUP
+                    if (shadowConfig.ShaderViewSpace == null)
+                        shadowConfig.ShaderViewSpace = new ShaderBlockSingle<ShaderViewSpace>(false, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+                    shadowConfig.ShaderViewSpace.Data = CreateViewSpace(shadowConfig, transform);
+                    shadowConfig.ShaderViewSpace.PushToGPU();
+
+                    // SHADOW DATA
                     shaderInfo.ShadowSpacer.Add(shadowConfig.Resolution, out var shadowMapSpace);
-                    shaderInfo.Data[lightConfig.InfoId].ShadowArea = new Vector4(shadowMapSpace, shadowMapSpace.Z);
-                    shaderInfo.Data[lightConfig.InfoId].ShadowSpace = viewSpace.WorldToProjection;
-                    shaderInfo.Data[lightConfig.InfoId].ShadowStrength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, shadowConfig.FarClipping, shadowConfig.Width);
-
-                    // BUILD RENDER GRAPH
-                    _renderGraph.Clear();
-                    foreach (ref readonly var candidate in _renderCandidates.GetEntities())
-                    {
-                        var candidatePrimitive = candidate.Get<PrimitiveComponent>();
-                        var candidateTransform = candidate.Get<TransformComponent>();
-
-                        if (candidatePrimitive.IsShadowCaster)
-                            AddToGraph(
-                                Defaults.Shader.Program.Shadow,
-                                Defaults.Material.Shadow,
-                                candidateTransform,
-                                candidatePrimitive.Primitive
-                            );
-                    }
+                    shaderBlocks.DirectionalLights.Data[lightConfig.InfoId].ShadowArea = new Vector4(shadowMapSpace, shadowMapSpace.Z);
+                    shaderBlocks.DirectionalLights.Data[lightConfig.InfoId].ShadowSpace = shadowConfig.ShaderViewSpace.Data.WorldToProjection;
+                    shaderBlocks.DirectionalLights.Data[lightConfig.InfoId].ShadowStrength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, shadowConfig.FarClipping, shadowConfig.Width);
 
                     // VIEWPORT PREPERATION
                     var viewPort = shadowMapSpace * new Vector3(
@@ -93,32 +81,21 @@ namespace Framework.ECS.Systems.RenderPipeline
                         shaderInfo.ShadowBuffer.Width);
                     GL.Viewport((int)viewPort.X, (int)viewPort.Y, (int)viewPort.Z, (int)viewPort.Z);
 
-                    // DRAW RENDER GRAPH
-                    ShaderBlockSingle<ShaderViewSpace>.Instance.Data = viewSpace;
-                    ShaderBlockSingle<ShaderViewSpace>.Instance.PushToGPU();
-
-                    foreach (var shaderRelation in _renderGraph)
+                    // RENDER SHADOW CASTERS
+                    Renderer.UseShaderBlock(shadowConfig.ShaderViewSpace, Defaults.Shader.Program.Shadow);
+                    foreach (ref readonly var candidate in _renderCandidates.GetEntities())
                     {
-                        Renderer.UseShader(shaderRelation.Key);
-                        foreach (var materialRelation in shaderRelation.Value)
+                        var candidatePrimitive = candidate.Get<PrimitiveComponent>();
+                        if (candidatePrimitive.IsShadowCaster)
                         {
-                            Renderer.UseMaterial(materialRelation.Key, shaderRelation.Key);
-                            foreach (var transformRelation in materialRelation.Value)
-                            {
-                                ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.Data = Renderer.CreatePrimitiveSpace(transformRelation.Key, viewSpace);
-                                ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.PushToGPU();
-
-                                foreach (var primitive in transformRelation.Value)
-                                    Renderer.Draw(primitive);
-                            }
+                            Renderer.UseShaderBlock(candidatePrimitive.ShaderSpace, Defaults.Shader.Program.Shadow);
+                            Renderer.Draw(candidatePrimitive.Verticies);
                         }
                     }
                 }
             }
 
-            // PUSH DATA TO GPU
-            _directionalInfoBlock.Data = shaderInfo.Data;
-            _directionalInfoBlock.PushToGPU();
+            shaderBlocks.DirectionalLights.PushToGPU();
         }
 
         /// <summary>
@@ -141,23 +118,6 @@ namespace Framework.ECS.Systems.RenderPipeline
                 ViewDirection = new Vector4(-transform.Forward, 0),
                 ViewProjection = projection
             };
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void AddToGraph(ShaderProgramAsset shader, MaterialAsset material, TransformComponent transform, VertexPrimitiveAsset verticies)
-        {
-            if (!_renderGraph.ContainsKey(shader))
-                _renderGraph.Add(shader, new Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>());
-
-            if (!_renderGraph[shader].ContainsKey(material))
-                _renderGraph[shader].Add(material, new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>());
-
-            if (!_renderGraph[shader][material].ContainsKey(transform))
-                _renderGraph[shader][material].Add(transform, new List<VertexPrimitiveAsset>());
-
-            _renderGraph[shader][material][transform].Add(verticies);
         }
     }
 }

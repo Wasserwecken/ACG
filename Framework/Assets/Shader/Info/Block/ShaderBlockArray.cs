@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using ACG.Framework.Assets;
 using Framework.Assets.Shader.Block.Data;
 using OpenTK.Graphics.OpenGL;
 
@@ -10,6 +11,7 @@ namespace Framework.Assets.Shader.Block
     {
         public static int BlockSize = Marshal.SizeOf(typeof(TBlockType));
         public int Handle { get; private set; }
+        public bool IsGlobal { get; private set; }
         public string Name { get; private set; }
         public BufferRangeTarget Target { get; private set; }
         public BufferUsageHint UsageHint { get; set; }
@@ -18,15 +20,16 @@ namespace Framework.Assets.Shader.Block
         /// <summary>
         /// 
         /// </summary>
-        public ShaderBlockArray(BufferRangeTarget target, BufferUsageHint usageHint)
+        public ShaderBlockArray(bool isGlobal, BufferRangeTarget target, BufferUsageHint usageHint)
         {
             Handle = -1;
             Name = typeof(TBlockType).Name;
             Data = default;
             Target = target;
+            IsGlobal = isGlobal;
             UsageHint = usageHint;
 
-            ShaderBlockRegister.Add(this);
+            AssetRegister.ShaderBlocks.Add(this);
         }
 
         /// <summary>

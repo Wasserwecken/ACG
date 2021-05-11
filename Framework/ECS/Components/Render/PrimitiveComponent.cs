@@ -1,5 +1,7 @@
 ﻿using Framework.Assets.Materials;
 using Framework.Assets.Shader;
+using Framework.Assets.Shader.Block;
+using Framework.Assets.Shader.Block.Data;
 using Framework.Assets.Verticies;
 
 namespace Framework.ECS.Components.Render
@@ -7,7 +9,8 @@ namespace Framework.ECS.Components.Render
     public struct PrimitiveComponent
     {
         public bool IsShadowCaster;
-        public VertexPrimitiveAsset Primitive;
+        public ShaderBlockSingle<ShaderPrimitiveSpace> ShaderSpace;
+        public VertexPrimitiveAsset Verticies;
         public ShaderProgramAsset Shader;
         public MaterialAsset Material;
     }

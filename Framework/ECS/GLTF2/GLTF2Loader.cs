@@ -9,10 +9,8 @@ using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2.Assets;
 using Framework.ECS.GLTF2.Components;
 using Framework.Extensions;
-using OpenTK.Mathematics;
 using SharpGLTF.Schema2;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Framework.ECS.GLTF2
 {
@@ -95,7 +93,7 @@ namespace Framework.ECS.GLTF2
                         IsShadowCaster = true,
                         Shader = _defaultShader,
                         Material = gltfPrimitive.Material != null && _materials.ContainsKey(gltfPrimitive.Material) ? _materials[gltfPrimitive.Material] : Defaults.Material.PBR,
-                        Primitive = primitive
+                        Verticies = primitive
                     });
                 }
             }

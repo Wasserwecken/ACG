@@ -21,10 +21,9 @@ namespace Framework.ECS.Systems.RenderPipeline
     [With(typeof(PointShadowComponent))]
     public class PointShadowPassSystem : AEntitySetSystem<bool>
     {
-        private readonly Dictionary<TransformComponent, List<VertexPrimitiveAsset>> _renderGraph;
+        private readonly ShaderBlockSingle<ShaderViewSpace> _viewSpaceBlock;
         private readonly Entity _worldComponents;
         protected readonly EntitySet _renderCandidates;
-        private readonly ShaderBlockArray<ShaderPointLight> _pointInfoBlock;
 
         /// <summary>
         /// 
@@ -32,8 +31,7 @@ namespace Framework.ECS.Systems.RenderPipeline
         public PointShadowPassSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
-            _renderGraph = new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>();
-            _pointInfoBlock = new ShaderBlockArray<ShaderPointLight>(BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            _viewSpaceBlock = new ShaderBlockSingle<ShaderViewSpace>(false, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
             _renderCandidates = World.GetEntities()
                 .With<TransformComponent>()
                 .With<PrimitiveComponent>()
@@ -46,7 +44,8 @@ namespace Framework.ECS.Systems.RenderPipeline
         protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
             // GLOBAL PREPERATION
-            ref var shaderInfo = ref _worldComponents.Get<PointLightCollectionComponent>();
+            ref var shaderInfo = ref _worldComponents.Get<PointLightBufferComponent>();
+            ref var shaderBlocks = ref _worldComponents.Get<GlobalShaderBlocksComponent>();
             shaderInfo.ShadowSpacer.Clear();
 
             Renderer.UseFrameBuffer(shaderInfo.ShadowBuffer);
@@ -66,26 +65,13 @@ namespace Framework.ECS.Systems.RenderPipeline
 
                 if (shadowConfig.Strength > float.Epsilon && shaderInfo.ShadowSpacer.Add(shadowConfig.Resolution, out var shadowMapSpace))
                 {
-                    // DATA PREPERATION
+                    // SHADOW DATA
                     var foo = (shadowConfig.Resolution / 3f) % (shadowConfig.Resolution / 3) > 0.5f ? 2f : 1f;
                     var widthCorrection = (shadowConfig.Resolution - foo) / shadowConfig.Resolution;
-                    shaderInfo.Data[lightConfig.InfoId].ShadowArea = new Vector4(shadowMapSpace, shadowMapSpace.Z * widthCorrection);
-                    shaderInfo.Data[lightConfig.InfoId].ShadowStrength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, 0f, 0f);
+                    shaderBlocks.PointLights.Data[lightConfig.InfoId].ShadowArea = new Vector4(shadowMapSpace, shadowMapSpace.Z * widthCorrection);
+                    shaderBlocks.PointLights.Data[lightConfig.InfoId].ShadowStrength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, 0f, 0f);
 
-                    // BUILD RENDER GRAPH
-                    _renderGraph.Clear();
-                    foreach (ref readonly var candidate in _renderCandidates.GetEntities())
-                    {
-                        var candidatePrimitive = candidate.Get<PrimitiveComponent>();
-                        var candidateTransform = candidate.Get<TransformComponent>();
-
-                        if (candidatePrimitive.IsShadowCaster)
-                            AddToGraph(
-                                candidateTransform,
-                                candidatePrimitive.Primitive
-                            );
-                    }
-
+                    // RENDER 6 SIDES
                     for (int i = 0; i < viewSpaces.Length; i++)
                     {
                         // VIEWPORT PREPERATION
@@ -99,26 +85,26 @@ namespace Framework.ECS.Systems.RenderPipeline
                         var y = (int)viewPort.Y + (i < 3 ? 0 : height);
                         GL.Viewport(x, y, width, height);
 
-                        // DRAW RENDER GRAPH
-                        ShaderBlockSingle<ShaderViewSpace>.Instance.Data = viewSpaces[i];
-                        ShaderBlockSingle<ShaderViewSpace>.Instance.PushToGPU();
+                        // VIEW SPACE SETUP
+                        _viewSpaceBlock.Data = viewSpaces[i];
+                        _viewSpaceBlock.PushToGPU();
 
-                        foreach (var transformRelation in _renderGraph)
+                        // RENDER SHADOW CASTERS
+                        Renderer.UseShaderBlock(_viewSpaceBlock, Defaults.Shader.Program.Shadow);
+                        foreach (ref readonly var candidate in _renderCandidates.GetEntities())
                         {
-                            ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.Data = Renderer.CreatePrimitiveSpace(transformRelation.Key, viewSpaces[i]);
-                            ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.PushToGPU();
-
-                            foreach (var primitive in transformRelation.Value)
-                                Renderer.Draw(primitive);
+                            var candidatePrimitive = candidate.Get<PrimitiveComponent>();
+                            if (candidatePrimitive.IsShadowCaster)
+                            {
+                                Renderer.UseShaderBlock(candidatePrimitive.ShaderSpace, Defaults.Shader.Program.Shadow);
+                                Renderer.Draw(candidatePrimitive.Verticies);
+                            }
                         }
-
                     }
                 }
             }
 
-            // PUSH DATA TO GPU
-            _pointInfoBlock.Data = shaderInfo.Data;
-            _pointInfoBlock.PushToGPU();
+            shaderBlocks.PointLights.PushToGPU();
         }
 
         /// <summary>
@@ -153,17 +139,6 @@ namespace Framework.ECS.Systems.RenderPipeline
                 };
 
             return result;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected virtual void AddToGraph(TransformComponent transform, VertexPrimitiveAsset verticies)
-        {
-            if (!_renderGraph.ContainsKey(transform))
-                _renderGraph.Add(transform, new List<VertexPrimitiveAsset>());
-
-            _renderGraph[transform].Add(verticies);
         }
     }
 }

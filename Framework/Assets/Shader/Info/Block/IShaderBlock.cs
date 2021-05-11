@@ -5,6 +5,7 @@ namespace Framework
     public interface IShaderBlock
     {
         public int Handle { get; }
+        public bool IsGlobal { get; }
         public string Name { get; }
         public BufferRangeTarget Target { get; }
         public BufferUsageHint UsageHint { get; set; }

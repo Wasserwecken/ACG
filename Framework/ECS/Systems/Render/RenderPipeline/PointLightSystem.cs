@@ -2,6 +2,7 @@
 using DefaultEcs.System;
 using Framework.Assets.Shader.Block.Data;
 using Framework.ECS.Components.Light;
+using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
 using OpenTK.Mathematics;
 using System;
@@ -27,9 +28,9 @@ namespace Framework.ECS.Systems.RenderPipeline
         /// </summary>
         protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
-            ref var shaderInfo = ref _worldComponents.Get<PointLightCollectionComponent>();
+            ref var shaderBlocks = ref _worldComponents.Get<GlobalShaderBlocksComponent>();
 
-            shaderInfo.Data = new ShaderPointLight[entities.Length];
+            shaderBlocks.PointLights.Data = new ShaderPointLight[entities.Length];
             for (int i = 0; i < entities.Length; i++)
             {
                 var transform = entities[i].Get<TransformComponent>();
@@ -37,11 +38,13 @@ namespace Framework.ECS.Systems.RenderPipeline
 
                 entities[i].Get<PointLightComponent>().InfoId = i;
 
-                shaderInfo.Data[i].Color = new Vector4(lightConfig.Color, lightConfig.AmbientFactor);
-                shaderInfo.Data[i].Position = new Vector4(transform.Position, lightConfig.Range);
-                shaderInfo.Data[i].ShadowArea = Vector4.Zero;
-                shaderInfo.Data[i].ShadowStrength = Vector4.Zero;
+                shaderBlocks.PointLights.Data[i].Color = new Vector4(lightConfig.Color, lightConfig.AmbientFactor);
+                shaderBlocks.PointLights.Data[i].Position = new Vector4(transform.Position, lightConfig.Range);
+                shaderBlocks.PointLights.Data[i].ShadowArea = Vector4.Zero;
+                shaderBlocks.PointLights.Data[i].ShadowStrength = Vector4.Zero;
             }
+
+            shaderBlocks.PointLights.PushToGPU();
         }
     }
 }

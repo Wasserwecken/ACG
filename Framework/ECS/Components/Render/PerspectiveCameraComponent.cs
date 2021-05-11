@@ -1,16 +1,19 @@
 ﻿using OpenTK.Mathematics;
 using OpenTK.Graphics.OpenGL;
 using System.Diagnostics;
+using Framework.Assets.Shader.Block;
+using Framework.Assets.Shader.Block.Data;
 
 namespace Framework.ECS.Components.Render
 {
     [DebuggerDisplay("FieldOfView: {FieldOfView}, Clipping: {NearClipping} - {FarClipping}")]
     public struct PerspectiveCameraComponent
     {
-        public Vector4 ClearColor { get; set; }
-        public ClearBufferMask ClearMask { get; set; }
-        public float NearClipping { get; set; }
-        public float FarClipping { get; set; }
-        public float FieldOfView { get; set; }
+        public ShaderBlockSingle<ShaderViewSpace> ShaderViewSpace;
+        public Vector4 ClearColor;
+        public ClearBufferMask ClearMask;
+        public float NearClipping;
+        public float FarClipping;
+        public float FieldOfView;
     }
 }

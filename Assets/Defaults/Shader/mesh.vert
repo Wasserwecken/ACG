@@ -17,11 +17,7 @@ layout (std430) buffer ShaderTime {
 
 layout (std430) buffer ShaderPrimitiveSpace {
     mat4 LocalToWorld;
-    mat4 LocalToView;
-    mat4 LocalToProjection;
     mat4 LocalToWorldRotation;
-    mat4 LocalToViewRotation;
-    mat4 LocalToProjectionRotation;
 } _primitiveSpace;
 
 layout (std430) buffer ShaderViewSpace {
@@ -35,6 +31,14 @@ layout (std430) buffer ShaderViewSpace {
 } _viewSpace;
 
 // SHADER OUTPUT
+out VertexSpace
+{
+    mat4 LocalToView;
+    mat4 LocalToProjection;
+    mat4 LocalToViewRotation;
+    mat4 LocalToProjectionRotation;
+} _vertexSpace;
+
 out VertexPosition
 {
     vec4 PositionLocal;
@@ -74,20 +78,25 @@ void main(void)
     _vertexUV.UV1 = BufferUV1;
 
     _vertexColor.Color = BufferColor;
+    
+    _vertexSpace.LocalToView = _viewSpace.WorldToView * _primitiveSpace.LocalToWorld;
+    _vertexSpace.LocalToProjection = _viewSpace.WorldToProjection * _primitiveSpace.LocalToWorld;
+    _vertexSpace.LocalToViewRotation = _viewSpace.WorldToViewRotation * _primitiveSpace.LocalToWorld;
+    _vertexSpace.LocalToProjectionRotation = _viewSpace.WorldToProjectionRotation * _primitiveSpace.LocalToWorld;
 
     _vertexNormal.NormalLocal = BufferNormal;
     _vertexNormal.NormalWorld = mat3(_primitiveSpace.LocalToWorldRotation) * _vertexNormal.NormalLocal;
-    _vertexNormal.NormalView = mat3(_primitiveSpace.LocalToViewRotation) * _vertexNormal.NormalLocal;
+    _vertexNormal.NormalView = mat3(_vertexSpace.LocalToViewRotation) * _vertexNormal.NormalLocal;
 
     vec3 tangent = (BufferTangent * BufferTangent.w).xyz;
     vec3 bitangent = cross(BufferNormal, tangent);
     _vertexTangent.TangentSpaceLocal = mat3(tangent, bitangent, _vertexNormal.NormalLocal);
     _vertexTangent.TangentSpaceWorld = mat3(_primitiveSpace.LocalToWorldRotation) * _vertexTangent.TangentSpaceLocal;
-    _vertexTangent.TangentSpaceView = mat3(_primitiveSpace.LocalToViewRotation) * _vertexTangent.TangentSpaceLocal;
+    _vertexTangent.TangentSpaceView = mat3(_vertexSpace.LocalToViewRotation) * _vertexTangent.TangentSpaceLocal;
 
     _vertexPosition.PositionLocal = vec4(BufferVertex, 1.0);
     _vertexPosition.PositionWorld = _primitiveSpace.LocalToWorld * _vertexPosition.PositionLocal;
-    _vertexPosition.PositionView = _primitiveSpace.LocalToView * _vertexPosition.PositionLocal;
+    _vertexPosition.PositionView = _vertexSpace.LocalToView * _vertexPosition.PositionLocal;
 
-    gl_Position = _primitiveSpace.LocalToProjection * _vertexPosition.PositionLocal;
+    gl_Position = _vertexSpace.LocalToProjection * _vertexPosition.PositionLocal;
 }

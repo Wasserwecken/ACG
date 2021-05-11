@@ -6,9 +6,8 @@ using System.Diagnostics;
 namespace Framework.ECS.Components.Light
 {
     [DebuggerDisplay("Lights: {Data.Length}, BufferTextures: {ShadowBuffer.Textures.Count}, BufferSize: {ShadowBuffer.Width}, {ShadowBuffer.Height}")]
-    public struct DirectionalLightCollectionComponent
+    public struct DirectionalShadowBufferComponent
     {
-        public ShaderDirectionalLight[] Data;
         public FramebufferAsset ShadowBuffer;
         public TextureSpace ShadowSpacer;
     }

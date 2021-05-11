@@ -1,4 +1,5 @@
-﻿using Framework.Assets.Framebuffer;
+﻿using Framework;
+using Framework.Assets.Framebuffer;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Textures;
@@ -14,6 +15,7 @@ namespace ACG.Framework.Assets
         public static readonly List<ShaderProgramAsset> Shaders;
         public static readonly List<FramebufferAsset> Framebuffers;
         public static readonly List<VertexPrimitiveAsset> Primitives;
+        public static readonly List<IShaderBlock> ShaderBlocks;
 
         /// <summary>
         /// 
@@ -25,6 +27,7 @@ namespace ACG.Framework.Assets
             Shaders = new List<ShaderProgramAsset>();
             Framebuffers = new List<FramebufferAsset>();
             Primitives = new List<VertexPrimitiveAsset>();
+            ShaderBlocks = new List<IShaderBlock>();
         }
     }
 }

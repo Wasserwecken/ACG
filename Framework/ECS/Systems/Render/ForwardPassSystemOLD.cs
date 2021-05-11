@@ -23,17 +23,9 @@ namespace Framework.ECS.Systems.Render
     {
         private readonly Entity _worldComponents;
         private EntitySet _graphSet;
-
-        private readonly List<MaterialAsset> _materials;
-        private readonly List<TextureBaseAsset> _textures;
-        private readonly List<ShaderProgramAsset> _shaders;
-        private readonly List<TransformComponent> _transforms;
-        private readonly List<VertexPrimitiveAsset> _primitives;
-
         private readonly Dictionary<ShaderProgramAsset,
            Dictionary<MaterialAsset,
-               Dictionary<TransformComponent,
-                   List<VertexPrimitiveAsset>>>> _graph;
+                List<PrimitiveComponent>>> _graph;
 
         /// <summary>
         /// 
@@ -42,13 +34,7 @@ namespace Framework.ECS.Systems.Render
         {
             _worldComponents = worldComponents;
             _graphSet = World.GetEntities().With<TransformComponent>().With<PrimitiveComponent>().AsSet();
-
-            _materials = new List<MaterialAsset>();
-            _textures = new List<TextureBaseAsset>();
-            _shaders = new List<ShaderProgramAsset>();
-            _transforms = new List<TransformComponent>();
-            _primitives = new List<VertexPrimitiveAsset>();
-            _graph = new Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>>();
+            _graph = new Dictionary<ShaderProgramAsset, Dictionary<MaterialAsset, List<PrimitiveComponent>>>();
         }
 
         /// <summary>
@@ -57,40 +43,21 @@ namespace Framework.ECS.Systems.Render
         protected override void PreUpdate(bool state)
         {
             _graph.Clear();
-            _shaders.Clear();
-            _materials.Clear();
-            _transforms.Clear();
-            _primitives.Clear();
 
             foreach (var entity in _graphSet.GetEntities())
             {
                 var primitive = entity.Get<PrimitiveComponent>();
-                var transform = entity.Get<TransformComponent>();
 
                 var shader = primitive.Shader;
                 var material = primitive.Material;
-                var verticies = primitive.Primitive;
 
                 if (!_graph.ContainsKey(shader))
-                {
-                    _graph.Add(shader, new Dictionary<MaterialAsset, Dictionary<TransformComponent, List<VertexPrimitiveAsset>>>());
-                    _shaders.Add(shader);
-                }
+                    _graph.Add(shader, new Dictionary<MaterialAsset, List<PrimitiveComponent>>());
 
                 if (!_graph[shader].ContainsKey(material))
-                {
-                    _graph[shader].Add(material, new Dictionary<TransformComponent, List<VertexPrimitiveAsset>>());
-                    _materials.Add(material);
-                }
+                    _graph[shader].Add(material, new List<PrimitiveComponent>());
 
-                if (!_graph[shader][material].ContainsKey(transform))
-                {
-                    _graph[shader][material].Add(transform, new List<VertexPrimitiveAsset>());
-                    _transforms.Add(transform);
-                }
-
-                _graph[shader][material][transform].Add(verticies);
-                _primitives.Add(verticies);
+                _graph[shader][material].Add(primitive);
             }
         }
 
@@ -116,8 +83,10 @@ namespace Framework.ECS.Systems.Render
             GL.Viewport(0, 0, aspectRatio.Width, aspectRatio.Height);
             UseCamera(cameraData);
 
-            ShaderBlockSingle<ShaderViewSpace>.Instance.Data = CreateViewSpace(cameraTransform, projectionSpace);
-            ShaderBlockSingle<ShaderViewSpace>.Instance.PushToGPU();
+            if (cameraData.ShaderViewSpace == null)
+                cameraData.ShaderViewSpace = new ShaderBlockSingle<ShaderViewSpace>(false, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            cameraData.ShaderViewSpace.Data = CreateViewSpace(cameraTransform, projectionSpace);
+            cameraData.ShaderViewSpace.PushToGPU();
 
             foreach (var shaderRelation in _graph)
             {
@@ -129,13 +98,10 @@ namespace Framework.ECS.Systems.Render
                     UseMaterial(materialRelation.Key);
                     SetUniforms(materialRelation.Key, shaderRelation.Key);
 
-                    foreach (var transformRelation in materialRelation.Value)
+                    foreach (var primitive in materialRelation.Value)
                     {
-                        ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.Data = CreatePrimitiveSpace(transformRelation.Key, cameraTransform, projectionSpace);
-                        ShaderBlockSingle<ShaderPrimitiveSpace>.Instance.PushToGPU();
-
-                        foreach (var primitive in transformRelation.Value)
-                            Renderer.Draw(primitive);
+                        Renderer.UseShaderBlock(primitive.ShaderSpace, shaderRelation.Key);
+                        Renderer.Draw(primitive.Verticies);
                     }
                 }
             }
@@ -156,9 +122,9 @@ namespace Framework.ECS.Systems.Render
         private void UseShader(ShaderProgramAsset shader)
         {
             GL.UseProgram(shader.Handle);
-            foreach (var block in ShaderBlockRegister.Blocks)
-                if (shader.IdentifierToLayout.TryGetValue(block.Key, out var blockLayout))
-                    GL.BindBufferBase(block.Value.Target, blockLayout, block.Value.Handle);
+            foreach (var block in AssetRegister.ShaderBlocks)
+                if (shader.IdentifierToLayout.TryGetValue(block.Name, out var blockLayout))
+                    GL.BindBufferBase(block.Target, blockLayout, block.Handle);
         }
 
         /// <summary>
@@ -269,12 +235,7 @@ namespace Framework.ECS.Systems.Render
             return new ShaderPrimitiveSpace
             {
                 LocalToWorld = primitiveTransform.WorldSpace,
-                LocalToView = primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse,
-                LocalToProjection = primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse * projection,
-
                 LocalToWorldRotation = primitiveTransform.WorldSpace.ClearScale(),
-                LocalToViewRotation = (primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse).ClearScale().ClearTranslation(),
-                LocalToProjectionRotation = (primitiveTransform.WorldSpace * viewTransform.WorldSpaceInverse).ClearScale().ClearTranslation() * projection,
             };
         }
 

@@ -55,11 +55,7 @@ layout (std430) buffer ShaderTime {
 
 layout (std430) buffer ShaderPrimitiveSpace {
     mat4 LocalToWorld;
-    mat4 LocalToView;
-    mat4 LocalToProjection;
     mat4 LocalToWorldRotation;
-    mat4 LocalToViewRotation;
-    mat4 LocalToProjectionRotation;
 } _primitiveSpace;
 
 layout (std430) buffer ShaderViewSpace {
@@ -245,7 +241,7 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
     vec3 result = reflectionColor * baseColor * metalic;
     
     float shadowSampleSeed = ShadowHash(gl_FragCoord.xy);
-    int shadowSampleCount = 8;
+    int shadowSampleCount = 16;
     vec2 directionalShadowPixels = vec2(textureSize(DirectionalShadowMap, 0));
     vec2 pointShadowPixels = vec2(textureSize(PointShadowMap, 0));
     

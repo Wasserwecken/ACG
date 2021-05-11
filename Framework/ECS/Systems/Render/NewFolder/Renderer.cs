@@ -1,4 +1,5 @@
-﻿using Framework.Assets.Framebuffer;
+﻿using ACG.Framework.Assets;
+using Framework.Assets.Framebuffer;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Shader.Block.Data;
@@ -32,9 +33,19 @@ namespace Framework.ECS.Systems.Render
         public static void UseShader(ShaderProgramAsset shader)
         {
             GL.UseProgram(shader.Handle);
-            foreach (var block in ShaderBlockRegister.Blocks)
-                if (shader.IdentifierToLayout.TryGetValue(block.Key, out var blockLayout))
-                    GL.BindBufferBase(block.Value.Target, blockLayout, block.Value.Handle);
+
+            foreach (var block in AssetRegister.ShaderBlocks)
+                if (block.IsGlobal)
+                    UseShaderBlock(block, shader);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void UseShaderBlock(IShaderBlock block, ShaderProgramAsset shader)
+        {
+            if (shader.IdentifierToLayout.TryGetValue(block.Name, out var blockLayout))
+                GL.BindBufferBase(block.Target, blockLayout, block.Handle);
         }
 
         /// <summary>
@@ -106,24 +117,6 @@ namespace Framework.ECS.Systems.Render
                     GL.BindTexture(Defaults.Texture.White.Target, Defaults.Texture.White.Handle);
             }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public static ShaderPrimitiveSpace CreatePrimitiveSpace(TransformComponent primitiveTransform, ShaderViewSpace viewSpace)
-        {
-            return new ShaderPrimitiveSpace
-            {
-                LocalToWorld = primitiveTransform.WorldSpace,
-                LocalToView = primitiveTransform.WorldSpace * viewSpace.WorldToView,
-                LocalToProjection = primitiveTransform.WorldSpace * viewSpace.WorldToView * viewSpace.ViewProjection,
-
-                LocalToWorldRotation = primitiveTransform.WorldSpace.ClearScale(),
-                LocalToViewRotation = (primitiveTransform.WorldSpace * viewSpace.WorldToView).ClearScale().ClearTranslation(),
-                LocalToProjectionRotation = (primitiveTransform.WorldSpace * viewSpace.WorldToView).ClearScale().ClearTranslation() * viewSpace.ViewProjection,
-            };
-        }
-
 
         /// <summary>
         /// 

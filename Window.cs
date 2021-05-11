@@ -1,10 +1,13 @@
-﻿using DefaultEcs;
+﻿using ACG.Framework.ECS.Systems.Hierarchy;
+using DefaultEcs;
 using DefaultEcs.System;
 using Framework;
 using Framework.Assets.Framebuffer;
+using Framework.Assets.Shader.Block;
 using Framework.Assets.Shader.Block.Data;
 using Framework.Assets.Textures;
 using Framework.ECS.Components.Light;
+using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2;
@@ -51,14 +54,20 @@ namespace Window
             _sceneComponents.Set(new TimeComponent());
             _sceneComponents.Set(new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState });
             _sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
-            _sceneComponents.Set(new DirectionalLightCollectionComponent()
+            _sceneComponents.Set(new GlobalShaderBlocksComponent()
             {
-                Data = new ShaderDirectionalLight[0],
-                ShadowSpacer = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
+                DirectionalLights = new ShaderBlockArray<ShaderDirectionalLight>(true, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw),
+                PointLights = new ShaderBlockArray<ShaderPointLight>(true, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw),
+                SpotLights = new ShaderBlockArray<ShaderSpotLight>(true, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw),
+                Time = new ShaderBlockSingle<ShaderTime>(true, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw)
+            });
+            _sceneComponents.Set(new DirectionalShadowBufferComponent()
+            {
+                ShadowSpacer = new TextureSpace(8192, new Vector3(0f, 0f, 1f)),
                 ShadowBuffer = new FramebufferAsset("DirectionalShadowPass")
                 {
-                    Width = 4096,
-                    Height = 4096,
+                    Width = 8192,
+                    Height = 8192,
 
                     DrawMode = DrawBufferMode.None,
                     ReadMode = ReadBufferMode.None,
@@ -68,8 +77,8 @@ namespace Window
                         new TextureRenderAsset("DirectionalShadowMap")
                         {
                             Attachment = FramebufferAttachment.DepthAttachment,
-                            Width = 4096,
-                            Height = 4096,
+                            Width = 8192,
+                            Height = 8192,
 
                             InternalFormat = PixelInternalFormat.DepthComponent,
                             Format = PixelFormat.DepthComponent,
@@ -78,14 +87,13 @@ namespace Window
                     }
                 }
             });
-            _sceneComponents.Set(new PointLightCollectionComponent()
+            _sceneComponents.Set(new PointLightBufferComponent()
             {
-                Data = new ShaderPointLight[0],
-                ShadowSpacer = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
+                ShadowSpacer = new TextureSpace(8192, new Vector3(0f, 0f, 1f)),
                 ShadowBuffer = new FramebufferAsset("PointShadowPass")
                 {
-                    Width = 4096,
-                    Height = 4096,
+                    Width = 8192,
+                    Height = 8192,
 
                     DrawMode = DrawBufferMode.None,
                     ReadMode = ReadBufferMode.None,
@@ -95,8 +103,8 @@ namespace Window
                         new TextureRenderAsset("PointShadowMap")
                         {
                             Attachment = FramebufferAttachment.DepthAttachment,
-                            Width = 4096,
-                            Height = 4096,
+                            Width = 8192,
+                            Height = 8192,
 
                             InternalFormat = PixelInternalFormat.DepthComponent,
                             Format = PixelFormat.DepthComponent,
@@ -117,6 +125,7 @@ namespace Window
 
                 new EntityHierarchySystem(_scene, _sceneComponents),
                 new TransformHierarchySystem(_scene, _sceneComponents),
+                new PrimitiveSpaceSystem(_scene, _sceneComponents),
 
                 new CameraControllerSystem(_scene, _sceneComponents),
                 new TransformRotatorSystem(_scene, _sceneComponents)
@@ -131,8 +140,8 @@ namespace Window
                 new PointLightSystem(_scene, _sceneComponents),
                 new PointShadowPassSystem(_scene, _sceneComponents),
 
-                new ForwardPassSystemOLD(_scene, _sceneComponents)
-                //new FrameBufferDebugSystem(_scene, _sceneComponents)
+                new ForwardPassSystemOLD(_scene, _sceneComponents),
+                new FrameBufferDebugSystem(_scene, _sceneComponents)
             );
         }
 
@@ -155,7 +164,7 @@ namespace Window
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
-            sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
+            sunEntity.Set(new DirectionalShadowComponent() { Resolution = 4096, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
             //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var rand = new Random();
@@ -168,7 +177,7 @@ namespace Window
                 pointLight.Set(new TransformComponent(position * 8.0f));
                 //pointLight.Set(new TransformComponent(new Vector3(0f, 2f, 0f)));
                 pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f) * 2, AmbientFactor = 0.001f, Range = 8f });
-                pointLight.Set(new PointShadowComponent() { Resolution = 512, Strength = 1f, NearClipping = 0.01f });
+                pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 0.01f });
             }
         }
 
