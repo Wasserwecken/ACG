@@ -84,13 +84,21 @@ namespace Framework.ECS.Systems.Render
             UseCamera(cameraData);
 
             if (cameraData.ShaderViewSpace == null)
-                cameraData.ShaderViewSpace = new ShaderBlockSingle<ShaderViewSpace>(false, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
-            cameraData.ShaderViewSpace.Data = CreateViewSpace(cameraTransform, projectionSpace);
-            cameraData.ShaderViewSpace.PushToGPU();
+                cameraData.ShaderViewSpace = new ShaderViewSpaceBlock();
+
+            cameraData.ShaderViewSpace.WorldToView = cameraTransform.WorldSpaceInverse;
+            cameraData.ShaderViewSpace.WorldToProjection = cameraTransform.WorldSpaceInverse * projectionSpace;
+            cameraData.ShaderViewSpace.WorldToViewRotation = cameraTransform.WorldSpaceInverse.ClearScale().ClearTranslation();
+            cameraData.ShaderViewSpace.WorldToProjectionRotation = cameraTransform.WorldSpaceInverse.ClearScale().ClearTranslation() * projectionSpace;
+            cameraData.ShaderViewSpace.ViewPosition = new Vector4(cameraTransform.Position, 1);
+            cameraData.ShaderViewSpace.ViewDirection = new Vector4(-cameraTransform.Forward, 0);
+
+            GPUSync.Push(cameraData.ShaderViewSpace);
 
             foreach (var shaderRelation in _graph)
             {
                 UseShader(shaderRelation.Key);
+                Renderer.UseShaderBlock(cameraData.ShaderViewSpace, shaderRelation.Key);
 
                 foreach (var materialRelation in shaderRelation.Value)
                 {
@@ -100,7 +108,7 @@ namespace Framework.ECS.Systems.Render
 
                     foreach (var primitive in materialRelation.Value)
                     {
-                        Renderer.UseShaderBlock(primitive.ShaderSpace, shaderRelation.Key);
+                        Renderer.UseShaderBlock(primitive.ShaderSpaceBlock, shaderRelation.Key);
                         Renderer.Draw(primitive.Verticies);
                     }
                 }
@@ -122,10 +130,6 @@ namespace Framework.ECS.Systems.Render
         private void UseShader(ShaderProgramAsset shader)
         {
             GL.UseProgram(shader.Handle);
-            foreach (var block in AssetRegister.ShaderBlocks)
-                if (shader.IdentifierToLayout.TryGetValue(block.Name, out var blockLayout))
-                    GL.BindBufferBase(block.Target, blockLayout, block.Handle);
-
             foreach (var binding in shader.BlockBindings.Values)
                 GL.BindBufferBase(binding.Target, binding.Layout, binding.Handle);
         }
@@ -215,27 +219,9 @@ namespace Framework.ECS.Systems.Render
         /// <summary>
         /// 
         /// </summary>
-        private ShaderViewSpace CreateViewSpace(TransformComponent transform, Matrix4 projection)
+        private ShaderPrimitiveSpaceBlock CreatePrimitiveSpace(TransformComponent primitiveTransform, TransformComponent viewTransform, Matrix4 projection)
         {
-            return new ShaderViewSpace
-            {
-                WorldToView = transform.WorldSpaceInverse,
-                WorldToProjection = transform.WorldSpaceInverse * projection,
-
-                WorldToViewRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation(),
-                WorldToProjectionRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation() * projection,
-
-                ViewPosition = new Vector4(transform.Position, 1),
-                ViewDirection = new Vector4(-transform.Forward, 0)
-            };
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private ShaderPrimitiveSpace CreatePrimitiveSpace(TransformComponent primitiveTransform, TransformComponent viewTransform, Matrix4 projection)
-        {
-            return new ShaderPrimitiveSpace
+            return new ShaderPrimitiveSpaceBlock
             {
                 LocalToWorld = primitiveTransform.WorldSpace,
                 LocalToWorldRotation = primitiveTransform.WorldSpace.ClearScale(),

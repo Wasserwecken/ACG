@@ -41,10 +41,10 @@ namespace Framework.ECS.Systems.Render
         /// <summary>
         /// 
         /// </summary>
-        public static void UseShaderBlock(IShaderBlock block, ShaderProgramAsset shader)
+        public static void UseShaderBlock(ShaderBlockBase block, ShaderProgramAsset shader)
         {
-            if (shader.IdentifierToLayout.TryGetValue(block.Name, out var blockLayout))
-                GL.BindBufferBase(block.Target, blockLayout, block.Handle);
+            if (shader.IdentifierToLayout.TryGetValue(block.Name, out var layout))
+                GL.BindBufferBase(block.Target, layout, block.Handle);
         }
 
         /// <summary>

@@ -23,6 +23,22 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
+        public static Matrix4[] CreateCubeOrientations(Vector3 position)
+        {
+            return new Matrix4[]
+            {
+                Matrix4.LookAt(position, position + Vector3.UnitZ, Vector3.UnitY),
+                Matrix4.LookAt(position, position + Vector3.UnitY, Vector3.UnitX),
+                Matrix4.LookAt(position, position + Vector3.UnitX, Vector3.UnitY),
+                Matrix4.LookAt(position, position + -Vector3.UnitZ, Vector3.UnitY),
+                Matrix4.LookAt(position, position + -Vector3.UnitY, -Vector3.UnitX),
+                Matrix4.LookAt(position, position + -Vector3.UnitX, Vector3.UnitY)
+            };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public static Vector2[] VogelDisk(int count, float phi)
         {
             var result = new Vector2[count];

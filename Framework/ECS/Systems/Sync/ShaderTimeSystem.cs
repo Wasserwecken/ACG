@@ -42,7 +42,7 @@ namespace Framework.ECS.Systems.Sync
             GPUSync.Push(_block);
             
             foreach (var shader in AssetRegister.Shaders)
-                shader.SetBlockBinding(_block.Name, _block.Handle, _block.Target);
+                shader.SetBlockBinding(_block);
         }
     }
 }

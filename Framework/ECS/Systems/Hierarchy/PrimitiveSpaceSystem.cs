@@ -4,7 +4,9 @@ using Framework.Assets.Shader.Block;
 using Framework.Assets.Shader.Block.Data;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
+using Framework.ECS.Systems.Render;
 using OpenTK.Graphics.OpenGL;
+using System;
 
 namespace ACG.Framework.ECS.Systems.Hierarchy
 {
@@ -12,10 +14,16 @@ namespace ACG.Framework.ECS.Systems.Hierarchy
     [With(typeof(PrimitiveComponent))]
     public class PrimitiveSpaceSystem : AEntitySetSystem<bool>
     {
+        private readonly Entity _worldComponents;
+
+
         /// <summary>
         /// 
         /// </summary>
-        public PrimitiveSpaceSystem(World world, Entity worldComponents) : base(world) { }
+        public PrimitiveSpaceSystem(World world, Entity worldComponents) : base(world)
+        {
+            _worldComponents = worldComponents;
+        }
 
         /// <summary>
         /// 
@@ -25,15 +33,13 @@ namespace ACG.Framework.ECS.Systems.Hierarchy
             ref var transform = ref entity.Get<TransformComponent>();
             ref var primitive = ref entity.Get<PrimitiveComponent>();
 
-            if (primitive.ShaderSpace == null)
-                primitive.ShaderSpace = new ShaderBlockSingle<ShaderPrimitiveSpace>(false, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
+            if (primitive.ShaderSpaceBlock == null)
+                primitive.ShaderSpaceBlock = new ShaderPrimitiveSpaceBlock();
 
-            primitive.ShaderSpace.Data = new ShaderPrimitiveSpace
-            {
-                LocalToWorld = transform.WorldSpace,
-                LocalToWorldRotation = transform.WorldSpace.ClearScale()
-            };
-            primitive.ShaderSpace.PushToGPU();
+            primitive.ShaderSpaceBlock.LocalToWorld = transform.WorldSpace;
+            primitive.ShaderSpaceBlock.LocalToWorldRotation = transform.WorldSpace.ClearScale();
+
+            GPUSync.Push(primitive.ShaderSpaceBlock);
         }
     }
 }

@@ -56,11 +56,6 @@ namespace Window
             _sceneComponents.Set(new TimeComponent());
             _sceneComponents.Set(new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState });
             _sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
-            _sceneComponents.Set(new GlobalShaderBlocksComponent()
-            {
-                PointLights = new ShaderBlockArray<ShaderPointLight>(true, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw),
-                SpotLights = new ShaderBlockArray<ShaderSpotLight>(true, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw)
-            });
             _sceneComponents.Set(new DirectionalShadowBufferComponent()
             {
                 ShadowSpacer = new TextureSpace(8192, new Vector3(0f, 0f, 1f)),
@@ -161,11 +156,13 @@ namespace Window
             var cameraEntity = Defaults.Entities.Camera(_scene);
             cameraEntity.Set(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
 
+
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 4096, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
             //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
+
 
             var rand = new Random();
             int pointLightCount = 3;

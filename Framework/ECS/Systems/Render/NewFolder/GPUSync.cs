@@ -13,18 +13,6 @@ namespace Framework.ECS.Systems.Render
 {
     public static class GPUSync
     {
-        private static readonly MemoryStream _stream;
-        private static readonly BinaryWriter _writer;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        static GPUSync()
-        {
-            _stream = new MemoryStream();
-            _writer = new BinaryWriter(_stream);
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -33,9 +21,7 @@ namespace Framework.ECS.Systems.Render
             if (shaderBlock.Handle < 0)
                 shaderBlock.Handle = GL.GenBuffer();
 
-            _stream.Position = 0;
-            shaderBlock.WriteBytes(_writer);
-            var bytes = _stream.ToArray();
+            var bytes = shaderBlock.GetBytes();
 
             GL.BindBuffer((BufferTarget)shaderBlock.Target, shaderBlock.Handle);
             GL.BufferData((BufferTarget)shaderBlock.Target, bytes.Length, bytes, shaderBlock.UsageHint);

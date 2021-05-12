@@ -11,7 +11,7 @@ namespace Framework.Assets.Shader.Block.Data
         /// <summary>
         /// 
         /// </summary>
-        public override void WriteBytes(BinaryWriter writer)
+        protected override void WriteBytes(BinaryWriter writer)
         {
             writer.Write(Time.Total);
             writer.Write(Time.TotalSin);

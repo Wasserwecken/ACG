@@ -9,7 +9,7 @@ namespace Framework.ECS.Components.Render
     [DebuggerDisplay("FieldOfView: {FieldOfView}, Clipping: {NearClipping} - {FarClipping}")]
     public struct PerspectiveCameraComponent
     {
-        public ShaderBlockSingle<ShaderViewSpace> ShaderViewSpace;
+        public ShaderViewSpaceBlock ShaderViewSpace;
         public Vector4 ClearColor;
         public ClearBufferMask ClearMask;
         public float NearClipping;

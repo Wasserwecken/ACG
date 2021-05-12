@@ -15,12 +15,12 @@ layout (std430) buffer ShaderTimeBlock {
     float Fixed;
 } _time;
 
-layout (std430) buffer ShaderPrimitiveSpace {
+layout (std430) buffer ShaderPrimitiveSpaceBlock {
     mat4 LocalToWorld;
     mat4 LocalToWorldRotation;
 } _primitiveSpace;
 
-layout (std430) buffer ShaderViewSpace {
+layout (std430) buffer ShaderViewSpaceBlock {
     mat4 WorldToView;
     mat4 WorldToProjection;
     mat4 WorldToViewRotation;

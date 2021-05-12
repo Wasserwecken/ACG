@@ -20,9 +20,16 @@ namespace Framework.Assets.Shader
         [DebuggerDisplay("Target: {Target}, Layout: {Layout}, Handle: {Handle}")]
         public struct BlockBinding
         {
-            public BufferRangeTarget Target;
             public int Layout;
             public int Handle;
+            public BufferRangeTarget Target;
+
+            public BlockBinding(int layout, ShaderBlockBase block)
+            {
+                Layout = layout;
+                Handle = block.Handle;
+                Target = block.Target;
+            }
         }
 
         public int Handle;
@@ -53,13 +60,13 @@ namespace Framework.Assets.Shader
         /// <summary>
         /// 
         /// </summary>
-        public void SetBlockBinding(string name, int handle, BufferRangeTarget target)
+        public void SetBlockBinding(ShaderBlockBase block)
         {
-            if (IdentifierToLayout.TryGetValue(name, out var layout))
-                if (BlockBindings.ContainsKey(name))
-                    BlockBindings[name] = new BlockBinding() { Target = target, Handle = handle, Layout = layout };
+            if (IdentifierToLayout.TryGetValue(block.Name, out var layout))
+                if (BlockBindings.ContainsKey(block.Name))
+                    BlockBindings[block.Name] = new BlockBinding(layout, block);
                 else
-                    BlockBindings.Add(name, new BlockBinding() { Target = target, Handle = handle, Layout = layout });
+                    BlockBindings.Add(block.Name, new BlockBinding(layout, block));
         }
 
         /// <summary>

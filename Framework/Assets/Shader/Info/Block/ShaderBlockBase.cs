@@ -11,6 +11,9 @@ namespace Framework
         public BufferRangeTarget Target { get; set; }
         public BufferUsageHint UsageHint { get; set; }
 
+        private readonly MemoryStream _stream;
+        private readonly BinaryWriter _writer;
+
 
         /// <summary>
         /// 
@@ -21,11 +24,24 @@ namespace Framework
             Name = GetType().Name;
             Target = BufferRangeTarget.ShaderStorageBuffer;
             UsageHint = BufferUsageHint.DynamicDraw;
+
+            _stream = new MemoryStream();
+            _writer = new BinaryWriter(_stream);
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public abstract void WriteBytes(BinaryWriter writer);
+        public byte[] GetBytes()
+        {
+            _stream.Position = 0;
+            WriteBytes(_writer);
+            return _stream.ToArray();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected abstract void WriteBytes(BinaryWriter writer);
     }
 }

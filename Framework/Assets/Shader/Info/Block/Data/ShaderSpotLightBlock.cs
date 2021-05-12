@@ -1,22 +1,19 @@
-﻿using Framework.ECS.Components.Light;
-using Framework.Extensions;
+﻿using Framework.Extensions;
 using OpenTK.Mathematics;
-using System.Diagnostics;
 using System.IO;
 
 namespace Framework.Assets.Shader.Block.Data
 {
-    public class ShaderDirectionalLightBlock : ShaderBlockBase
+    public class ShaderSpotLightBlock : ShaderBlockBase
     {
-        [DebuggerDisplay("Color: {Color}, Direction: {Direction}")]
-        public struct ShaderDirectionalLight
+        public struct ShaderSpotLight
         {
             public Vector4 Color;
+            public Vector4 Position;
             public Vector4 Direction;
         }
 
-        public ShaderDirectionalLight[] Lights;
-
+        public ShaderSpotLight[] Lights;
 
         /// <summary>
         /// 
@@ -26,6 +23,7 @@ namespace Framework.Assets.Shader.Block.Data
             foreach(var light in Lights)
             {
                 writer.Write(light.Color);
+                writer.Write(light.Position);
                 writer.Write(light.Direction);
             }
         }

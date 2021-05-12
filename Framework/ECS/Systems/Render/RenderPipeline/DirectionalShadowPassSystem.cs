@@ -21,7 +21,7 @@ namespace Framework.ECS.Systems.RenderPipeline
     {
         private readonly Entity _worldComponents;
         protected readonly EntitySet _renderCandidates;
-        protected readonly ShaderDirectionalShadowBlock _block;
+        protected readonly ShaderDirectionalShadowBlock _shadowBlock;
 
         /// <summary>
         /// 
@@ -29,7 +29,7 @@ namespace Framework.ECS.Systems.RenderPipeline
         public DirectionalShadowPassSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
-            _block = new ShaderDirectionalShadowBlock();
+            _shadowBlock = new ShaderDirectionalShadowBlock();
             _renderCandidates = World.GetEntities()
                 .With<TransformComponent>()
                 .With<PrimitiveComponent>()
@@ -42,7 +42,7 @@ namespace Framework.ECS.Systems.RenderPipeline
         protected override void PreUpdate(bool state)
         {
             var lightCount = World.GetEntities().With<TransformComponent>().With<DirectionalLightComponent>().AsSet().Count;
-            _block.Shadows = new ShaderDirectionalShadowBlock.ShaderDirectionalShadow[lightCount];
+            _shadowBlock.Shadows = new ShaderDirectionalShadowBlock.ShaderDirectionalShadow[lightCount];
         }
 
         /// <summary>
@@ -72,16 +72,27 @@ namespace Framework.ECS.Systems.RenderPipeline
                 if (shadowConfig.Strength > float.Epsilon)
                 {
                     // VIEW SPACE SETUP
-                    if (shadowConfig.ShaderViewSpace == null)
-                        shadowConfig.ShaderViewSpace = new ShaderBlockSingle<ShaderViewSpace>(false, BufferRangeTarget.ShaderStorageBuffer, BufferUsageHint.DynamicDraw);
-                    shadowConfig.ShaderViewSpace.Data = CreateViewSpace(shadowConfig, transform);
-                    shadowConfig.ShaderViewSpace.PushToGPU();
+                    if (shadowConfig.ViewSpaceBlock == null)
+                        shadowConfig.ViewSpaceBlock = new ShaderViewSpaceBlock();
+
+                    var projection = Matrix4.CreateOrthographic(shadowConfig.Width, shadowConfig.Width, shadowConfig.NearClipping, shadowConfig.FarClipping);
+                    transform.Forward = -transform.Forward;
+
+                    shadowConfig.ViewSpaceBlock.WorldToView = transform.WorldSpaceInverse;
+                    shadowConfig.ViewSpaceBlock.WorldToProjection = transform.WorldSpaceInverse * projection;
+                    shadowConfig.ViewSpaceBlock.WorldToViewRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation();
+                    shadowConfig.ViewSpaceBlock.WorldToProjectionRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation() * projection;
+                    shadowConfig.ViewSpaceBlock.ViewPosition = new Vector4(transform.Position, 1);
+                    shadowConfig.ViewSpaceBlock.ViewDirection = new Vector4(-transform.Forward, 0);
+                    shadowConfig.ViewSpaceBlock.ViewProjection = projection;
+                    GPUSync.Push(shadowConfig.ViewSpaceBlock);
+                    Renderer.UseShaderBlock(shadowConfig.ViewSpaceBlock, Defaults.Shader.Program.Shadow);
 
                     // SHADOW DATA
                     shaderInfo.ShadowSpacer.Add(shadowConfig.Resolution, out var shadowMapSpace);
-                    _block.Shadows[lightConfig.InfoId].Area = new Vector4(shadowMapSpace, shadowMapSpace.Z);
-                    _block.Shadows[lightConfig.InfoId].Space = shadowConfig.ShaderViewSpace.Data.WorldToProjection;
-                    _block.Shadows[lightConfig.InfoId].Strength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, shadowConfig.FarClipping, shadowConfig.Width);
+                    _shadowBlock.Shadows[lightConfig.InfoId].Strength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, shadowConfig.FarClipping, shadowConfig.Width);
+                    _shadowBlock.Shadows[lightConfig.InfoId].Area = new Vector4(shadowMapSpace, shadowMapSpace.Z);
+                    _shadowBlock.Shadows[lightConfig.InfoId].Space = shadowConfig.ViewSpaceBlock.WorldToProjection;
 
                     // VIEWPORT PREPERATION
                     var viewPort = shadowMapSpace * new Vector3(
@@ -91,14 +102,13 @@ namespace Framework.ECS.Systems.RenderPipeline
                     GL.Viewport((int)viewPort.X, (int)viewPort.Y, (int)viewPort.Z, (int)viewPort.Z);
 
                     // RENDER SHADOW CASTERS
-                    Renderer.UseShaderBlock(shadowConfig.ShaderViewSpace, Defaults.Shader.Program.Shadow);
                     foreach (ref readonly var candidate in _renderCandidates.GetEntities())
                     {
-                        var candidatePrimitive = candidate.Get<PrimitiveComponent>();
-                        if (candidatePrimitive.IsShadowCaster)
+                        var primitive = candidate.Get<PrimitiveComponent>();
+                        if (primitive.IsShadowCaster)
                         {
-                            Renderer.UseShaderBlock(candidatePrimitive.ShaderSpace, Defaults.Shader.Program.Shadow);
-                            Renderer.Draw(candidatePrimitive.Verticies);
+                            Renderer.UseShaderBlock(primitive.ShaderSpaceBlock, Defaults.Shader.Program.Shadow);
+                            Renderer.Draw(primitive.Verticies);
                         }
                     }
                 }
@@ -110,32 +120,10 @@ namespace Framework.ECS.Systems.RenderPipeline
         /// </summary>
         protected override void PostUpdate(bool state)
         {
-            GPUSync.Push(_block);
+            GPUSync.Push(_shadowBlock);
 
             foreach (var shader in AssetRegister.Shaders)
-                shader.SetBlockBinding(_block.Name, _block.Handle, _block.Target);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private ShaderViewSpace CreateViewSpace(DirectionalShadowComponent shadowConfig, TransformComponent transform)
-        {
-            var projection = Matrix4.CreateOrthographic(shadowConfig.Width, shadowConfig.Width, shadowConfig.NearClipping, shadowConfig.FarClipping);
-            transform.Forward = -transform.Forward;
-
-            return new ShaderViewSpace
-            {
-                WorldToView = transform.WorldSpaceInverse,
-                WorldToProjection = transform.WorldSpaceInverse * projection,
-
-                WorldToViewRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation(),
-                WorldToProjectionRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation() * projection,
-
-                ViewPosition = new Vector4(transform.Position, 1),
-                ViewDirection = new Vector4(-transform.Forward, 0),
-                ViewProjection = projection
-            };
+                shader.SetBlockBinding(_shadowBlock);
         }
     }
 }

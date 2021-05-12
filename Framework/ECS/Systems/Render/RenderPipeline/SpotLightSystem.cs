@@ -1,11 +1,10 @@
-﻿using DefaultEcs;
+﻿using ACG.Framework.Assets;
+using DefaultEcs;
 using DefaultEcs.System;
-using Framework.Assets.Shader.Block;
 using Framework.Assets.Shader.Block.Data;
 using Framework.ECS.Components.Light;
-using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
-using OpenTK.Graphics.OpenGL;
+using Framework.ECS.Systems.Render;
 using OpenTK.Mathematics;
 using System;
 
@@ -16,6 +15,7 @@ namespace Framework.ECS.Systems.RenderPipeline
     public class SpotLightSystem : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
+        private readonly ShaderSpotLightBlock _block;
 
         /// <summary>
         /// 
@@ -23,6 +23,7 @@ namespace Framework.ECS.Systems.RenderPipeline
         public SpotLightSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
+            _block = new ShaderSpotLightBlock();
         }
 
         /// <summary>
@@ -30,9 +31,7 @@ namespace Framework.ECS.Systems.RenderPipeline
         /// </summary>
         protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
-            ref var shaderBlocks = ref _worldComponents.Get<GlobalShaderBlocksComponent>();
-
-            shaderBlocks.SpotLights.Data = new ShaderSpotLight[entities.Length];
+            _block.Lights = new ShaderSpotLightBlock.ShaderSpotLight[entities.Length];
             for (int i = 0; i < entities.Length; i++)
             {
                 var transform = entities[i].Get<TransformComponent>();
@@ -40,10 +39,21 @@ namespace Framework.ECS.Systems.RenderPipeline
 
                 entities[i].Get<SpotLightComponent>().InfoId = i;
 
-                shaderBlocks.SpotLights.Data[i].Color = new Vector4(lightConfig.Color, lightConfig.AmbientFactor);
-                shaderBlocks.SpotLights.Data[i].Position = new Vector4(transform.Position, MathF.Cos(lightConfig.OuterAngle));
-                shaderBlocks.SpotLights.Data[i].Direction = new Vector4(-transform.Forward, MathF.Cos(lightConfig.InnerAngle));
+                _block.Lights[i].Color = new Vector4(lightConfig.Color, lightConfig.AmbientFactor);
+                _block.Lights[i].Position = new Vector4(transform.Position, MathF.Cos(lightConfig.OuterAngle));
+                _block.Lights[i].Direction = new Vector4(-transform.Forward, MathF.Cos(lightConfig.InnerAngle));
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        protected override void PostUpdate(bool state)
+        {
+            GPUSync.Push(_block);
+
+            foreach (var shader in AssetRegister.Shaders)
+                shader.SetBlockBinding(_block);
         }
     }
 }

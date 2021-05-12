@@ -77,25 +77,41 @@ struct DirectionalLight
 {
     vec4 Color;
     vec4 Direction;
-    vec4 ShadowArea;
-    mat4 ShadowSpace;
-    vec4 ShadowStrength;
+};
+
+struct DirectionalShadow
+{
+    vec4 Strength;
+    vec4 Area;
+    mat4 Space;
 };
 
 layout (std430) buffer ShaderDirectionalLightBlock {
     DirectionalLight _directionalLights[];
 };
 
+layout (std430) buffer ShaderDirectionalShadowBlock {
+    DirectionalShadow _directionalShadows[];
+};
+
 struct PointLight
 {
     vec4 Color;
     vec4 Position;
-    vec4 ShadowArea;
-    vec4 ShadowStrength;
 };
 
-layout (std430) buffer ShaderPointLight {
+struct PointShadow
+{
+    vec4 Strength;
+    vec4 Area;
+};
+
+layout (std430) buffer ShaderPointLightBlock {
     PointLight _pointLights[];
+};
+
+layout (std430) buffer ShaderPointShadowBlock {
+    PointShadow _pointShadows[];
 };
 
 struct SpotLight
@@ -105,7 +121,7 @@ struct SpotLight
  vec4 Direction;
 };
 
-layout (std430) buffer ShaderSpotLight {
+layout (std430) buffer ShaderSpotLightBlock {
     SpotLight _spotLights[];
 };
 
@@ -252,14 +268,14 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
         vec3 halfwayDirection = normalize(lightDirection + viewDirection);
         vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor);
 
-        if (_directionalLights[i].ShadowStrength.x > 0.001)
+        if (_directionalShadows[i].Strength.x > 0.001)
         {
-            float shadowWidth = _directionalLights[i].ShadowStrength.w;
-            vec2 shadowClipping = _directionalLights[i].ShadowStrength.yz;
-            vec2 shadowAtlasStart = _directionalLights[i].ShadowArea.xy;
-            vec2 shadowAtlasSize = _directionalLights[i].ShadowArea.zw;
+            float shadowWidth = _directionalShadows[i].Strength.w;
+            vec2 shadowClipping = _directionalShadows[i].Strength.yz;
+            vec2 shadowAtlasStart = _directionalShadows[i].Area.xy;
+            vec2 shadowAtlasSize = _directionalShadows[i].Area.zw;
 
-            vec4 shadowWorldPosition = _directionalLights[i].ShadowSpace * _vertexPosition.PositionWorld;
+            vec4 shadowWorldPosition = _directionalShadows[i].Space * _vertexPosition.PositionWorld;
             vec3 shadowScreenPosition = (shadowWorldPosition.xyz / shadowWorldPosition.w) * 0.5 + 0.5;
             float shadowBias = 0.003 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0)) + 0.001;
             float penumbra = 0.1 * (shadowWidth / directionalShadowPixels.x);
@@ -290,11 +306,11 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
 
         vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuation;
 
-        if (_pointLights[i].ShadowStrength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
+        if (_pointShadows[i].Strength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
         {
-            vec2 shadowClipping = vec2(_pointLights[i].ShadowStrength.y, _pointLights[i].Position.w);
-            vec2 shadowAtlasStart = _pointLights[i].ShadowArea.xy;
-            vec2 shadowAtlasSize = _pointLights[i].ShadowArea.wz;
+            vec2 shadowClipping = vec2(_pointShadows[i].Strength.y, _pointLights[i].Position.w);
+            vec2 shadowAtlasStart = _pointShadows[i].Area.xy;
+            vec2 shadowAtlasSize = _pointShadows[i].Area.wz;
 
             float shadowBias = 0.2 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0)) + 0.01;
             float penumbra = 0.01 * lightDistance;
