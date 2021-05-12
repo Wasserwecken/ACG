@@ -11,6 +11,42 @@ const float PI2 = 6.28318530718;
 const float RADTODEG = 57.295779513;
 const float DEGTORAD = 0.01745329252;
 
+const vec2 VogelDiskPoints[32] = vec2[32]
+(
+    vec2(+0.125000000, +0.000000000),
+    vec2(-0.159645036, +0.146247968),
+    vec2(+0.024436183, -0.278438270),
+    vec2(+0.201222390, +0.262458682),
+    vec2(-0.369267583, -0.065318100),
+    vec2(+0.349802434, -0.222515762),
+    vec2(-0.117001638, +0.435242027),
+    vec2(-0.223136023, -0.429633945),
+    vec2(+0.484115213, +0.176797718),
+    vec2(-0.503641009, +0.207896024),
+    vec2(+0.242788091, -0.518824577),
+    vec2(+0.179414541, +0.572001278),
+    vec2(-0.540757656, -0.313378632),
+    vec2(+0.634369314, -0.139465556),
+    vec2(-0.387144893, +0.550675809),
+    vec2(-0.089440741, -0.690199494),
+    vec2(+0.549072444, +0.462757528),
+    vec2(-0.738878369, +0.030555887),
+    vec2(+0.538954556, -0.536332965),
+    vec2(-0.036057420, +0.779791534),
+    vec2(-0.512818038, -0.614526451),
+    vec2(+0.812359691, +0.109301291),
+    vec2(-0.688310385, +0.478908986),
+    vec2(+0.188085750, -0.836061537),
+    vec2(+0.435036361, +0.759189367),
+    vec2(-0.850449383, -0.271312892),
+    vec2(+0.826101065, -0.381683379),
+    vec2(-0.357885152, +0.855156898),
+    vec2(-0.319410414, -0.888032675),
+    vec2(+0.849910140, +0.446685374),
+    vec2(-0.944033802, +0.248847470),
+    vec2(+0.536593318, -0.834531426)
+);
+
 
 // INPUT VERTEX
 in VertexPosition
@@ -58,14 +94,13 @@ layout (std430) buffer ShaderPrimitiveSpace {
     mat4 LocalToWorldRotation;
 } _primitiveSpace;
 
-layout (std430) buffer ShaderViewSpace {
+layout (std430) buffer ShaderViewSpaceBlock {
     mat4 WorldToView;
     mat4 WorldToProjection;
     mat4 WorldToViewRotation;
     mat4 WorldToProjectionRotation;
-    vec3 ViewPosition;
-    vec3 ViewDirection;
-    mat4 ViewProjection;
+    vec4 ViewPosition;
+    vec4 ViewDirection;
 } _viewSpace;
 
 layout (std430) buffer ShaderShadowSpace {
@@ -130,21 +165,26 @@ uniform samplerCube ReflectionMap;
 uniform sampler2D DirectionalShadowMap;
 uniform sampler2D PointShadowMap;
 
-// INPUT GENERAL UNIFORMS
-uniform float AlphaCutoff;
+// FRAGMENT STRUCTS
+struct FragmentMaterial
+{
+  vec3 Albedo;
+  float Metallic;
+  float Roughness;
+  float Occlusion;
+  vec3 Emmision;
+  vec3 Normal;
+} _fragmentMaterial;
 
-// INPUT SPECIFIC UNIFORMS
-uniform vec4 BaseColor;
-uniform vec4 MREO;
-uniform float Normal;
-uniform sampler2D BaseColorMap;
-uniform sampler2D MetallicRoughnessMap;
-uniform sampler2D EmissiveMap;
-uniform sampler2D OcclusionMap;
-uniform sampler2D NormalMap;
-
-// SHADER OUTPUT
-out vec4 OutputColor;
+struct FragmentSurface
+{
+    vec3 ViewDiff;
+    vec3 ViewDirection;
+    float ViewLength;
+    vec3 NormalLocal;
+    vec3 NormalWorld;
+    mat3 TangentSpace;
+} _fragmentSurface;
 
 // LOGIC
 mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
@@ -167,12 +207,17 @@ mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
     return mat3( T * invmax, B * invmax, N );
 }
 
-vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi)
-{
-  float goldenAngle = 2.399963229;
-  float theta = sampleIndex * goldenAngle + phi;
-  float r = sqrt(sampleIndex + 0.5) / sqrt(samplesCount);
-  return vec2(r * cos(theta), r * sin(theta));
+vec2 Rotate(vec2 point, vec2 origin, float angle)
+{    
+    float s = sin(angle);
+	float c = cos(angle);
+	mat2 m = mat2(c, -s, s, c);
+
+    point -= origin;
+    point = m * point;
+    point += origin;
+
+	return point;
 }
 
 vec3 VogelConeSample(int sampleIndex, int samplesCount, float phi, vec3 direction, float angle)
@@ -248,16 +293,17 @@ float SamplePointShadowDepth(vec3 direction, vec2 atlasStart, vec2 atlasSize, ve
     return LinearizeDepth(texture(PointShadowMap, shadowUV).r, clipping.x, clipping.y) * depthCorrection;
 }
 
-vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfaceNormal, vec3 positionViewDiff)
+vec3 evaluate_lights()
 {
-    vec3 viewDirection = -normalize(positionViewDiff);
-    vec3 reflectionColor = texture(ReflectionMap, reflect(-viewDirection, surfaceNormal)).xyz;
-    vec3 specularColor = mix(vec3(1.0), baseColor, metalic);
-    float glossy = mix(128.0, 0.0, roughness * roughness);
-    vec3 result = reflectionColor * baseColor * metalic;
-    
-    float shadowSampleSeed = ShadowHash(gl_FragCoord.xy);
+    vec3 reflectionDirection = reflect(_fragmentSurface.ViewDirection, _fragmentMaterial.Normal);
+    vec3 reflectionColor = texture(ReflectionMap, reflectionDirection).xyz;
+    vec3 specularColor = mix(vec3(1.0), _fragmentMaterial.Albedo, _fragmentMaterial.Metallic);
+    float glossy = mix(128.0, 0.0, _fragmentMaterial.Roughness * _fragmentMaterial.Roughness);
+    vec3 result = reflectionColor * _fragmentMaterial.Albedo * _fragmentMaterial.Metallic * (1 - _fragmentMaterial.Roughness);
+
     int shadowSampleCount = 16;
+    float vogelPointScale = 32 / shadowSampleCount;
+    float shadowSampleSeed = ShadowHash(gl_FragCoord.xy);
     vec2 directionalShadowPixels = vec2(textureSize(DirectionalShadowMap, 0));
     vec2 pointShadowPixels = vec2(textureSize(PointShadowMap, 0));
     
@@ -265,9 +311,10 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
     {
         vec3 lightColor = _directionalLights[i].Color.xyz;
         vec3 lightDirection = _directionalLights[i].Direction.xyz;
-        vec3 halfwayDirection = normalize(lightDirection + viewDirection);
-        vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor);
+        vec3 halfwayDirection = normalize(lightDirection + _fragmentSurface.ViewDirection);
+        vec3 surfaceColor = blinn_phong(_fragmentMaterial.Albedo, specularColor, glossy, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor);
 
+        float directionalShadowBias = 0.003 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.001;
         if (_directionalShadows[i].Strength.x > 0.001)
         {
             float shadowWidth = _directionalShadows[i].Strength.w;
@@ -277,82 +324,99 @@ vec3 evaluate_lights(vec3 baseColor, float metalic, float roughness, vec3 surfac
 
             vec4 shadowWorldPosition = _directionalShadows[i].Space * _vertexPosition.PositionWorld;
             vec3 shadowScreenPosition = (shadowWorldPosition.xyz / shadowWorldPosition.w) * 0.5 + 0.5;
-            float shadowBias = 0.003 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0)) + 0.001;
             float penumbra = 0.1 * (shadowWidth / directionalShadowPixels.x);
             float occluderCount = 0.0;
             
             for (int i = 0; i < shadowSampleCount; i++)
             {
-                vec2 sampleUV = shadowScreenPosition.xy + VogelDiskSample(i, shadowSampleCount, shadowSampleSeed * PI) * penumbra;
+                vec2 vogelPoint = Rotate(VogelDiskPoints[i] * vogelPointScale, vec2(0.0), shadowSampleSeed * PI);
+                vec2 sampleUV = shadowScreenPosition.xy + vogelPoint * penumbra;
                 float sampleDepth = texture(DirectionalShadowMap, shadowAtlasStart + sampleUV * shadowAtlasSize).r;
 
-                occluderCount += shadowScreenPosition.z > sampleDepth + shadowBias ? 1 : 0;
+                occluderCount += shadowScreenPosition.z > (sampleDepth + directionalShadowBias) ? 1 : 0;
             }
 
             surfaceColor *= 1 - (occluderCount / float(shadowSampleCount));
         }
 
-        result += surfaceColor + _directionalLights[i].Color.w * baseColor * lightColor;
+        result += surfaceColor + _directionalLights[i].Color.w * _fragmentMaterial.Albedo * lightColor;
     }
-    
-    for(int i = 0; i < _pointLights.length(); i++)
-    {
-        vec3 lightDiff = _pointLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
-        vec3 lightColor = _pointLights[i].Color.xyz;
-        float lightDistance = length(lightDiff);
-        vec3 lightDirection = normalize(lightDiff);
-        vec3 halfwayDirection = normalize(lightDirection + viewDirection);
-        float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 3.0);
-
-        vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuation;
-
-        if (_pointShadows[i].Strength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
-        {
-            vec2 shadowClipping = vec2(_pointShadows[i].Strength.y, _pointLights[i].Position.w);
-            vec2 shadowAtlasStart = _pointShadows[i].Area.xy;
-            vec2 shadowAtlasSize = _pointShadows[i].Area.wz;
-
-            float shadowBias = 0.2 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0)) + 0.01;
-            float penumbra = 0.01 * lightDistance;
-            float occluderCount = 0.0;
-
-            for (int i = 0; i < shadowSampleCount; i++)
-            {
-                vec3 sampleDirection = VogelConeSample(i, shadowSampleCount, shadowSampleSeed * PI, lightDirection, penumbra);
-                float sampleDepth = SamplePointShadowDepth(sampleDirection, shadowAtlasStart, shadowAtlasSize, shadowClipping);
-
-                occluderCount += lightDistance > sampleDepth + shadowBias ? 1 : 0;
-            }
-  
-            surfaceColor *= 1 - (occluderCount / float(shadowSampleCount));
-        }
-
-        result += surfaceColor + _pointLights[i].Color.w * baseColor * lightColor * attenuation;
-    }   
-    
-    for(int i = 0; i < _spotLights.length(); i++)
-    {
-        vec3 lightDiff = _spotLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
-        vec3 lightColor = _spotLights[i].Color.xyz;
-        float lightDistance = length(lightDiff);
-        vec3 lightDirection = normalize(lightDiff);
-        vec3 halfwayDirection = normalize(lightDirection + _viewSpace.ViewDirection);
-        float attenuationSqrared = 1.0 / (1.0 + (lightDistance * lightDistance));
-        float attenuationLinear = 1.0 / (1.0 + lightDistance);
-
-        float outerAngle = _spotLights[i].Position.w;
-        float innerAngle = _spotLights[i].Direction.w;
-        float theta = dot(lightDirection, normalize(_spotLights[i].Direction.xyz));
-        float epsilon = innerAngle - outerAngle;
-        float spotIntensity = clamp((theta - outerAngle) / epsilon, 0.0, 1.0);   
-
-        result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * spotIntensity * attenuationSqrared;
-        result += _spotLights[i].Color.w * baseColor * lightColor * attenuationLinear;
-    }
+//    
+//    for(int i = 0; i < _pointLights.length(); i++)
+//    {
+//        vec3 lightDiff = _pointLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
+//        vec3 lightColor = _pointLights[i].Color.xyz;
+//        float lightDistance = length(lightDiff);
+//        vec3 lightDirection = normalize(lightDiff);
+//        vec3 halfwayDirection = normalize(lightDirection + viewDirection);
+//        float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 3.0);
+//
+//        vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuation;
+//
+//        if (_pointShadows[i].Strength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
+//        {
+//            vec2 shadowClipping = vec2(_pointShadows[i].Strength.y, _pointLights[i].Position.w);
+//            vec2 shadowAtlasStart = _pointShadows[i].Area.xy;
+//            vec2 shadowAtlasSize = _pointShadows[i].Area.wz;
+//
+//            float shadowBias = 0.2 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0)) + 0.01;
+//            float penumbra = 0.01 * lightDistance;
+//            float occluderCount = 0.0;
+//
+//            for (int i = 0; i < shadowSampleCount; i++)
+//            {
+//                vec3 sampleDirection = VogelConeSample(i, shadowSampleCount, shadowSampleSeed * PI, lightDirection, penumbra);
+//                float sampleDepth = SamplePointShadowDepth(sampleDirection, shadowAtlasStart, shadowAtlasSize, shadowClipping);
+//
+//                occluderCount += lightDistance > sampleDepth + shadowBias ? 1 : 0;
+//            }
+//  
+//            surfaceColor *= 1 - (occluderCount / float(shadowSampleCount));
+//        }
+//
+//        result += surfaceColor + _pointLights[i].Color.w * baseColor * lightColor * attenuation;
+//    }   
+//    
+//    for(int i = 0; i < _spotLights.length(); i++)
+//    {
+//        vec3 lightDiff = _spotLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
+//        vec3 lightColor = _spotLights[i].Color.xyz;
+//        float lightDistance = length(lightDiff);
+//        vec3 lightDirection = normalize(lightDiff);
+//        vec3 halfwayDirection = normalize(lightDirection + _viewSpace.ViewDirection);
+//        float attenuationSqrared = 1.0 / (1.0 + (lightDistance * lightDistance));
+//        float attenuationLinear = 1.0 / (1.0 + lightDistance);
+//
+//        float outerAngle = _spotLights[i].Position.w;
+//        float innerAngle = _spotLights[i].Direction.w;
+//        float theta = dot(lightDirection, normalize(_spotLights[i].Direction.xyz));
+//        float epsilon = innerAngle - outerAngle;
+//        float spotIntensity = clamp((theta - outerAngle) / epsilon, 0.0, 1.0);   
+//
+//        result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * spotIntensity * attenuationSqrared;
+//        result += _spotLights[i].Color.w * baseColor * lightColor * attenuationLinear;
+//    }
 
     return result;
 }
 
+// INPUT GENERAL UNIFORMS
+uniform float AlphaCutoff;
+
+// INPUT SPECIFIC UNIFORMS
+uniform vec4 BaseColor;
+uniform vec4 MREO;
+uniform float Normal;
+uniform sampler2D BaseColorMap;
+uniform sampler2D MetallicRoughnessMap;
+uniform sampler2D EmissiveMap;
+uniform sampler2D OcclusionMap;
+uniform sampler2D NormalMap;
+
+// SHADER OUTPUT
+out vec4 OutputColor;
+
+// MAIN
 void main()
 {
     vec4 baseColor = pow(texture(BaseColorMap, _vertexUV.UV0), vec4(2.2));
@@ -360,16 +424,24 @@ void main()
    if (baseColor.w < AlphaCutoff)
         discard;
 
-    vec3 positionViewDiff = _vertexPosition.PositionWorld.xyz - _viewSpace.ViewPosition;
-    vec2 metallicRoughness = texture(MetallicRoughnessMap, _vertexUV.UV0).yz * MREO.xy;
-    vec3 emmision = texture(EmissiveMap, _vertexUV.UV0).xyz * MREO.z;
-    float occlusion = texture(OcclusionMap, _vertexUV.UV0).x * MREO.w;
+    vec2 metallicRoughness = texture(MetallicRoughnessMap, _vertexUV.UV0).zy * MREO.xy;
+    
+    _fragmentSurface.ViewDiff = _vertexPosition.PositionWorld.xyz - _viewSpace.ViewPosition.xyz;
+    _fragmentSurface.ViewDirection = normalize(_fragmentSurface.ViewDiff);
+    _fragmentSurface.ViewLength = length(_fragmentSurface.ViewDiff);
+    _fragmentSurface.NormalLocal = normalize(_vertexNormal.NormalLocal);
+    _fragmentSurface.NormalWorld = normalize(_vertexNormal.NormalWorld);
+    _fragmentSurface.TangentSpace = cotangent_frame(_fragmentSurface.NormalWorld, _fragmentSurface.ViewDirection, _vertexUV.UV0);
 
-    vec3 textureNormal = (texture(NormalMap, _vertexUV.UV0).xyz * 2.0 - 1.0) * vec3(1.0, 1.0, 0.3 / Normal);
-    mat3 tangenSpace = cotangent_frame(normalize(_vertexNormal.NormalLocal), positionViewDiff, _vertexUV.UV0);
-    vec3 surfaceNormal = normalize(tangenSpace * textureNormal);
+    _fragmentMaterial.Albedo = baseColor.xyz;
+    _fragmentMaterial.Metallic = metallicRoughness.x;
+    _fragmentMaterial.Roughness = metallicRoughness.y;
+    _fragmentMaterial.Occlusion = texture(OcclusionMap, _vertexUV.UV0).x * MREO.w;
+    _fragmentMaterial.Emmision = texture(EmissiveMap, _vertexUV.UV0).xyz * MREO.z;
+    _fragmentMaterial.Normal = normalize(_fragmentSurface.TangentSpace * (texture(NormalMap, _vertexUV.UV0).xyz * 2.0 - 1.0) * vec3(1.0, 1.0, 0.5 / Normal));
 
-    vec3 surfaceColor = emmision + evaluate_lights(baseColor.xyz, metallicRoughness.y, metallicRoughness.x, surfaceNormal, positionViewDiff);
+
+    vec3 surfaceColor = _fragmentMaterial.Emmision + evaluate_lights();
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));
 
     OutputColor = vec4(corrected, baseColor.w);

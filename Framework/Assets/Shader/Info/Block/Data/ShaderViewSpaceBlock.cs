@@ -12,7 +12,6 @@ namespace Framework.Assets.Shader.Block.Data
         public Matrix4 WorldToProjectionRotation;
         public Vector4 ViewPosition;
         public Vector4 ViewDirection;
-        public Matrix4 ViewProjection;
 
         /// <summary>
         /// 
@@ -25,7 +24,6 @@ namespace Framework.Assets.Shader.Block.Data
             writer.Write(WorldToProjectionRotation);
             writer.Write(ViewPosition);
             writer.Write(ViewDirection);
-            writer.Write(ViewProjection);
         }
     }
 }

@@ -25,9 +25,8 @@ layout (std430) buffer ShaderViewSpaceBlock {
     mat4 WorldToProjection;
     mat4 WorldToViewRotation;
     mat4 WorldToProjectionRotation;
-    vec3 ViewPosition;
-    vec3 ViewDirection;
-    mat4 ViewProjection;
+    vec4 ViewPosition;
+    vec4 ViewDirection;
 } _viewSpace;
 
 // SHADER OUTPUT

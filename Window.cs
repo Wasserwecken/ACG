@@ -3,6 +3,7 @@ using DefaultEcs;
 using DefaultEcs.System;
 using Framework;
 using Framework.Assets.Framebuffer;
+using Framework.Assets.Materials;
 using Framework.Assets.Shader.Block;
 using Framework.Assets.Shader.Block.Data;
 using Framework.Assets.Textures;
@@ -162,6 +163,20 @@ namespace Window
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 4096, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
             //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
+
+            var sphereMaterial = new MaterialAsset("Foo");
+            sphereMaterial.SetUniform("Albedo", Vector4.One);
+            sphereMaterial.SetUniform("MREO", new Vector4(1f, 0f, 0f, 0f));
+
+            var sphere = _scene.CreateEntity();
+            sphere.Set(new TransformComponent(new Vector3(0f, 2f, 0f)));
+            sphere.Set(new PrimitiveComponent()
+            {
+                IsShadowCaster = false,
+                Material = sphereMaterial,
+                Shader = Defaults.Shader.Program.MeshBlinnPhong,
+                Verticies = Defaults.Vertex.Mesh.Sphere[0]
+            });
 
 
             var rand = new Random();

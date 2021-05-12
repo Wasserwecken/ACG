@@ -71,10 +71,10 @@ namespace Framework
 
             static Texture()
             {
-                White = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.White.ToShort() } };
-                Gray = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Gray.ToShort() } };
-                Black = new Texture2DAsset("Default") { Image = new ImageAsset("White") { Data = Color4.Black.ToShort() } };
-                Normal = new Texture2DAsset("Default") { Image = new ImageAsset("Normal") { Data = Color4.Blue.ToShort() } };
+                White = new Texture2DAsset("DefaultWhite") { Image = new ImageAsset("White") { Data = Color4.White.ToShort() } };
+                Gray = new Texture2DAsset("DefaultGray") { Image = new ImageAsset("Gray") { Data = Color4.Gray.ToShort() } };
+                Black = new Texture2DAsset("DefaultBlack") { Image = new ImageAsset("Black") { Data = Color4.Black.ToShort() } };
+                Normal = new Texture2DAsset("DefaultNormal") { Image = new ImageAsset("Normal") { Data = new Color4(0.5f, 0.5f, 1f, 1f).ToShort() } };
 
                 SkyboxCoast = new TextureCubeAsset("DefaultCoast")
                 {

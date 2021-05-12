@@ -34,8 +34,8 @@ namespace Project.ECS.Systems
             var time = _worldComponents.Get<TimeComponent>();
 
             var moveInput = Vector3.Zero;
-            if (input.Keyboard.IsKeyDown(Keys.W)) moveInput.Z += 1;
-            if (input.Keyboard.IsKeyDown(Keys.S)) moveInput.Z -= 1;
+            if (input.Keyboard.IsKeyDown(Keys.S)) moveInput.Z += 1;
+            if (input.Keyboard.IsKeyDown(Keys.W)) moveInput.Z -= 1;
             if (input.Keyboard.IsKeyDown(Keys.D)) moveInput.X += 1;
             if (input.Keyboard.IsKeyDown(Keys.A)) moveInput.X -= 1;
             if (input.Keyboard.IsKeyDown(Keys.E)) moveInput.Y += 1;
@@ -52,7 +52,7 @@ namespace Project.ECS.Systems
 
             transform.Position += transform.Up * moveInput.Y;
             transform.Position += transform.Right * moveInput.X;
-            transform.Position += transform.Forward * -moveInput.Z;
+            transform.Position += transform.Forward * moveInput.Z;
             transform.Forward = transform.Forward.Rotate(lookInput.X, Vector3.UnitY);
             transform.Forward = transform.Forward.Rotate(lookInput.Y, transform.Right);
         }
