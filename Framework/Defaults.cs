@@ -9,6 +9,7 @@ using Framework.ECS.Components.Relation;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2.Assets;
+using Framework.ECS.Systems.Render;
 using Framework.Extensions;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -76,6 +77,11 @@ namespace Framework
                 Black = new Texture2DAsset("DefaultBlack") { Image = new ImageAsset("Black") { Data = Color4.Black.ToShort() } };
                 Normal = new Texture2DAsset("DefaultNormal") { Image = new ImageAsset("Normal") { Data = new Color4(0.5f, 0.5f, 1f, 1f).ToShort() } };
 
+                GPUSync.Push(White);
+                GPUSync.Push(Gray);
+                GPUSync.Push(Black);
+                GPUSync.Push(Normal);
+
                 SkyboxCoast = new TextureCubeAsset("DefaultCoast")
                 {
                     Images = new ImageAsset[]
@@ -88,6 +94,8 @@ namespace Framework
                         Helper.LoadImage(Definitions.Directories.DefaultSkyboxes + "Coast/back.jpg"),
                     }
                 };
+
+                GPUSync.Push(SkyboxCoast);
             }
         }
 

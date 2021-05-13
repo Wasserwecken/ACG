@@ -7,6 +7,7 @@ using Framework.ECS.Components.Transform;
 using Framework.ECS.Systems.Render;
 using OpenTK.Mathematics;
 using System;
+using System.Diagnostics;
 
 namespace Framework.ECS.Systems.RenderPipeline
 {
@@ -16,6 +17,7 @@ namespace Framework.ECS.Systems.RenderPipeline
     {
         private readonly Entity _worldComponents;
         private readonly ShaderDirectionalLightBlock _block;
+        private readonly Stopwatch _watch;
 
 
         /// <summary>

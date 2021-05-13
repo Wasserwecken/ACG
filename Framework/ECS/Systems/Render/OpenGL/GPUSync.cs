@@ -67,6 +67,9 @@ namespace Framework.ECS.Systems.Render
             GL.TexParameter(texture.Target, TextureParameterName.TextureMinFilter, (int)texture.MinFilter);
             GL.TexParameter(texture.Target, TextureParameterName.TextureMagFilter, (int)texture.MagFilter);
 
+            if (texture.AnisotropicFilter > 1f)
+                GL.TexParameter(texture.Target, (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, texture.AnisotropicFilter);
+
             if (texture.GenerateMipMaps)
                 GL.GenerateMipmap(texture.MipMapTarget);
 
@@ -156,8 +159,6 @@ namespace Framework.ECS.Systems.Render
                 );
 
             GL.TexParameter(texture.Target, TextureParameterName.TextureWrapR, (int)texture.WrapModeR);
-            GL.TexParameter(texture.Target, TextureParameterName.TextureWrapS, (int)texture.WrapModeS);
-            GL.TexParameter(texture.Target, TextureParameterName.TextureWrapT, (int)texture.WrapModeT);
         }
 
         /// <summary>

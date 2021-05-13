@@ -10,6 +10,7 @@ using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2;
+using Framework.ECS.Systems;
 using Framework.ECS.Systems.Hierarchy;
 using Framework.ECS.Systems.Render;
 using Framework.ECS.Systems.RenderPipeline;
@@ -127,7 +128,6 @@ namespace Window
 
             _renderPipeline = new SequentialSystem<bool>(
                 new ShaderTimeSystem(_scene, _sceneComponents),
-                new TextureSyncSystem(_scene, _sceneComponents),
 
                 new DirectionalLightSystem(_scene, _sceneComponents),
                 new DirectionalShadowPassSystem(_scene, _sceneComponents),
