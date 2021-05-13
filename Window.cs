@@ -57,11 +57,11 @@ namespace Window
             _sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
             _sceneComponents.Set(new DirectionalShadowBufferComponent()
             {
-                ShadowSpacer = new TextureSpace(8192, new Vector3(0f, 0f, 1f)),
+                ShadowSpacer = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
                 ShadowBuffer = new FramebufferAsset("DirectionalShadowPass")
                 {
-                    Width = 8192,
-                    Height = 8192,
+                    Width = 4096,
+                    Height = 4096,
 
                     DrawMode = DrawBufferMode.None,
                     ReadMode = ReadBufferMode.None,
@@ -71,8 +71,8 @@ namespace Window
                         new TextureRenderAsset("DirectionalShadowMap")
                         {
                             Attachment = FramebufferAttachment.DepthAttachment,
-                            Width = 8192,
-                            Height = 8192,
+                            Width = 4096,
+                            Height = 4096,
 
                             InternalFormat = PixelInternalFormat.DepthComponent,
                             Format = PixelFormat.DepthComponent,
@@ -83,11 +83,11 @@ namespace Window
             });
             _sceneComponents.Set(new PointLightBufferComponent()
             {
-                ShadowSpacer = new TextureSpace(8192, new Vector3(0f, 0f, 1f)),
+                ShadowSpacer = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
                 ShadowBuffer = new FramebufferAsset("PointShadowPass")
                 {
-                    Width = 8192,
-                    Height = 8192,
+                    Width = 4096,
+                    Height = 4096,
 
                     DrawMode = DrawBufferMode.None,
                     ReadMode = ReadBufferMode.None,
@@ -97,8 +97,8 @@ namespace Window
                         new TextureRenderAsset("PointShadowMap")
                         {
                             Attachment = FramebufferAttachment.DepthAttachment,
-                            Width = 8192,
-                            Height = 8192,
+                            Width = 4096,
+                            Height = 4096,
 
                             InternalFormat = PixelInternalFormat.DepthComponent,
                             Format = PixelFormat.DepthComponent,
@@ -186,7 +186,7 @@ namespace Window
                 pointLight.Set(new TransformComponent(position * 8.0f));
                 //pointLight.Set(new TransformComponent(new Vector3(0f, 2f, 0f)));
                 pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f) * 2, AmbientFactor = 0.001f, Range = 8f });
-                pointLight.Set(new PointShadowComponent() { Resolution = 512, Strength = 1f, NearClipping = 0.01f });
+                pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 0.01f });
             }
         }
 

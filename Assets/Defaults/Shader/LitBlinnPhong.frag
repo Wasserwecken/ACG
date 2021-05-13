@@ -212,19 +212,6 @@ mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
     return mat3( T * invmax, B * invmax, N );
 }
 
-vec2 Rotate(vec2 point, vec2 origin, float angle)
-{    
-    float s = sin(angle);
-	float c = cos(angle);
-	mat2 m = mat2(c, -s, s, c);
-
-    point -= origin;
-    point = m * point;
-    point += origin;
-
-	return point;
-}
-
 vec3 VogelConePoint(int index, int samples, float phi, float angle)
 {
     float goldenAngle = 2.399963229;
@@ -325,10 +312,15 @@ vec3 evaluate_lights()
             float shadowBias = 0.003 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.001;
             float penumbra = 0.1 * (shadowWidth / directionalShadowPixels.x);
             float occluderCount = 0.0;
+
+            float sampleAngle = shadowSampleSeed * PI;
+            float s = sin(sampleAngle);
+	        float c = cos(sampleAngle);
+	        mat2 sampleRotation = mat2(c, -s, s, c);
             
             for (int i = 0; i < SHADOWSAMPLECOUNT; i++)
             {
-                vec2 vogelPoint = Rotate(VOGELDISKPOINTS[i] * VOGELPOINTRATIO, vec2(0.0), shadowSampleSeed * PI);
+                vec2 vogelPoint = sampleRotation * VOGELDISKPOINTS[i] * VOGELPOINTRATIO;
                 vec2 sampleUV = shadowScreenPosition.xy + vogelPoint * penumbra;
                 float sampleDepth = texture(DirectionalShadowMap, shadowAtlasStart + sampleUV * shadowAtlasSize).r;
 
@@ -358,18 +350,23 @@ vec3 evaluate_lights()
             vec2 shadowClipping = vec2(_pointShadows[i].Strength.y, _pointLights[i].Position.w);
             vec2 shadowAtlasStart = _pointShadows[i].Area.xy;
             vec2 shadowAtlasSize = _pointShadows[i].Area.wz;
-            float penumbra = 0.01 * lightDistance;
+            float penumbra = 0.005 * lightDistance;
 
             vec3 s = normalize(cross(-lightDirection, vec3(0.0, 1.0, 0.0)));
             vec3 u = cross(s, -lightDirection);
             mat3 sampleRotation = mat3(s, u, lightDirection);
             float shadowBias = 0.2 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.01;
-
             float occluderCount = 0.0;
+            
+            float sampleAngle = shadowSampleSeed * PI;
+            float t = sin(sampleAngle);
+	        float d = cos(sampleAngle);
+	        mat2 vogelRotation = mat2(d, -t, t, d);
+            
             for (int i = 0; i < SHADOWSAMPLECOUNT; i++)
             {
-                vec3 vogelPoint = sampleRotation * VogelConePoint(i, SHADOWSAMPLECOUNT, shadowSampleSeed * PI, penumbra);
-                float sampleDepth = SamplePointShadowDepth(vogelPoint, shadowAtlasStart, shadowAtlasSize, shadowClipping);
+                vec3 samplePoint = sampleRotation * vec3(vogelRotation * VOGELDISKPOINTS[i] * VOGELPOINTRATIO * penumbra, 1.0);
+                float sampleDepth = SamplePointShadowDepth(samplePoint, shadowAtlasStart, shadowAtlasSize, shadowClipping);
                 occluderCount += lightDistance > sampleDepth + shadowBias ? 1 : 0;
             }
   
