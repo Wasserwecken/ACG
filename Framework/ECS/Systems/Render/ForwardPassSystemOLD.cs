@@ -92,6 +92,7 @@ namespace Framework.ECS.Systems.Render
             cameraData.ShaderViewSpace.WorldToProjectionRotation = cameraTransform.WorldSpaceInverse.ClearScale().ClearTranslation() * projectionSpace;
             cameraData.ShaderViewSpace.ViewPosition = new Vector4(cameraTransform.Position, 1);
             cameraData.ShaderViewSpace.ViewDirection = new Vector4(cameraTransform.Forward, 0);
+            cameraData.ShaderViewSpace.Resolution = new Vector2(aspectRatio.Width, aspectRatio.Height);
 
             GPUSync.Push(cameraData.ShaderViewSpace);
 

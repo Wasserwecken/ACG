@@ -52,7 +52,6 @@ namespace Framework.ECS.Systems.RenderPipeline
         {
             // GLOBAL PREPERATION
             ref var shaderInfo = ref _worldComponents.Get<DirectionalShadowBufferComponent>();
-
             shaderInfo.ShadowSpacer.Clear();
 
             Renderer.UseFrameBuffer(shaderInfo.ShadowBuffer);
@@ -84,6 +83,7 @@ namespace Framework.ECS.Systems.RenderPipeline
                     shadowConfig.ViewSpaceBlock.WorldToProjectionRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation() * projection;
                     shadowConfig.ViewSpaceBlock.ViewPosition = new Vector4(transform.Position, 1);
                     shadowConfig.ViewSpaceBlock.ViewDirection = new Vector4(-transform.Forward, 0);
+                    shadowConfig.ViewSpaceBlock.Resolution = new Vector2(shadowConfig.Resolution, shadowConfig.Resolution);
                     GPUSync.Push(shadowConfig.ViewSpaceBlock);
                     Renderer.UseShaderBlock(shadowConfig.ViewSpaceBlock, Defaults.Shader.Program.Shadow);
 

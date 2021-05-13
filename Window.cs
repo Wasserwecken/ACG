@@ -4,8 +4,6 @@ using DefaultEcs.System;
 using Framework;
 using Framework.Assets.Framebuffer;
 using Framework.Assets.Materials;
-using Framework.Assets.Shader.Block;
-using Framework.Assets.Shader.Block.Data;
 using Framework.Assets.Textures;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
@@ -162,7 +160,7 @@ namespace Window
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
-            sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
+            //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var sphereMaterial = new MaterialAsset("Foo");
             sphereMaterial.SetUniform("Albedo", Vector4.One);

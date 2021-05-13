@@ -101,6 +101,7 @@ namespace Framework.ECS.Systems.RenderPipeline
                         _viewBlock.WorldToProjectionRotation = cubeOrientations[i].ClearScale().ClearTranslation() * projection;
                         _viewBlock.ViewPosition = new Vector4(transform.Position, 1);
                         _viewBlock.ViewDirection = new Vector4(cubeOrientations[i].Row2);
+                        _viewBlock.Resolution = new Vector2(shadowConfig.Resolution, shadowConfig.Resolution);
                         GPUSync.Push(_viewBlock);
                         Renderer.UseShaderBlock(_viewBlock, Defaults.Shader.Program.Shadow);
 
