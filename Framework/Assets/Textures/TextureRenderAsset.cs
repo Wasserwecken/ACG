@@ -1,5 +1,4 @@
-﻿using Framework.Assets.Framebuffer;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 
 namespace Framework.Assets.Textures
 {

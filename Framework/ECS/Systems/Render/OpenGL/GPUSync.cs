@@ -1,4 +1,5 @@
 ﻿using Framework.Assets.Framebuffer;
+using Framework.Assets.Shader;
 using Framework.Assets.Textures;
 using Framework.Assets.Verticies;
 using Framework.Assets.Verticies.Attributes;
@@ -6,10 +7,9 @@ using Framework.Extensions;
 using ImageMagick;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using System.IO;
 using System.Linq;
 
-namespace Framework.ECS.Systems.Render
+namespace Framework.ECS.Systems.Render.OpenGL
 {
     public static class GPUSync
     {

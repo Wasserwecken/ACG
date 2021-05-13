@@ -1,8 +1,4 @@
-﻿using Framework.Assets.Shader.Info.Block;
-using OpenTK.Graphics.OpenGL;
-using System.IO;
-
-namespace Framework.ECS.Components.Scene
+﻿namespace Framework.ECS.Components.Scene
 {
     public struct TimeComponent
     {

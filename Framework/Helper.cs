@@ -1,7 +1,6 @@
 ﻿using Framework.Assets.Textures;
 using ImageMagick;
 using System.IO;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;
 

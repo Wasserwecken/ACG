@@ -1,7 +1,6 @@
 ﻿using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Shader.Block;
-using Framework.Assets.Shader.Block.Data;
 using Framework.Assets.Verticies;
 
 namespace Framework.ECS.Components.Render

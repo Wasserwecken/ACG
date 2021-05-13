@@ -1,8 +1,7 @@
-﻿using Framework.Assets.Shader.Info.Block;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 using System.IO;
 
-namespace Framework
+namespace Framework.Assets.Shader
 {
     public abstract class ShaderBlockBase
     {

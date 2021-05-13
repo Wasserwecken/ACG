@@ -3,18 +3,19 @@ using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.IO;
 
-namespace Framework.Assets.Shader.Info.Block.Data
+namespace Framework.Assets.Shader.Block
 {
-    public class ShaderPointShadowBlock : ShaderBlockBase
+    public class ShaderDirectionalShadowBlock : ShaderBlockBase
     {
         [DebuggerDisplay("Strength: {Strength}, Area: {Area}")]
-        public struct ShaderPointShadow
+        public struct ShaderDirectionalShadow
         {
             public Vector4 Strength;
             public Vector4 Area;
+            public Matrix4 Space;
         }
 
-        public ShaderPointShadow[] Shadows;
+        public ShaderDirectionalShadow[] Shadows;
 
 
         /// <summary>
@@ -26,6 +27,7 @@ namespace Framework.Assets.Shader.Info.Block.Data
             {
                 writer.Write(shadow.Strength);
                 writer.Write(shadow.Area);
+                writer.Write(shadow.Space);
             }
         }
     }

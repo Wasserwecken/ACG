@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ACG.Framework.Assets;
-using Framework.Assets.Shader.Block;
 using Framework.Assets.Shader.Info;
-using Framework.Assets.Shader.Info.Block;
 using OpenTK.Graphics.OpenGL;
 
 namespace Framework.Assets.Shader

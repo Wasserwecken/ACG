@@ -3,7 +3,7 @@ using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.IO;
 
-namespace Framework.Assets.Shader.Block.Data
+namespace Framework.Assets.Shader.Block
 {
     public class ShaderPointLightBlock : ShaderBlockBase
     {

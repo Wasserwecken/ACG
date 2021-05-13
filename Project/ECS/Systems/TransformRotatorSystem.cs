@@ -5,9 +5,6 @@ using Framework.ECS.Components.Transform;
 using Framework.Extensions;
 using OpenTK.Mathematics;
 using Project.ECS.Components;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Project.ECS.Systems
 {

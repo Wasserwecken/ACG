@@ -1,14 +1,11 @@
 ﻿using DefaultEcs;
 using DefaultEcs.System;
 using Framework.Assets.Shader.Block;
-using Framework.Assets.Shader.Block.Data;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
-using Framework.ECS.Systems.Render;
-using OpenTK.Graphics.OpenGL;
-using System;
+using Framework.ECS.Systems.Render.OpenGL;
 
-namespace ACG.Framework.ECS.Systems.Hierarchy
+namespace Framework.ECS.Systems.Render.Pipeline
 {
     [With(typeof(TransformComponent))]
     [With(typeof(PrimitiveComponent))]

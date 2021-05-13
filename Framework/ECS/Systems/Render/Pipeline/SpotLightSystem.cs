@@ -1,32 +1,29 @@
 ﻿using ACG.Framework.Assets;
 using DefaultEcs;
 using DefaultEcs.System;
-using Framework.Assets.Shader.Block.Data;
+using Framework.Assets.Shader.Block;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Transform;
-using Framework.ECS.Systems.Render;
+using Framework.ECS.Systems.Render.OpenGL;
 using OpenTK.Mathematics;
 using System;
-using System.Diagnostics;
 
 namespace Framework.ECS.Systems.RenderPipeline
 {
     [With(typeof(TransformComponent))]
-    [With(typeof(DirectionalLightComponent))]
-    public class DirectionalLightSystem : AEntitySetSystem<bool>
+    [With(typeof(SpotLightComponent))]
+    public class SpotLightSystem : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
-        private readonly ShaderDirectionalLightBlock _block;
-        private readonly Stopwatch _watch;
-
+        private readonly ShaderSpotLightBlock _block;
 
         /// <summary>
         /// 
         /// </summary>
-        public DirectionalLightSystem(World world, Entity worldComponents) : base(world)
+        public SpotLightSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
-            _block = new ShaderDirectionalLightBlock();
+            _block = new ShaderSpotLightBlock();
         }
 
         /// <summary>
@@ -34,16 +31,17 @@ namespace Framework.ECS.Systems.RenderPipeline
         /// </summary>
         protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
-            _block.Lights = new ShaderDirectionalLightBlock.ShaderDirectionalLight[entities.Length];
+            _block.Lights = new ShaderSpotLightBlock.ShaderSpotLight[entities.Length];
             for (int i = 0; i < entities.Length; i++)
             {
                 var transform = entities[i].Get<TransformComponent>();
-                var lightConfig = entities[i].Get<DirectionalLightComponent>();
+                var lightConfig = entities[i].Get<SpotLightComponent>();
 
-                entities[i].Get<DirectionalLightComponent>().InfoId = i;
+                entities[i].Get<SpotLightComponent>().InfoId = i;
 
                 _block.Lights[i].Color = new Vector4(lightConfig.Color, lightConfig.AmbientFactor);
-                _block.Lights[i].Direction = new Vector4(-transform.Forward, 0f);
+                _block.Lights[i].Position = new Vector4(transform.Position, MathF.Cos(lightConfig.OuterAngle));
+                _block.Lights[i].Direction = new Vector4(-transform.Forward, MathF.Cos(lightConfig.InnerAngle));
             }
         }
 

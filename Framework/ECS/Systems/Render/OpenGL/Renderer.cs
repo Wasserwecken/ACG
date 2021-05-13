@@ -6,7 +6,7 @@ using Framework.Assets.Verticies;
 using OpenTK.Graphics.OpenGL;
 using System.Linq;
 
-namespace Framework.ECS.Systems.Render
+namespace Framework.ECS.Systems.Render.OpenGL
 {
     public static class Renderer
     {

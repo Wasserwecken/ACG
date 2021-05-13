@@ -1,8 +1,5 @@
 ﻿using OpenTK.Mathematics;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 
 namespace Framework.ECS.Components.Transform
 {

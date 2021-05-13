@@ -2,12 +2,10 @@
 using DefaultEcs;
 using DefaultEcs.System;
 using Framework.Assets.Shader.Block;
-using Framework.Assets.Shader.Block.Data;
-using Framework.Assets.Shader.Info.Block.Data;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
-using Framework.ECS.Systems.Render;
+using Framework.ECS.Systems.Render.OpenGL;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;

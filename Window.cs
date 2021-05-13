@@ -1,5 +1,4 @@
-﻿using ACG.Framework.ECS.Systems.Hierarchy;
-using DefaultEcs;
+﻿using DefaultEcs;
 using DefaultEcs.System;
 using Framework;
 using Framework.Assets.Framebuffer;
@@ -10,9 +9,9 @@ using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2;
-using Framework.ECS.Systems;
 using Framework.ECS.Systems.Hierarchy;
 using Framework.ECS.Systems.Render;
+using Framework.ECS.Systems.Render.Pipeline;
 using Framework.ECS.Systems.RenderPipeline;
 using Framework.ECS.Systems.Sync;
 using Framework.ECS.Systems.Time;

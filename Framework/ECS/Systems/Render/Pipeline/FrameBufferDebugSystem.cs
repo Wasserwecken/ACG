@@ -4,12 +4,11 @@ using DefaultEcs.System;
 using Framework.Assets.Materials;
 using Framework.Assets.Textures;
 using Framework.ECS.Components.Scene;
-using Framework.ECS.Systems.Render;
+using Framework.ECS.Systems.Render.OpenGL;
 using OpenTK.Graphics.OpenGL;
-using System;
 using System.Collections.Generic;
 
-namespace Framework.ECS.Systems.RenderPipeline
+namespace Framework.ECS.Systems.Render.Pipeline
 {
     public class FrameBufferDebugSystem : AEntitySetSystem<bool>
     {

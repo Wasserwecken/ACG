@@ -1,8 +1,4 @@
-﻿using Framework.ECS;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Diagnostics;
 
 namespace Framework.ECS.Components.Scene
 {

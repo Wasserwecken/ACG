@@ -1,5 +1,4 @@
 ﻿using Framework.Assets.Shader.Block;
-using Framework.Assets.Shader.Block.Data;
 using System.Diagnostics;
 
 namespace Framework.ECS.Components.Light

@@ -2,7 +2,6 @@
 using OpenTK.Graphics.OpenGL;
 using System.Diagnostics;
 using Framework.Assets.Shader.Block;
-using Framework.Assets.Shader.Block.Data;
 
 namespace Framework.ECS.Components.Render
 {

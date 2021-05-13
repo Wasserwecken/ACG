@@ -9,7 +9,7 @@ using Framework.ECS.Components.Relation;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2.Assets;
-using Framework.ECS.Systems.Render;
+using Framework.ECS.Systems.Render.OpenGL;
 using Framework.Extensions;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;

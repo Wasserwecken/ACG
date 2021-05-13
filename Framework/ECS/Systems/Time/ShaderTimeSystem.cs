@@ -1,14 +1,9 @@
 ﻿using Framework.Assets.Shader.Block;
-using OpenTK.Graphics.OpenGL;
 using Framework.ECS.Components.Scene;
-using Framework.Assets.Shader.Block.Data;
 using DefaultEcs.System;
 using DefaultEcs;
-using Framework.ECS.Components.Render;
-using System.IO;
-using System;
-using Framework.ECS.Systems.Render;
 using ACG.Framework.Assets;
+using Framework.ECS.Systems.Render.OpenGL;
 
 namespace Framework.ECS.Systems.Sync
 {

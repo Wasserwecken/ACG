@@ -1,7 +1,4 @@
 ﻿using OpenTK.Graphics.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Framework.Assets.Textures
 {
