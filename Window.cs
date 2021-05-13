@@ -132,6 +132,7 @@ namespace Window
                 new DirectionalShadowPassSystem(_scene, _sceneComponents),
                 new PointLightSystem(_scene, _sceneComponents),
                 new PointShadowPassSystem(_scene, _sceneComponents),
+                new SpotLightSystem(_scene, _sceneComponents),
 
                 new ForwardPassSystemOLD(_scene, _sceneComponents)
                 //new FrameBufferDebugSystem(_scene, _sceneComponents)
@@ -175,6 +176,11 @@ namespace Window
                 Verticies = Defaults.Vertex.Mesh.Sphere[0]
             });
 
+            var spotLight = _scene.CreateEntity();
+            spotLight.Set(new TransformComponent(new Vector3(8.0f, 2f, 3f), new Vector3(0.7f, -0.1f, -1f)));
+            spotLight.Set(new SpotLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 3f, AmbientFactor = 0.001f, InnerAngle = 0.3f, OuterAngle = 0.5f });
+            //spotLight.Set(new TransformRotatorComponent() { Speed = 0.05f });
+
 
             var rand = new Random();
             int pointLightCount = 1;
@@ -185,7 +191,7 @@ namespace Window
                 var position = new Vector3( i - 1, 0.3f, 0f);
                 pointLight.Set(new TransformComponent(position * 8.0f));
                 //pointLight.Set(new TransformComponent(new Vector3(0f, 2f, 0f)));
-                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f) * 2, AmbientFactor = 0.001f, Range = 8f });
+                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 3f, AmbientFactor = 0.001f, Range = 8f });
                 pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 0.01f });
             }
         }
