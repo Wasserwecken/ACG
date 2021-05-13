@@ -239,10 +239,14 @@ float ShadowHash(vec2 point)
   return fract(seed.z * fract(dot(point, seed.xy)));
 }
 
-vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float glossy, vec3 normal, vec3 halfway, vec3 lightDirection, vec3 lightColor)
+vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float roughness, vec3 normal, vec3 halfway, vec3 lightDirection, vec3 lightColor)
 {
+    roughness = 1.0 - roughness;
+    roughness = roughness * roughness;
+
+    float glossy = mix(128.0, 1.0, roughness);
     float luminance = max(dot(normal, lightDirection), 0.0);
-    vec3 specular = surfaceSpecular * pow(max(dot(normal, halfway), 0.0), glossy);
+    vec3 specular = roughness * pow(max(dot(normal, halfway), 0.0), glossy) * surfaceSpecular;
 
     return (surfaceDiffuse + specular) * lightColor * luminance;
 }
@@ -293,9 +297,7 @@ vec3 evaluate_lights()
 {
     vec3 reflectionDirection = reflect(_fragmentSurface.ViewDirection, _fragmentMaterial.Normal);
     vec3 reflectionColor = texture(ReflectionMap, reflectionDirection).xyz;
-    vec3 specularColor = mix(vec3(1.0), _fragmentMaterial.Albedo, _fragmentMaterial.Metallic);
-    float glossy = mix(128.0, 0.0, _fragmentMaterial.Roughness * _fragmentMaterial.Roughness);
-    vec3 result = reflectionColor * _fragmentMaterial.Albedo * _fragmentMaterial.Metallic * (1 - _fragmentMaterial.Roughness);
+    vec3 result = reflectionColor * _fragmentMaterial.Albedo * _fragmentMaterial.Metallic * (1.0 - _fragmentMaterial.Roughness);
 
     float shadowSampleSeed = ShadowHash(gl_FragCoord.xy);
     vec2 directionalShadowPixels = vec2(textureSize(DirectionalShadowMap, 0));
@@ -306,7 +308,9 @@ vec3 evaluate_lights()
         vec3 lightColor = _directionalLights[i].Color.xyz;
         vec3 lightDirection = _directionalLights[i].Direction.xyz;
         vec3 halfwayDirection = normalize(lightDirection + _fragmentSurface.ViewDirection);
-        vec3 surfaceColor = blinn_phong(_fragmentMaterial.Albedo, specularColor, glossy, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor);
+        vec3 diffuseColor = _fragmentMaterial.Albedo * (1.0 - _fragmentMaterial.Metallic);
+        vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.Metallic);
+        vec3 surfaceColor = blinn_phong(diffuseColor, specularColor, _fragmentMaterial.Roughness, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor);
 
         if (_directionalShadows[i].Strength.x > 0.001)
         {
@@ -342,9 +346,11 @@ vec3 evaluate_lights()
         vec3 lightColor = _pointLights[i].Color.xyz;
         float lightDistance = length(lightDiff);
         vec3 lightDirection = normalize(lightDiff);
-        vec3 halfwayDirection = normalize(lightDirection + _fragmentSurface.ViewDirection);
+        vec3 halfwayDirection = normalize(lightDirection + -_fragmentSurface.ViewDirection);
         float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 3.0);
-        vec3 surfaceColor = blinn_phong(_fragmentMaterial.Albedo, specularColor, glossy, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * attenuation;
+        vec3 diffuseColor = _fragmentMaterial.Albedo * (1.0 - _fragmentMaterial.Metallic);
+        vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.Metallic);
+        vec3 surfaceColor = blinn_phong(diffuseColor, specularColor, _fragmentMaterial.Roughness, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * attenuation;
 
         if (_pointShadows[i].Strength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
         {
@@ -371,26 +377,27 @@ vec3 evaluate_lights()
 
         result += surfaceColor + _pointLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuation;
     }   
-//    
-//    for(int i = 0; i < _spotLights.length(); i++)
-//    {
-//        vec3 lightDiff = _spotLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
-//        vec3 lightColor = _spotLights[i].Color.xyz;
-//        float lightDistance = length(lightDiff);
-//        vec3 lightDirection = normalize(lightDiff);
-//        vec3 halfwayDirection = normalize(lightDirection + _viewSpace.ViewDirection);
-//        float attenuationSqrared = 1.0 / (1.0 + (lightDistance * lightDistance));
-//        float attenuationLinear = 1.0 / (1.0 + lightDistance);
-//
-//        float outerAngle = _spotLights[i].Position.w;
-//        float innerAngle = _spotLights[i].Direction.w;
-//        float theta = dot(lightDirection, normalize(_spotLights[i].Direction.xyz));
-//        float epsilon = innerAngle - outerAngle;
-//        float spotIntensity = clamp((theta - outerAngle) / epsilon, 0.0, 1.0);   
-//
-//        result += blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * spotIntensity * attenuationSqrared;
-//        result += _spotLights[i].Color.w * baseColor * lightColor * attenuationLinear;
-//    }
+    
+    for(int i = 0; i < _spotLights.length(); i++)
+    {
+        vec3 lightDiff = _spotLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
+        vec3 lightColor = _spotLights[i].Color.xyz;
+        float lightDistance = length(lightDiff);
+        vec3 lightDirection = normalize(lightDiff);
+        vec3 halfwayDirection = normalize(lightDirection + -_fragmentSurface.ViewDirection);
+        float attenuationSqrared = 1.0 / (1.0 + (lightDistance * lightDistance));
+        float attenuationLinear = 1.0 / (1.0 + lightDistance);
+
+        float outerAngle = _spotLights[i].Position.w;
+        float innerAngle = _spotLights[i].Direction.w;
+        float theta = dot(lightDirection, normalize(_spotLights[i].Direction.xyz));
+        float epsilon = innerAngle - outerAngle;
+        float spotIntensity = clamp((theta - outerAngle) / epsilon, 0.0, 1.0);
+        vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.Metallic);
+
+        result += blinn_phong(_fragmentMaterial.Albedo, specularColor, _fragmentMaterial.Roughness, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * spotIntensity * attenuationSqrared;
+        result += _spotLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuationLinear;
+    }
 
     return result;
 }
@@ -434,7 +441,6 @@ void main()
     _fragmentMaterial.Occlusion = texture(OcclusionMap, _vertexUV.UV0).x * MREO.w;
     _fragmentMaterial.Emmision = texture(EmissiveMap, _vertexUV.UV0).xyz * MREO.z;
     _fragmentMaterial.Normal = normalize(_fragmentSurface.TangentSpace * (texture(NormalMap, _vertexUV.UV0).xyz * 2.0 - 1.0) * vec3(1.0, 1.0, 0.5 / Normal));
-
 
     vec3 surfaceColor = _fragmentMaterial.Emmision + evaluate_lights();
     vec3 corrected = pow(surfaceColor, vec3(0.454545454545));

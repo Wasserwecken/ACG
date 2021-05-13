@@ -162,7 +162,7 @@ namespace Window
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
-            //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
+            sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var sphereMaterial = new MaterialAsset("Foo");
             sphereMaterial.SetUniform("Albedo", Vector4.One);
@@ -180,7 +180,7 @@ namespace Window
 
 
             var rand = new Random();
-            int pointLightCount = 3;
+            int pointLightCount = 1;
             for (int i = 0; i < pointLightCount; i++)
             {
                 var pointLight = _scene.CreateEntity();
