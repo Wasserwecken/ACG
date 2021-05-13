@@ -1,5 +1,6 @@
 ﻿using Framework.ECS;
 using Framework.ECS.Components;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;

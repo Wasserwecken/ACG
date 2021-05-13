@@ -43,6 +43,9 @@ namespace Framework.ECS.Systems.Sync
                     GL.TexParameter(texture.Target, TextureParameterName.TextureMinFilter, (int)texture.MinFilter);
                     GL.TexParameter(texture.Target, TextureParameterName.TextureMagFilter, (int)texture.MagFilter);
 
+                    if (texture.AnisotropicFilter > 1f)
+                        GL.TexParameter(texture.Target, (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, texture.AnisotropicFilter);
+
                     if (texture.GenerateMipMaps)
                         GL.GenerateMipmap(texture.MipMapTarget);
 

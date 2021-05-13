@@ -9,6 +9,7 @@ namespace Framework.Assets.Textures
         public int Handle;
         public string Name;
         public bool GenerateMipMaps;
+        public float AnisotropicFilter;
         
         public abstract TextureTarget Target { get; }
         public abstract GenerateMipmapTarget MipMapTarget { get; }
@@ -32,6 +33,7 @@ namespace Framework.Assets.Textures
 
             Name = name;
             GenerateMipMaps = true;
+            AnisotropicFilter = 4f;
 
             PixelType = PixelType.UnsignedShort;
             Format = PixelFormat.Rgba;
@@ -39,7 +41,7 @@ namespace Framework.Assets.Textures
 
             WrapModeS = TextureWrapMode.Repeat;
             WrapModeT = TextureWrapMode.Repeat;
-            MinFilter = TextureMinFilter.Linear;
+            MinFilter = TextureMinFilter.LinearMipmapLinear;
             MagFilter = TextureMagFilter.Linear;
         }
 

@@ -17,6 +17,8 @@ namespace Framework.Assets.Textures
         /// </summary>
         public TextureRenderAsset(string name) : base(name)
         {
+            AnisotropicFilter = 0f;
+            GenerateMipMaps = false;
             MinFilter = TextureMinFilter.Nearest;
             MagFilter = TextureMagFilter.Nearest;
         }
