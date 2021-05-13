@@ -161,7 +161,7 @@ namespace Window
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
-            sunEntity.Set(new DirectionalShadowComponent() { Resolution = 4096, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
+            sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
             //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var sphereMaterial = new MaterialAsset("Foo");
@@ -189,7 +189,7 @@ namespace Window
                 pointLight.Set(new TransformComponent(position * 8.0f));
                 //pointLight.Set(new TransformComponent(new Vector3(0f, 2f, 0f)));
                 pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.5f) * 2, AmbientFactor = 0.001f, Range = 8f });
-                pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 0.01f });
+                pointLight.Set(new PointShadowComponent() { Resolution = 512, Strength = 1f, NearClipping = 0.01f });
             }
         }
 

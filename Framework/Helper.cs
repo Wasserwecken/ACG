@@ -63,27 +63,20 @@ namespace Framework
         /// <summary>
         /// 
         /// </summary>
-        public static Vector3[] VogelCone(int count, float phi, Vector3 direction, float angle)
+        public static Vector3[] VogelCone(int count, float phi, float angle)
         {
-            // rotation matrix
-            var f = -direction;
-            var s = Vector3.Cross(f, Vector3.UnitY);
-            var u = Vector3.Cross(s, f);
-            var rotationMatrix = new Matrix3(s, u, -f);
-
             // vogel data
             var result = new Vector3[count];
             var goldenAngle = 2.399963229f;
             var zRange = 1f - MathF.Cos(angle);
-            var SqrtCount = MathF.Sqrt(count);
 
             // vogel generation
             for (int i = 0; i < count; i++)
             {
                 var theta = i * goldenAngle + phi;
-                var z = 1f - (zRange * MathF.Sqrt(i + 0.5f) / SqrtCount);
+                var z = 1f - (zRange * ((i + 0.5f) / count));
                 var r = MathF.Sqrt(1f - (z * z));
-                result[i] = rotationMatrix * new Vector3(r * MathF.Cos(theta), r * MathF.Sin(theta), z);
+                result[i] = new Vector3(r * MathF.Cos(theta), r * MathF.Sin(theta), z);
             }
 
             return result;

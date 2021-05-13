@@ -11,7 +11,7 @@ const float PI2 = 6.28318530718;
 const float RADTODEG = 57.295779513;
 const float DEGTORAD = 0.01745329252;
 
-const vec2 VogelDiskPoints[32] = vec2[32]
+const vec2 VOGELDISKPOINTS[32] = vec2[32]
 (
     vec2(+0.125000000, +0.000000000),
     vec2(-0.159645036, +0.146247968),
@@ -46,6 +46,10 @@ const vec2 VogelDiskPoints[32] = vec2[32]
     vec2(-0.944033802, +0.248847470),
     vec2(+0.536593318, -0.834531426)
 );
+
+const int SHADOWSAMPLECOUNT = 8;
+const float SHADOWSAMPLECOUNTSQRT = sqrt(SHADOWSAMPLECOUNT);
+const float VOGELPOINTRATIO = 32 / SHADOWSAMPLECOUNT;
 
 
 // INPUT VERTEX
@@ -220,21 +224,13 @@ vec2 Rotate(vec2 point, vec2 origin, float angle)
 	return point;
 }
 
-vec3 VogelConeSample(int sampleIndex, int samplesCount, float phi, vec3 direction, float angle)
+vec3 VogelConePoint(int index, int samples, float phi, float angle)
 {
     float goldenAngle = 2.399963229;
-    float theta = sampleIndex * goldenAngle + phi;
-    float z = 1.0 - ((1.0 - cos(angle)) * sqrt(sampleIndex + 0.5) / sqrt(samplesCount));
+    float theta = index * goldenAngle + phi;
+    float z = 1.0 - ((1.0 - cos(angle)) * sqrt(index + 0.5) / SHADOWSAMPLECOUNTSQRT);
     float r = sqrt(1 - (z * z));
-    vec3 result = vec3(r * cos(theta), r * sin(theta), z);
-    
-    // rotate towards view direction
-    vec3 f = -direction;
-    vec3 s = normalize(cross(f, vec3(0.0, 1.0, 0.0)));
-    vec3 u = cross(s, f);
-    mat3 rotationMatrix = mat3(s, u, -f);
-
-    return rotationMatrix * result;
+    return vec3(r * cos(theta), r * sin(theta), z);
 }
 
 float ShadowHash(vec2 point)
@@ -301,8 +297,6 @@ vec3 evaluate_lights()
     float glossy = mix(128.0, 0.0, _fragmentMaterial.Roughness * _fragmentMaterial.Roughness);
     vec3 result = reflectionColor * _fragmentMaterial.Albedo * _fragmentMaterial.Metallic * (1 - _fragmentMaterial.Roughness);
 
-    int shadowSampleCount = 16;
-    float vogelPointScale = 32 / shadowSampleCount;
     float shadowSampleSeed = ShadowHash(gl_FragCoord.xy);
     vec2 directionalShadowPixels = vec2(textureSize(DirectionalShadowMap, 0));
     vec2 pointShadowPixels = vec2(textureSize(PointShadowMap, 0));
@@ -314,7 +308,6 @@ vec3 evaluate_lights()
         vec3 halfwayDirection = normalize(lightDirection + _fragmentSurface.ViewDirection);
         vec3 surfaceColor = blinn_phong(_fragmentMaterial.Albedo, specularColor, glossy, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor);
 
-        float directionalShadowBias = 0.003 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.001;
         if (_directionalShadows[i].Strength.x > 0.001)
         {
             float shadowWidth = _directionalShadows[i].Strength.w;
@@ -324,58 +317,60 @@ vec3 evaluate_lights()
 
             vec4 shadowWorldPosition = _directionalShadows[i].Space * _vertexPosition.PositionWorld;
             vec3 shadowScreenPosition = (shadowWorldPosition.xyz / shadowWorldPosition.w) * 0.5 + 0.5;
+            float shadowBias = 0.003 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.001;
             float penumbra = 0.1 * (shadowWidth / directionalShadowPixels.x);
             float occluderCount = 0.0;
             
-            for (int i = 0; i < shadowSampleCount; i++)
+            for (int i = 0; i < SHADOWSAMPLECOUNT; i++)
             {
-                vec2 vogelPoint = Rotate(VogelDiskPoints[i] * vogelPointScale, vec2(0.0), shadowSampleSeed * PI);
+                vec2 vogelPoint = Rotate(VOGELDISKPOINTS[i] * VOGELPOINTRATIO, vec2(0.0), shadowSampleSeed * PI);
                 vec2 sampleUV = shadowScreenPosition.xy + vogelPoint * penumbra;
                 float sampleDepth = texture(DirectionalShadowMap, shadowAtlasStart + sampleUV * shadowAtlasSize).r;
 
-                occluderCount += shadowScreenPosition.z > (sampleDepth + directionalShadowBias) ? 1 : 0;
+                occluderCount += shadowScreenPosition.z > (sampleDepth + shadowBias) ? 1 : 0;
             }
 
-            surfaceColor *= 1 - (occluderCount / float(shadowSampleCount));
+            surfaceColor *= 1 - (occluderCount / float(SHADOWSAMPLECOUNT));
         }
 
         result += surfaceColor + _directionalLights[i].Color.w * _fragmentMaterial.Albedo * lightColor;
     }
-//    
-//    for(int i = 0; i < _pointLights.length(); i++)
-//    {
-//        vec3 lightDiff = _pointLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
-//        vec3 lightColor = _pointLights[i].Color.xyz;
-//        float lightDistance = length(lightDiff);
-//        vec3 lightDirection = normalize(lightDiff);
-//        vec3 halfwayDirection = normalize(lightDirection + viewDirection);
-//        float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 3.0);
-//
-//        vec3 surfaceColor = blinn_phong(baseColor, specularColor, glossy, surfaceNormal, halfwayDirection, lightDirection, lightColor) * attenuation;
-//
-//        if (_pointShadows[i].Strength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
-//        {
-//            vec2 shadowClipping = vec2(_pointShadows[i].Strength.y, _pointLights[i].Position.w);
-//            vec2 shadowAtlasStart = _pointShadows[i].Area.xy;
-//            vec2 shadowAtlasSize = _pointShadows[i].Area.wz;
-//
-//            float shadowBias = 0.2 * (1.0 - max(dot(normalize(_vertexNormal.NormalWorld), lightDirection), 0.0)) + 0.01;
-//            float penumbra = 0.01 * lightDistance;
-//            float occluderCount = 0.0;
-//
-//            for (int i = 0; i < shadowSampleCount; i++)
-//            {
-//                vec3 sampleDirection = VogelConeSample(i, shadowSampleCount, shadowSampleSeed * PI, lightDirection, penumbra);
-//                float sampleDepth = SamplePointShadowDepth(sampleDirection, shadowAtlasStart, shadowAtlasSize, shadowClipping);
-//
-//                occluderCount += lightDistance > sampleDepth + shadowBias ? 1 : 0;
-//            }
-//  
-//            surfaceColor *= 1 - (occluderCount / float(shadowSampleCount));
-//        }
-//
-//        result += surfaceColor + _pointLights[i].Color.w * baseColor * lightColor * attenuation;
-//    }   
+    
+    for(int i = 0; i < _pointLights.length(); i++)
+    {
+        vec3 lightDiff = _pointLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
+        vec3 lightColor = _pointLights[i].Color.xyz;
+        float lightDistance = length(lightDiff);
+        vec3 lightDirection = normalize(lightDiff);
+        vec3 halfwayDirection = normalize(lightDirection + _fragmentSurface.ViewDirection);
+        float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 3.0);
+        vec3 surfaceColor = blinn_phong(_fragmentMaterial.Albedo, specularColor, glossy, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * attenuation;
+
+        if (_pointShadows[i].Strength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
+        {
+            vec2 shadowClipping = vec2(_pointShadows[i].Strength.y, _pointLights[i].Position.w);
+            vec2 shadowAtlasStart = _pointShadows[i].Area.xy;
+            vec2 shadowAtlasSize = _pointShadows[i].Area.wz;
+            float penumbra = 0.01 * lightDistance;
+
+            vec3 s = normalize(cross(-lightDirection, vec3(0.0, 1.0, 0.0)));
+            vec3 u = cross(s, -lightDirection);
+            mat3 sampleRotation = mat3(s, u, lightDirection);
+            float shadowBias = 0.2 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.01;
+
+            float occluderCount = 0.0;
+            for (int i = 0; i < SHADOWSAMPLECOUNT; i++)
+            {
+                vec3 vogelPoint = sampleRotation * VogelConePoint(i, SHADOWSAMPLECOUNT, shadowSampleSeed * PI, penumbra);
+                float sampleDepth = SamplePointShadowDepth(vogelPoint, shadowAtlasStart, shadowAtlasSize, shadowClipping);
+                occluderCount += lightDistance > sampleDepth + shadowBias ? 1 : 0;
+            }
+  
+            surfaceColor *= 1 - (occluderCount / float(SHADOWSAMPLECOUNT));
+        }
+
+        result += surfaceColor + _pointLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuation;
+    }   
 //    
 //    for(int i = 0; i < _spotLights.length(); i++)
 //    {
