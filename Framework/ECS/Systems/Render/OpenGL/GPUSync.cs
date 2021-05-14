@@ -7,6 +7,7 @@ using Framework.Extensions;
 using ImageMagick;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using System;
 using System.Linq;
 
 namespace Framework.ECS.Systems.Render.OpenGL
@@ -35,6 +36,12 @@ namespace Framework.ECS.Systems.Render.OpenGL
             framebuffer.Handle = GL.GenFramebuffer();
             GL.BindFramebuffer(framebuffer.Target, framebuffer.Handle);
 
+            foreach(var storage in framebuffer.Storages)
+            {
+                if (storage.Handle <= 0) Push(storage);
+                GL.FramebufferRenderbuffer(framebuffer.Target, storage.Attachment, storage.Target, storage.Handle);
+            }
+
             foreach (var texture in framebuffer.Textures)
             {
                 if (texture.Handle <= 0) Push(texture);
@@ -45,6 +52,15 @@ namespace Framework.ECS.Systems.Render.OpenGL
             GL.ReadBuffer(framebuffer.ReadMode);
 
             GL.BindFramebuffer(framebuffer.Target, 0);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void Push(FramebufferStorageAsset storage)
+        {
+            storage.Handle = GL.GenRenderbuffer();
+            GL.RenderbufferStorage(storage.Target, storage.DataType, storage.Width, storage.Height);
         }
 
         /// <summary>

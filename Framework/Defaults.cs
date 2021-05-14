@@ -28,6 +28,7 @@ namespace Framework
                 public static ShaderSourceAsset VertexSkybox { get; }
 
                 public static ShaderSourceAsset FragmentLitBlinnPhong { get; }
+                public static ShaderSourceAsset FragmentLitBlinnPhongDeferredBuffer { get; }
                 public static ShaderSourceAsset FragmentSkybox { get; }
                 public static ShaderSourceAsset FragmentShadow { get; }
                 public static ShaderSourceAsset FragmentFrameBuffer { get; }
@@ -39,6 +40,7 @@ namespace Framework
                     VertexSkybox = new ShaderSourceAsset(ShaderType.VertexShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.vert"));
 
                     FragmentLitBlinnPhong = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitBlinnPhong.frag"));
+                    FragmentLitBlinnPhongDeferredBuffer = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitBlinnPhongDeferredBuffer.frag"));
                     FragmentSkybox = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.frag"));
                     FragmentShadow = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "Shadow.frag"));
                     FragmentFrameBuffer = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "FrameBuffer.frag"));
@@ -51,6 +53,7 @@ namespace Framework
                 public static ShaderProgramAsset Skybox { get; }
                 public static ShaderProgramAsset Shadow { get; }
                 public static ShaderProgramAsset MeshBlinnPhong { get; }
+                public static ShaderProgramAsset MeshBlinnPhongDeferredBuffer { get; }
 
                 static Program()
                 {
@@ -58,6 +61,7 @@ namespace Framework
                     Skybox = new ShaderProgramAsset("Skybox", Source.VertexSkybox, Source.FragmentSkybox);
                     Shadow = new ShaderProgramAsset("Shadow", Source.VertexMesh, Source.FragmentShadow);
                     MeshBlinnPhong = new ShaderProgramAsset("MeshBlinnPhong", Source.VertexMesh, Source.FragmentLitBlinnPhong);
+                    MeshBlinnPhongDeferredBuffer = new ShaderProgramAsset("MeshBlinnPhongDeferredBuffer", Source.VertexMesh, Source.FragmentLitBlinnPhongDeferredBuffer);
                 }
             }
         }

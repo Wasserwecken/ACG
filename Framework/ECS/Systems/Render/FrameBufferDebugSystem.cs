@@ -8,7 +8,7 @@ using Framework.ECS.Systems.Render.OpenGL;
 using OpenTK.Graphics.OpenGL;
 using System.Collections.Generic;
 
-namespace Framework.ECS.Systems.Render.Pipeline
+namespace Framework.ECS.Systems.Render
 {
     public class FrameBufferDebugSystem : AEntitySetSystem<bool>
     {

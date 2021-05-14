@@ -85,6 +85,105 @@ namespace Window
                     }
                 }
             });
+            _sceneComponents.Set(new ReflectionBufferComponent()
+            {
+                ReflectionBlock = new ShaderReflectionBlock(),
+                TextureAtlas = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
+                DeferredBuffer = new FramebufferAsset("DeferredRelfectionBuffer")
+                {
+                    Width = 4096,
+                    Height = 4096,
+
+                    DrawMode = DrawBufferMode.ColorAttachment0
+                               | DrawBufferMode.ColorAttachment1
+                               | DrawBufferMode.ColorAttachment2
+                               | DrawBufferMode.ColorAttachment3
+                               | DrawBufferMode.ColorAttachment4
+                               | DrawBufferMode.ColorAttachment5,
+                    ReadMode = ReadBufferMode.ColorAttachment0
+                               | ReadBufferMode.ColorAttachment1
+                               | ReadBufferMode.ColorAttachment2
+                               | ReadBufferMode.ColorAttachment3
+                               | ReadBufferMode.ColorAttachment4
+                               | ReadBufferMode.ColorAttachment5,
+
+                    Storages = new List<FramebufferStorageAsset>()
+                    {
+                        new FramebufferStorageAsset("ReflectionDeferredDepth")
+                        {
+                            Attachment = FramebufferAttachment.DepthAttachment,
+                            Width = 4096,
+                            Height = 4096,
+
+                            Target = RenderbufferTarget.Renderbuffer,
+                            DataType = RenderbufferStorage.DepthComponent
+                        }
+                    },
+                    Textures = new List<TextureRenderAsset>()
+                    {
+                        new TextureRenderAsset("ReflectionDeferredPosition")
+                        {
+                            Attachment = FramebufferAttachment.ColorAttachment0,
+                            Width = 4096,
+                            Height = 4096,
+
+                            InternalFormat = PixelInternalFormat.Rgba16,
+                            Format = PixelFormat.Rgba,
+                            PixelType = PixelType.Float
+                        },
+                        new TextureRenderAsset("ReflectionDeferredAlbedo")
+                        {
+                            Attachment = FramebufferAttachment.ColorAttachment1,
+                            Width = 4096,
+                            Height = 4096,
+
+                            InternalFormat = PixelInternalFormat.Rgb16,
+                            Format = PixelFormat.Rgb,
+                            PixelType = PixelType.Float
+                        },
+                        new TextureRenderAsset("ReflectionDeferredNormalSurface")
+                        {
+                            Attachment = FramebufferAttachment.ColorAttachment2,
+                            Width = 4096,
+                            Height = 4096,
+
+                            InternalFormat = PixelInternalFormat.Rgb16,
+                            Format = PixelFormat.Rgb,
+                            PixelType = PixelType.Float
+                        },
+                        new TextureRenderAsset("ReflectionDeferredNormalTexture")
+                        {
+                            Attachment = FramebufferAttachment.ColorAttachment3,
+                            Width = 4096,
+                            Height = 4096,
+
+                            InternalFormat = PixelInternalFormat.Rgb16,
+                            Format = PixelFormat.Rgb,
+                            PixelType = PixelType.Float
+                        },
+                        new TextureRenderAsset("ReflectionDeferredMRO")
+                        {
+                            Attachment = FramebufferAttachment.ColorAttachment4,
+                            Width = 4096,
+                            Height = 4096,
+
+                            InternalFormat = PixelInternalFormat.Rgb16,
+                            Format = PixelFormat.Rgb,
+                            PixelType = PixelType.Float
+                        },
+                        new TextureRenderAsset("ReflectionDeferredEmission")
+                        {
+                            Attachment = FramebufferAttachment.ColorAttachment5,
+                            Width = 4096,
+                            Height = 4096,
+
+                            InternalFormat = PixelInternalFormat.Rgb16,
+                            Format = PixelFormat.Rgb,
+                            PixelType = PixelType.Float
+                        }
+                    }
+                }
+            });
 
 
             _fixedPipeline = new SequentialSystem<bool>(
@@ -114,6 +213,10 @@ namespace Window
                 new SpotLightSystem(_scene, _sceneComponents),
                 new SpotShadowPassSystem(_scene, _sceneComponents),
                 new ShadowBufferSyncSystem(_scene, _sceneComponents),
+
+                new ReflectionBufferPrepareSystem(_scene, _sceneComponents),
+                new ReflectionDeferredPassSystem(_scene, _sceneComponents),
+                new ReflectionBufferSyncSystem(_scene, _sceneComponents),
 
                 new ForwardPassSystemOLD(_scene, _sceneComponents),
                 new FrameBufferDebugSystem(_scene, _sceneComponents)
@@ -177,7 +280,7 @@ namespace Window
 
             var reflectionProbe = _scene.CreateEntity();
             reflectionProbe.Set(new TransformComponent(new Vector3(0f, 1f, 0f)));
-            reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true });
+            reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 2048, NearClipping = 0.01f, FarClipping = 30f });
         }
 
         /// <summary>

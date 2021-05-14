@@ -8,7 +8,8 @@ namespace Framework.ECS.Components.Scene
     [DebuggerDisplay("Lights: {Data.Length}, BufferTextures: {ShadowBuffer.Textures.Count}, BufferSize: {ShadowBuffer.Width}, {ShadowBuffer.Height}")]
     public struct ReflectionBufferComponent
     {
-        public FramebufferAsset FramebufferBuffer;
+        public FramebufferAsset DeferredBuffer;
+        public FramebufferAsset ReflectionBuffer;
         public TextureSpace TextureAtlas;
         public ShaderReflectionBlock ReflectionBlock;
     }
