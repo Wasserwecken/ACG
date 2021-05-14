@@ -156,19 +156,30 @@ layout (std430) buffer ShaderPointShadowBlock {
 
 struct SpotLight
 {
- vec4 Color;
- vec4 Position;
- vec4 Direction;
+    vec4 Color;
+    vec4 Position;
+    vec4 Direction;
+    vec4 Range;
+};
+
+struct SpotShadow
+{
+    vec4 Strength;
+    vec4 Area;
+    mat4 Space;
 };
 
 layout (std430) buffer ShaderSpotLightBlock {
     SpotLight _spotLights[];
 };
 
+layout (std430) buffer ShaderSpotShadowBlock {
+    SpotShadow _spotShadows[];
+};
+
 // ENVIRONMENT
 uniform samplerCube ReflectionMap;
-uniform sampler2D DirectionalShadowMap;
-uniform sampler2D PointShadowMap;
+uniform sampler2D ShadowMap;
 
 // FRAGMENT STRUCTS
 struct FragmentMaterial
@@ -278,7 +289,7 @@ float SamplePointShadowDepth(vec3 direction, vec2 atlasStart, vec2 atlasSize, ve
 
     float depthCorrection = length(vec3(faceUV * 2.0 - 1.0, 1.0));
     vec2 shadowUV = atlasStart + ((faceUV + faceId) / vec2(3.0, 2.0)) * atlasSize;
-    return LinearizeDepth(texture(PointShadowMap, shadowUV).r, clipping.x, clipping.y) * depthCorrection;
+    return LinearizeDepth(texture(ShadowMap, shadowUV).r, clipping.x, clipping.y) * depthCorrection;
 }
 
 vec3 evaluate_lights()
@@ -288,8 +299,7 @@ vec3 evaluate_lights()
     vec3 result = reflectionColor * _fragmentMaterial.Albedo * _fragmentMaterial.Metallic * (1.0 - _fragmentMaterial.Roughness);
 
     float shadowSampleSeed = ShadowHash(gl_FragCoord.xy);
-    vec2 directionalShadowPixels = vec2(textureSize(DirectionalShadowMap, 0));
-    vec2 pointShadowPixels = vec2(textureSize(PointShadowMap, 0));
+    vec2 ShadowMapPixels = vec2(textureSize(ShadowMap, 0));
     
     for(int i = 0; i < _directionalLights.length(); i++)
     {
@@ -310,7 +320,7 @@ vec3 evaluate_lights()
             vec4 shadowWorldPosition = _directionalShadows[i].Space * _vertexPosition.PositionWorld;
             vec3 shadowScreenPosition = (shadowWorldPosition.xyz / shadowWorldPosition.w) * 0.5 + 0.5;
             float shadowBias = 0.003 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.001;
-            float penumbra = 0.1 * (shadowWidth / directionalShadowPixels.x);
+            float penumbra = 0.1 * (shadowWidth / ShadowMapPixels.x);
             float occluderCount = 0.0;
 
             float sampleAngle = shadowSampleSeed * PI;
@@ -322,7 +332,7 @@ vec3 evaluate_lights()
             {
                 vec2 vogelPoint = sampleRotation * VOGELDISKPOINTS[i] * VOGELPOINTRATIO;
                 vec2 sampleUV = shadowScreenPosition.xy + vogelPoint * penumbra;
-                float sampleDepth = texture(DirectionalShadowMap, shadowAtlasStart + sampleUV * shadowAtlasSize).r;
+                float sampleDepth = texture(ShadowMap, shadowAtlasStart + sampleUV * shadowAtlasSize).r;
 
                 occluderCount += shadowScreenPosition.z > (sampleDepth + shadowBias) ? 1 : 0;
             }
@@ -338,42 +348,46 @@ vec3 evaluate_lights()
         vec3 lightDiff = _pointLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
         vec3 lightColor = _pointLights[i].Color.xyz;
         float lightDistance = length(lightDiff);
-        vec3 lightDirection = normalize(lightDiff);
-        vec3 halfwayDirection = normalize(lightDirection + -_fragmentSurface.ViewDirection);
-        float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 3.0);
-        vec3 diffuseColor = _fragmentMaterial.Albedo * (1.0 - _fragmentMaterial.Metallic);
-        vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.Metallic);
-        vec3 surfaceColor = blinn_phong(diffuseColor, specularColor, _fragmentMaterial.Roughness, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * attenuation;
 
-        if (_pointShadows[i].Strength.x > 0.001 && _pointLights[i].Position.w > lightDistance)
+        if (_pointLights[i].Position.w > lightDistance)
         {
-            vec2 shadowClipping = vec2(_pointShadows[i].Strength.y, _pointLights[i].Position.w);
-            vec2 shadowAtlasStart = _pointShadows[i].Area.xy;
-            vec2 shadowAtlasSize = _pointShadows[i].Area.wz;
-            float penumbra = 0.005 * lightDistance;
+            vec3 lightDirection = normalize(lightDiff);
+            vec3 halfwayDirection = normalize(lightDirection + -_fragmentSurface.ViewDirection);
+            float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 3.0);
+            vec3 diffuseColor = _fragmentMaterial.Albedo * (1.0 - _fragmentMaterial.Metallic);
+            vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.Metallic);
+            vec3 surfaceColor = blinn_phong(diffuseColor, specularColor, _fragmentMaterial.Roughness, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * attenuation;
 
-            vec3 s = normalize(cross(-lightDirection, vec3(0.0, 1.0, 0.0)));
-            vec3 u = cross(s, -lightDirection);
-            mat3 sampleRotation = mat3(s, u, lightDirection);
-            float shadowBias = 0.2 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.01;
-            float occluderCount = 0.0;
-            
-            float sampleAngle = shadowSampleSeed * PI;
-            float t = sin(sampleAngle);
-	        float d = cos(sampleAngle);
-	        mat2 vogelRotation = mat2(d, -t, t, d);
-            
-            for (int i = 0; i < SHADOWSAMPLECOUNT; i++)
+            if (_pointShadows[i].Strength.x > 0.001)
             {
-                vec3 samplePoint = sampleRotation * vec3(vogelRotation * VOGELDISKPOINTS[i] * VOGELPOINTRATIO * penumbra, 1.0);
-                float sampleDepth = SamplePointShadowDepth(samplePoint, shadowAtlasStart, shadowAtlasSize, shadowClipping);
-                occluderCount += lightDistance > sampleDepth + shadowBias ? 1 : 0;
-            }
-  
-            surfaceColor *= 1 - (occluderCount / float(SHADOWSAMPLECOUNT));
-        }
+                vec2 shadowClipping = vec2(_pointShadows[i].Strength.y, _pointLights[i].Position.w);
+                vec2 shadowAtlasStart = _pointShadows[i].Area.xy;
+                vec2 shadowAtlasSize = _pointShadows[i].Area.wz;
+                float penumbra = 0.005 * lightDistance;
 
-        result += surfaceColor + _pointLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuation;
+                vec3 s = normalize(cross(-lightDirection, vec3(0.0, 1.0, 0.0)));
+                vec3 u = cross(s, -lightDirection);
+                mat3 sampleRotation = mat3(s, u, lightDirection);
+                float shadowBias = 0.2 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.01;
+                float occluderCount = 0.0;
+            
+                float sampleAngle = shadowSampleSeed * PI;
+                float t = sin(sampleAngle);
+	            float d = cos(sampleAngle);
+	            mat2 vogelRotation = mat2(d, -t, t, d);
+            
+                for (int i = 0; i < SHADOWSAMPLECOUNT; i++)
+                {
+                    vec3 samplePoint = sampleRotation * vec3(vogelRotation * VOGELDISKPOINTS[i] * VOGELPOINTRATIO * penumbra, 1.0);
+                    float sampleDepth = SamplePointShadowDepth(samplePoint, shadowAtlasStart, shadowAtlasSize, shadowClipping);
+                    occluderCount += lightDistance > sampleDepth + shadowBias ? 1 : 0;
+                }
+  
+                surfaceColor *= 1 - (occluderCount / float(SHADOWSAMPLECOUNT));
+            }
+
+            result += surfaceColor + _pointLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuation;
+        }
     }   
     
     for(int i = 0; i < _spotLights.length(); i++)
@@ -381,20 +395,52 @@ vec3 evaluate_lights()
         vec3 lightDiff = _spotLights[i].Position.xyz - _vertexPosition.PositionWorld.xyz;
         vec3 lightColor = _spotLights[i].Color.xyz;
         float lightDistance = length(lightDiff);
-        vec3 lightDirection = normalize(lightDiff);
-        vec3 halfwayDirection = normalize(lightDirection + -_fragmentSurface.ViewDirection);
-        float attenuationSqrared = 1.0 / (1.0 + (lightDistance * lightDistance));
-        float attenuationLinear = 1.0 / (1.0 + lightDistance);
 
-        float outerAngle = _spotLights[i].Position.w;
-        float innerAngle = _spotLights[i].Direction.w;
-        float theta = dot(lightDirection, normalize(_spotLights[i].Direction.xyz));
-        float epsilon = innerAngle - outerAngle;
-        float spotIntensity = clamp((theta - outerAngle) / epsilon, 0.0, 1.0);
-        vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.Metallic);
+        if (_spotLights[i].Range.x > lightDistance)
+        {
+            vec3 lightDirection = normalize(lightDiff);
+            vec3 halfwayDirection = normalize(lightDirection + -_fragmentSurface.ViewDirection);
+            float attenuation = pow(1 - clamp(lightDistance / _spotLights[i].Range.x, 0, 1), 3.0);
 
-        result += blinn_phong(_fragmentMaterial.Albedo, specularColor, _fragmentMaterial.Roughness, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * spotIntensity * attenuationSqrared;
-        result += _spotLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuationLinear;
+            float outerAngle = _spotLights[i].Position.w;
+            float innerAngle = _spotLights[i].Direction.w;
+            float theta = dot(lightDirection, normalize(_spotLights[i].Direction.xyz));
+            float epsilon = innerAngle - outerAngle;
+            float spotIntensity = clamp((theta - outerAngle) / epsilon, 0.0, 1.0);
+            vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.Metallic);
+            vec3 surfaceColor = blinn_phong(_fragmentMaterial.Albedo, specularColor, _fragmentMaterial.Roughness, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * spotIntensity * attenuation;
+
+            if (_spotShadows[i].Strength.x > 0.001)
+            {
+                float shadowWidth = _spotShadows[i].Strength.w;
+                vec2 shadowClipping = _spotShadows[i].Strength.yz;
+                vec2 shadowAtlasStart = _spotShadows[i].Area.xy;
+                vec2 shadowAtlasSize = _spotShadows[i].Area.zw;
+
+                vec4 shadowWorldPosition = _spotShadows[i].Space * _vertexPosition.PositionWorld;
+                vec3 shadowScreenPosition = (shadowWorldPosition.xyz / shadowWorldPosition.w) * 0.5 + 0.5;
+                float shadowBias = 0.0001 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.000;
+                float penumbra = 0.001 * lightDistance;
+                float occluderCount = 0.0;
+            
+                float sampleAngle = shadowSampleSeed * PI;
+                float s = sin(sampleAngle);
+	            float c = cos(sampleAngle);
+	            mat2 sampleRotation = mat2(c, -s, s, c);
+
+                for (int i = 0; i < SHADOWSAMPLECOUNT; i++)
+                {
+                    vec2 vogelPoint = sampleRotation * VOGELDISKPOINTS[i] * VOGELPOINTRATIO * penumbra;
+                    vec2 samplePoint = shadowAtlasStart + (shadowScreenPosition.xy + vogelPoint) * shadowAtlasSize;
+                    float sampleDepth = texture(ShadowMap, samplePoint).r;
+
+                    occluderCount += shadowScreenPosition.z > (sampleDepth + shadowBias) ? 1 : 0;
+                }
+                surfaceColor *= 1 - (occluderCount / float(SHADOWSAMPLECOUNT));
+            }
+
+            result += surfaceColor + _spotLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuation;
+        }
     }
 
     return result;

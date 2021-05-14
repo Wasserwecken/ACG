@@ -42,6 +42,7 @@ namespace Framework.ECS.Systems.RenderPipeline
                 _block.Lights[i].Color = new Vector4(lightConfig.Color, lightConfig.AmbientFactor);
                 _block.Lights[i].Position = new Vector4(transform.Position, MathF.Cos(lightConfig.OuterAngle));
                 _block.Lights[i].Direction = new Vector4(-transform.Forward, MathF.Cos(lightConfig.InnerAngle));
+                _block.Lights[i].Range = new Vector4(lightConfig.Range, 0f, 0f, 0f);
             }
         }
 

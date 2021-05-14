@@ -11,5 +11,6 @@ namespace Framework.ECS.Components.Light
         public float AmbientFactor;
         public float OuterAngle;
         public float InnerAngle;
+        public float Range;
     }
 }

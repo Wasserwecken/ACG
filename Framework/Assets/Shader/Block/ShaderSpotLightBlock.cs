@@ -11,6 +11,7 @@ namespace Framework.Assets.Shader.Block
             public Vector4 Color;
             public Vector4 Position;
             public Vector4 Direction;
+            public Vector4 Range;
         }
 
         public ShaderSpotLight[] Lights;
@@ -25,6 +26,7 @@ namespace Framework.Assets.Shader.Block
                 writer.Write(light.Color);
                 writer.Write(light.Position);
                 writer.Write(light.Direction);
+                writer.Write(light.Range);
             }
         }
     }

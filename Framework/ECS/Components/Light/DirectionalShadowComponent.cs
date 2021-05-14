@@ -13,6 +13,5 @@ namespace Framework.ECS.Components.Light
         public float NearClipping;
         public float FarClipping;
         public float Width;
-        public float Size;
     }
 }

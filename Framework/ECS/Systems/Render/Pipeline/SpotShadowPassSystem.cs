@@ -13,9 +13,9 @@ using System;
 namespace Framework.ECS.Systems.Render.Pipeline
 {
     [With(typeof(TransformComponent))]
-    [With(typeof(DirectionalLightComponent))]
-    [With(typeof(DirectionalShadowComponent))]
-    public class DirectionalShadowPassSystem : AEntitySetSystem<bool>
+    [With(typeof(SpotLightComponent))]
+    [With(typeof(SpotShadowComponent))]
+    public class SpotShadowPassSystem : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
         protected readonly EntitySet _renderCandidates;
@@ -23,7 +23,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
         /// <summary>
         /// 
         /// </summary>
-        public DirectionalShadowPassSystem(World world, Entity worldComponents) : base(world)
+        public SpotShadowPassSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
             _renderCandidates = World.GetEntities()
@@ -38,7 +38,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
         protected override void PreUpdate(bool state)
         {
             var lightCount = World.GetEntities().With<TransformComponent>().With<DirectionalLightComponent>().AsSet().Count;
-            _worldComponents.Get<ShadowBufferComponent>().DirectionalBlock.Shadows = new ShaderDirectionalShadowBlock.ShaderDirectionalShadow[lightCount];
+            _worldComponents.Get<ShadowBufferComponent>().SpotBlock.Shadows = new ShaderSpotShadowBlock.ShaderSpotShadow[lightCount];
         }
 
         /// <summary>
@@ -57,8 +57,8 @@ namespace Framework.ECS.Systems.Render.Pipeline
             {
                 // DATA COLLECTION
                 var transform = entity.Get<TransformComponent>();
-                var lightConfig = entity.Get<DirectionalLightComponent>();
-                var shadowConfig = entity.Get<DirectionalShadowComponent>();
+                var lightConfig = entity.Get<SpotLightComponent>();
+                var shadowConfig = entity.Get<SpotShadowComponent>();
 
                 if (shadowConfig.Strength > float.Epsilon && shadowBuffer.TextureAtlas.Add(shadowConfig.Resolution, out var shadowMapSpace))
                 {
@@ -66,7 +66,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
                     if (shadowConfig.ViewSpaceBlock == null)
                         shadowConfig.ViewSpaceBlock = new ShaderViewSpaceBlock();
 
-                    var projection = Matrix4.CreateOrthographic(shadowConfig.Width, shadowConfig.Width, shadowConfig.NearClipping, shadowConfig.FarClipping);
+                    var projection = Matrix4.CreatePerspectiveFieldOfView(lightConfig.OuterAngle * 2f, 1f, shadowConfig.NearClipping, lightConfig.Range);
                     transform.Forward = -transform.Forward;
 
                     shadowConfig.ViewSpaceBlock.WorldToView = transform.WorldSpaceInverse;
@@ -80,9 +80,9 @@ namespace Framework.ECS.Systems.Render.Pipeline
                     Renderer.UseShaderBlock(shadowConfig.ViewSpaceBlock, Defaults.Shader.Program.Shadow);
 
                     // SHADOW DATA
-                    shadowBuffer.DirectionalBlock.Shadows[lightConfig.InfoId].Strength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, shadowConfig.FarClipping, shadowConfig.Width);
-                    shadowBuffer.DirectionalBlock.Shadows[lightConfig.InfoId].Area = new Vector4(shadowMapSpace, shadowMapSpace.Z);
-                    shadowBuffer.DirectionalBlock.Shadows[lightConfig.InfoId].Space = shadowConfig.ViewSpaceBlock.WorldToProjection;
+                    shadowBuffer.SpotBlock.Shadows[lightConfig.InfoId].Strength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, lightConfig.Range, 0f);
+                    shadowBuffer.SpotBlock.Shadows[lightConfig.InfoId].Area = new Vector4(shadowMapSpace, shadowMapSpace.Z);
+                    shadowBuffer.SpotBlock.Shadows[lightConfig.InfoId].Space = shadowConfig.ViewSpaceBlock.WorldToProjection;
 
                     // VIEWPORT PREPERATION
                     var viewPort = shadowMapSpace * new Vector3(

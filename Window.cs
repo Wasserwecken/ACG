@@ -3,6 +3,7 @@ using DefaultEcs.System;
 using Framework;
 using Framework.Assets.Framebuffer;
 using Framework.Assets.Materials;
+using Framework.Assets.Shader.Block;
 using Framework.Assets.Textures;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
@@ -55,10 +56,13 @@ namespace Window
             _sceneComponents.Set(new TimeComponent());
             _sceneComponents.Set(new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState });
             _sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
-            _sceneComponents.Set(new DirectionalShadowBufferComponent()
+            _sceneComponents.Set(new ShadowBufferComponent()
             {
-                ShadowSpacer = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
-                ShadowBuffer = new FramebufferAsset("DirectionalShadowPass")
+                DirectionalBlock = new ShaderDirectionalShadowBlock(),
+                PointBlock = new ShaderPointShadowBlock(),
+                SpotBlock = new ShaderSpotShadowBlock(),
+                TextureAtlas = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
+                FramebufferBuffer = new FramebufferAsset("ShadowBuffer")
                 {
                     Width = 4096,
                     Height = 4096,
@@ -68,33 +72,7 @@ namespace Window
 
                     Textures = new List<TextureRenderAsset>()
                     {
-                        new TextureRenderAsset("DirectionalShadowMap")
-                        {
-                            Attachment = FramebufferAttachment.DepthAttachment,
-                            Width = 4096,
-                            Height = 4096,
-
-                            InternalFormat = PixelInternalFormat.DepthComponent,
-                            Format = PixelFormat.DepthComponent,
-                            PixelType = PixelType.Float
-                        }
-                    }
-                }
-            });
-            _sceneComponents.Set(new PointLightBufferComponent()
-            {
-                ShadowSpacer = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
-                ShadowBuffer = new FramebufferAsset("PointShadowPass")
-                {
-                    Width = 4096,
-                    Height = 4096,
-
-                    DrawMode = DrawBufferMode.None,
-                    ReadMode = ReadBufferMode.None,
-
-                    Textures = new List<TextureRenderAsset>()
-                    {
-                        new TextureRenderAsset("PointShadowMap")
+                        new TextureRenderAsset("ShadowMap")
                         {
                             Attachment = FramebufferAttachment.DepthAttachment,
                             Width = 4096,
@@ -128,14 +106,17 @@ namespace Window
             _renderPipeline = new SequentialSystem<bool>(
                 new ShaderTimeSystem(_scene, _sceneComponents),
 
+                new ShadowBufferPrepareSystem(_scene, _sceneComponents),
                 new DirectionalLightSystem(_scene, _sceneComponents),
                 new DirectionalShadowPassSystem(_scene, _sceneComponents),
                 new PointLightSystem(_scene, _sceneComponents),
                 new PointShadowPassSystem(_scene, _sceneComponents),
                 new SpotLightSystem(_scene, _sceneComponents),
+                new SpotShadowPassSystem(_scene, _sceneComponents),
+                new ShadowBufferSyncSystem(_scene, _sceneComponents),
 
-                new ForwardPassSystemOLD(_scene, _sceneComponents)
-                //new FrameBufferDebugSystem(_scene, _sceneComponents)
+                new ForwardPassSystemOLD(_scene, _sceneComponents),
+                new FrameBufferDebugSystem(_scene, _sceneComponents)
             );
         }
 
@@ -178,8 +159,8 @@ namespace Window
 
             var spotLight = _scene.CreateEntity();
             spotLight.Set(new TransformComponent(new Vector3(8.0f, 2f, 3f), new Vector3(0.7f, -0.1f, -1f)));
-            spotLight.Set(new SpotLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 3f, AmbientFactor = 0.001f, InnerAngle = 0.3f, OuterAngle = 0.5f });
-            //spotLight.Set(new TransformRotatorComponent() { Speed = 0.05f });
+            spotLight.Set(new SpotLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 3f, AmbientFactor = 0.001f, InnerAngle = 0.3f, OuterAngle = 0.5f, Range = 10f });
+            spotLight.Set(new SpotShadowComponent() { Resolution = 256, Strength = 1.0f, NearClipping = 0.01f });
 
 
             var rand = new Random();

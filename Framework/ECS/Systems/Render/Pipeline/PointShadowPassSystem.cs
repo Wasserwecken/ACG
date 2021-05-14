@@ -19,7 +19,6 @@ namespace Framework.ECS.Systems.RenderPipeline
     {
         private readonly Entity _worldComponents;
         private readonly EntitySet _renderCandidates;
-        private readonly ShaderPointShadowBlock _shadowBlock;
         private readonly ShaderViewSpaceBlock _viewBlock;
 
         /// <summary>
@@ -28,7 +27,6 @@ namespace Framework.ECS.Systems.RenderPipeline
         public PointShadowPassSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
-            _shadowBlock = new ShaderPointShadowBlock();
             _viewBlock = new ShaderViewSpaceBlock();
             _renderCandidates = World.GetEntities()
                 .With<TransformComponent>()
@@ -42,7 +40,7 @@ namespace Framework.ECS.Systems.RenderPipeline
         protected override void PreUpdate(bool state)
         {
             var lightCount = World.GetEntities().With<TransformComponent>().With<PointLightComponent>().AsSet().Count;
-            _shadowBlock.Shadows = new ShaderPointShadowBlock.ShaderPointShadow[lightCount];
+            _worldComponents.Get<ShadowBufferComponent>().PointBlock.Shadows = new ShaderPointShadowBlock.ShaderPointShadow[lightCount];
         }
 
         /// <summary>
@@ -51,15 +49,11 @@ namespace Framework.ECS.Systems.RenderPipeline
         protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
             // GLOBAL PREPERATION
-            ref var shaderInfo = ref _worldComponents.Get<PointLightBufferComponent>();
-            shaderInfo.ShadowSpacer.Clear();
+            ref var shadowBuffer = ref _worldComponents.Get<ShadowBufferComponent>();
 
-            Renderer.UseFrameBuffer(shaderInfo.ShadowBuffer);
+            Renderer.UseFrameBuffer(shadowBuffer.FramebufferBuffer);
             Renderer.UseShader(Defaults.Shader.Program.Shadow);
             Renderer.UseMaterial(Defaults.Material.Shadow, Defaults.Shader.Program.Shadow);
-
-            GL.ClearColor(shaderInfo.ShadowBuffer.ClearColor);
-            GL.Clear(shaderInfo.ShadowBuffer.ClearMask);
 
             foreach (ref readonly var entity in entities)
             {
@@ -68,13 +62,13 @@ namespace Framework.ECS.Systems.RenderPipeline
                 var lightConfig = entity.Get<PointLightComponent>();
                 var shadowConfig = entity.Get<PointShadowComponent>();
 
-                if (shadowConfig.Strength > float.Epsilon && shaderInfo.ShadowSpacer.Add(shadowConfig.Resolution, out var shadowMapSpace))
+                if (shadowConfig.Strength > float.Epsilon && shadowBuffer.TextureAtlas.Add(shadowConfig.Resolution, out var shadowMapSpace))
                 {
                     // SHADOW DATA
                     var foo = (shadowConfig.Resolution / 3f) % (shadowConfig.Resolution / 3) > 0.5f ? 2f : 1f;
                     var widthCorrection = (shadowConfig.Resolution - foo) / shadowConfig.Resolution;
-                    _shadowBlock.Shadows[lightConfig.InfoId].Area = new Vector4(shadowMapSpace, shadowMapSpace.Z * widthCorrection);
-                    _shadowBlock.Shadows[lightConfig.InfoId].Strength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, 0f, 0f);
+                    shadowBuffer.PointBlock.Shadows[lightConfig.InfoId].Area = new Vector4(shadowMapSpace, shadowMapSpace.Z * widthCorrection);
+                    shadowBuffer.PointBlock.Shadows[lightConfig.InfoId].Strength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, 0f, 0f);
 
                     // RENDER 6 SIDES
                     var cubeOrientations = Helper.CreateCubeOrientations(transform.Position);
@@ -82,9 +76,9 @@ namespace Framework.ECS.Systems.RenderPipeline
                     {
                         // VIEWPORT PREPERATION
                         var viewPort = shadowMapSpace * new Vector3(
-                            shaderInfo.ShadowBuffer.Width,
-                            shaderInfo.ShadowBuffer.Height,
-                            shaderInfo.ShadowBuffer.Width);
+                            shadowBuffer.FramebufferBuffer.Width,
+                            shadowBuffer.FramebufferBuffer.Height,
+                            shadowBuffer.FramebufferBuffer.Width);
                         var width = (int)viewPort.Z / 3;
                         var height = (int)viewPort.Z / 2;
                         var x = (int)viewPort.X + (i % 3) * width;
@@ -117,17 +111,6 @@ namespace Framework.ECS.Systems.RenderPipeline
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        protected override void PostUpdate(bool state)
-        {
-            GPUSync.Push(_shadowBlock);
-
-            foreach (var shader in AssetRegister.Shaders)
-                shader.SetBlockBinding(_shadowBlock);
         }
     }
 }
