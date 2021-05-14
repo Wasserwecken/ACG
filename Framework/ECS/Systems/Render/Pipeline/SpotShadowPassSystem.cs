@@ -1,9 +1,9 @@
-﻿using ACG.Framework.Assets;
-using DefaultEcs;
+﻿using DefaultEcs;
 using DefaultEcs.System;
 using Framework.Assets.Shader.Block;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
+using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.Systems.Render.OpenGL;
 using OpenTK.Graphics.OpenGL;
@@ -53,6 +53,9 @@ namespace Framework.ECS.Systems.Render.Pipeline
             Renderer.UseShader(Defaults.Shader.Program.Shadow);
             Renderer.UseMaterial(Defaults.Material.Shadow, Defaults.Shader.Program.Shadow);
 
+            GL.Enable(EnableCap.ScissorTest);
+            GL.ClearColor(shadowBuffer.FramebufferBuffer.ClearColor);
+
             foreach (ref readonly var entity in entities)
             {
                 // DATA COLLECTION
@@ -90,6 +93,8 @@ namespace Framework.ECS.Systems.Render.Pipeline
                         shadowBuffer.FramebufferBuffer.Height,
                         shadowBuffer.FramebufferBuffer.Width);
                     GL.Viewport((int)viewPort.X, (int)viewPort.Y, (int)viewPort.Z, (int)viewPort.Z);
+                    GL.Scissor((int)viewPort.X, (int)viewPort.Y, (int)viewPort.Z, (int)viewPort.Z);
+                    GL.Clear(shadowBuffer.FramebufferBuffer.ClearMask);
 
                     // RENDER SHADOW CASTERS
                     foreach (ref readonly var candidate in _renderCandidates.GetEntities())
@@ -103,6 +108,8 @@ namespace Framework.ECS.Systems.Render.Pipeline
                     }
                 }
             }
+
+            GL.Disable(EnableCap.ScissorTest);
         }
     }
 }

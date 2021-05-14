@@ -162,7 +162,6 @@ namespace Window
             spotLight.Set(new SpotLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 3f, AmbientFactor = 0.001f, InnerAngle = 0.3f, OuterAngle = 0.5f, Range = 10f });
             spotLight.Set(new SpotShadowComponent() { Resolution = 256, Strength = 1.0f, NearClipping = 0.01f });
 
-
             var rand = new Random();
             int pointLightCount = 1;
             for (int i = 0; i < pointLightCount; i++)
@@ -175,6 +174,10 @@ namespace Window
                 pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 3f, AmbientFactor = 0.001f, Range = 8f });
                 pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 0.01f });
             }
+
+            var reflectionProbe = _scene.CreateEntity();
+            reflectionProbe.Set(new TransformComponent(new Vector3(0f, 1f, 0f)));
+            reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true });
         }
 
         /// <summary>

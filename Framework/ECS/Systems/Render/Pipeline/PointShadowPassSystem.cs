@@ -1,9 +1,9 @@
-﻿using ACG.Framework.Assets;
-using DefaultEcs;
+﻿using DefaultEcs;
 using DefaultEcs.System;
 using Framework.Assets.Shader.Block;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
+using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.Systems.Render.OpenGL;
 using OpenTK.Graphics.OpenGL;
@@ -55,6 +55,9 @@ namespace Framework.ECS.Systems.RenderPipeline
             Renderer.UseShader(Defaults.Shader.Program.Shadow);
             Renderer.UseMaterial(Defaults.Material.Shadow, Defaults.Shader.Program.Shadow);
 
+            GL.Enable(EnableCap.ScissorTest);
+            GL.ClearColor(shadowBuffer.FramebufferBuffer.ClearColor);
+
             foreach (ref readonly var entity in entities)
             {
                 // DATA COLLECTION
@@ -84,6 +87,8 @@ namespace Framework.ECS.Systems.RenderPipeline
                         var x = (int)viewPort.X + (i % 3) * width;
                         var y = (int)viewPort.Y + (i < 3 ? 0 : height);
                         GL.Viewport(x, y, width, height);
+                        GL.Scissor(x, y, width, height);
+                        GL.Clear(shadowBuffer.FramebufferBuffer.ClearMask);
 
                         // VIEW SPACE SETUP
                         var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1f, shadowConfig.NearClipping, lightConfig.Range);
@@ -111,6 +116,8 @@ namespace Framework.ECS.Systems.RenderPipeline
                     }
                 }
             }
+
+            GL.Disable(EnableCap.ScissorTest);
         }
     }
 }
