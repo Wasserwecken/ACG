@@ -38,7 +38,7 @@ namespace Framework.ECS.Systems.RenderPipeline
         /// </summary>
         protected override void PreUpdate(bool state)
         {
-            var lightCount = World.GetEntities().With<TransformComponent>().With<PointLightComponent>().AsSet().Count;
+            var lightCount = World.GetEntities().With<TransformComponent>().With<ReflectionProbeComponent>().AsSet().Count;
             _worldComponents.Get<ReflectionBufferComponent>().ReflectionBlock.Probes = new ShaderReflectionBlock.ShaderReflectionProbe[lightCount];
         }
 

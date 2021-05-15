@@ -1,13 +1,7 @@
 ﻿using DefaultEcs;
 using DefaultEcs.System;
 using Framework.Assets.Shader.Block;
-using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Scene;
-using Framework.ECS.Systems.Render.OpenGL;
-using OpenTK.Graphics.OpenGL;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Framework.ECS.Systems.Render.Pipeline
 {
