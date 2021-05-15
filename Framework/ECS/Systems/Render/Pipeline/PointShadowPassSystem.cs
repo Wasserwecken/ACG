@@ -100,10 +100,9 @@ namespace Framework.ECS.Systems.RenderPipeline
                         _viewBlock.ViewDirection = new Vector4(cubeOrientations[i].Row2);
                         _viewBlock.Resolution = new Vector2(shadowConfig.Resolution, shadowConfig.Resolution);
                         GPUSync.Push(_viewBlock);
-                        Renderer.UseShaderBlock(_viewBlock, Defaults.Shader.Program.Shadow);
-
 
                         // RENDER SHADOW CASTERS
+                        Renderer.UseShaderBlock(_viewBlock, Defaults.Shader.Program.Shadow);
                         foreach (ref readonly var candidate in _renderCandidates.GetEntities())
                         {
                             var primitive = candidate.Get<PrimitiveComponent>();

@@ -51,8 +51,11 @@ namespace Framework.ECS.Systems.RenderPipeline
             ref var reflection = ref _worldComponents.Get<ReflectionBufferComponent>();
 
             Renderer.UseFrameBuffer(reflection.DeferredBuffer);
+            Renderer.UseShader(Defaults.Shader.Program.MeshBlinnPhongDeferredBuffer);
+
             GL.Enable(EnableCap.ScissorTest);
             GL.ClearColor(reflection.DeferredBuffer.ClearColor);
+            GL.ClearColor(Color4.Aqua);
 
             for(int i = 0; i < entities.Length; i++)
             {
@@ -68,6 +71,7 @@ namespace Framework.ECS.Systems.RenderPipeline
                     reflection.ReflectionBlock.Probes[i].Area = new Vector4(reflectionMapSpace, reflectionMapSpace.Z * widthCorrection);
 
                     // RENDER 6 SIDES
+                    var renderCandidates = _renderCandidates.GetEntities();
                     var cubeOrientations = Helper.CreateCubeOrientations(transform.Position);
                     for (int c = 0; c < cubeOrientations.Length; c++)
                     {
@@ -96,10 +100,8 @@ namespace Framework.ECS.Systems.RenderPipeline
                         GPUSync.Push(_viewBlock);
 
                         // RENDER SCENE
-                        Renderer.UseShader(Defaults.Shader.Program.MeshBlinnPhongDeferredBuffer);
                         Renderer.UseShaderBlock(_viewBlock, Defaults.Shader.Program.MeshBlinnPhongDeferredBuffer);
-
-                        foreach (ref readonly var candidate in _renderCandidates.GetEntities())
+                        foreach (ref readonly var candidate in renderCandidates)
                         {
                             var primitive = candidate.Get<PrimitiveComponent>();
 

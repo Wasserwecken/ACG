@@ -18,6 +18,7 @@ namespace Framework.Assets.Framebuffer
         public FramebufferTarget Target { get; set; }
         public DrawBufferMode DrawMode { get; set; }
         public ReadBufferMode ReadMode { get; set; }
+        public DrawBuffersEnum[] DrawTargets { get; set; }
 
         public Color4 ClearColor { get; set; }
         public ClearBufferMask ClearMask { get; set; }
@@ -33,6 +34,7 @@ namespace Framework.Assets.Framebuffer
             Target = FramebufferTarget.Framebuffer;
             DrawMode = DrawBufferMode.Front;
             ReadMode = ReadBufferMode.Front;
+            DrawTargets = new DrawBuffersEnum[0];
 
             ClearColor = Color4.Black;
             ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit;

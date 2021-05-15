@@ -9,7 +9,6 @@ namespace Framework.ECS.Components.Scene
     public struct ReflectionBufferComponent
     {
         public FramebufferAsset DeferredBuffer;
-        public FramebufferAsset ReflectionBuffer;
         public TextureSpace TextureAtlas;
         public ShaderReflectionBlock ReflectionBlock;
     }

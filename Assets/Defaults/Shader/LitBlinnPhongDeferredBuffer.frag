@@ -81,12 +81,12 @@ uniform sampler2D OcclusionMap;
 uniform sampler2D NormalMap;
 
 // SHADER OUTPUT
-layout (location = 0) out vec4 DeferredPosition;
-layout (location = 1) out vec3 DeferredAlbedo;
-layout (location = 2) out vec3 DeferredNormalSurface;
-layout (location = 3) out vec3 DeferredNormalTexture;
-layout (location = 4) out vec3 DeferredMRO;
-layout (location = 5) out vec3 DeferredEmission;
+out vec4 DeferredPosition;
+out vec3 DeferredAlbedo;
+out vec3 DeferredNormalSurface;
+out vec3 DeferredNormalTexture;
+out vec3 DeferredMRO;
+out vec3 DeferredEmission;
 
 // MAIN
 void main()

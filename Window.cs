@@ -91,21 +91,19 @@ namespace Window
                 TextureAtlas = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
                 DeferredBuffer = new FramebufferAsset("DeferredRelfectionBuffer")
                 {
+                    Target = FramebufferTarget.Framebuffer,
                     Width = 4096,
                     Height = 4096,
 
-                    DrawMode = DrawBufferMode.ColorAttachment0
-                               | DrawBufferMode.ColorAttachment1
-                               | DrawBufferMode.ColorAttachment2
-                               | DrawBufferMode.ColorAttachment3
-                               | DrawBufferMode.ColorAttachment4
-                               | DrawBufferMode.ColorAttachment5,
-                    ReadMode = ReadBufferMode.ColorAttachment0
-                               | ReadBufferMode.ColorAttachment1
-                               | ReadBufferMode.ColorAttachment2
-                               | ReadBufferMode.ColorAttachment3
-                               | ReadBufferMode.ColorAttachment4
-                               | ReadBufferMode.ColorAttachment5,
+                    DrawTargets = new DrawBuffersEnum[]
+                    {
+                        DrawBuffersEnum.ColorAttachment0,
+                        DrawBuffersEnum.ColorAttachment1,
+                        DrawBuffersEnum.ColorAttachment2,
+                        DrawBuffersEnum.ColorAttachment3,
+                        DrawBuffersEnum.ColorAttachment4,
+                        DrawBuffersEnum.ColorAttachment5,
+                    },
 
                     Storages = new List<FramebufferStorageAsset>()
                     {
@@ -121,7 +119,7 @@ namespace Window
                     },
                     Textures = new List<TextureRenderAsset>()
                     {
-                        new TextureRenderAsset("ReflectionDeferredPosition")
+                        new TextureRenderAsset("DeferredPosition")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment0,
                             Width = 4096,
@@ -129,9 +127,9 @@ namespace Window
 
                             InternalFormat = PixelInternalFormat.Rgba16,
                             Format = PixelFormat.Rgba,
-                            PixelType = PixelType.Float
+                            PixelType = PixelType.Float,
                         },
-                        new TextureRenderAsset("ReflectionDeferredAlbedo")
+                        new TextureRenderAsset("DeferredAlbedo")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment1,
                             Width = 4096,
@@ -141,7 +139,7 @@ namespace Window
                             Format = PixelFormat.Rgb,
                             PixelType = PixelType.Float
                         },
-                        new TextureRenderAsset("ReflectionDeferredNormalSurface")
+                        new TextureRenderAsset("DeferredNormalSurface")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment2,
                             Width = 4096,
@@ -151,7 +149,7 @@ namespace Window
                             Format = PixelFormat.Rgb,
                             PixelType = PixelType.Float
                         },
-                        new TextureRenderAsset("ReflectionDeferredNormalTexture")
+                        new TextureRenderAsset("DeferredNormalTexture")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment3,
                             Width = 4096,
@@ -161,7 +159,7 @@ namespace Window
                             Format = PixelFormat.Rgb,
                             PixelType = PixelType.Float
                         },
-                        new TextureRenderAsset("ReflectionDeferredMRO")
+                        new TextureRenderAsset("DeferredMRO")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment4,
                             Width = 4096,
@@ -171,7 +169,7 @@ namespace Window
                             Format = PixelFormat.Rgb,
                             PixelType = PixelType.Float
                         },
-                        new TextureRenderAsset("ReflectionDeferredEmission")
+                        new TextureRenderAsset("DeferredEmission")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment5,
                             Width = 4096,
@@ -218,8 +216,8 @@ namespace Window
                 new ReflectionDeferredPassSystem(_scene, _sceneComponents),
                 new ReflectionBufferSyncSystem(_scene, _sceneComponents),
 
-                new ForwardPassSystemOLD(_scene, _sceneComponents),
-                new FrameBufferDebugSystem(_scene, _sceneComponents)
+                new ForwardPassSystemOLD(_scene, _sceneComponents)
+                ,new FrameBufferDebugSystem(_scene, _sceneComponents)
             );
         }
 
@@ -261,7 +259,7 @@ namespace Window
             });
 
             var spotLight = _scene.CreateEntity();
-            spotLight.Set(new TransformComponent(new Vector3(8.0f, 2f, 3f), new Vector3(0.7f, -0.1f, -1f)));
+            spotLight.Set(new TransformComponent(new Vector3(8.0f, 2f, 3f), new Vector3(0.5f, -0.1f, -1f)));
             spotLight.Set(new SpotLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 3f, AmbientFactor = 0.001f, InnerAngle = 0.3f, OuterAngle = 0.5f, Range = 10f });
             spotLight.Set(new SpotShadowComponent() { Resolution = 256, Strength = 1.0f, NearClipping = 0.01f });
 
@@ -280,7 +278,7 @@ namespace Window
 
             var reflectionProbe = _scene.CreateEntity();
             reflectionProbe.Set(new TransformComponent(new Vector3(0f, 1f, 0f)));
-            reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 2048, NearClipping = 0.01f, FarClipping = 30f });
+            reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 4096, NearClipping = 0.01f, FarClipping = 30f });
         }
 
         /// <summary>

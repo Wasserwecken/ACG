@@ -26,13 +26,14 @@ namespace Framework.ECS.Systems.Render.Pipeline
             GPUSync.Push(component.SpotBlock);
 
             foreach (var shader in AssetRegister.Shaders)
+            {
                 shader.SetBlockBinding(component.DirectionalBlock);
-
-            foreach (var shader in AssetRegister.Shaders)
                 shader.SetBlockBinding(component.PointBlock);
-
-            foreach (var shader in AssetRegister.Shaders)
                 shader.SetBlockBinding(component.SpotBlock);
+
+                foreach (var texture in component.FramebufferBuffer.Textures)
+                    shader.SetTextureBinding(texture);
+            }
         }
     }
 }

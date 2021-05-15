@@ -50,6 +50,7 @@ namespace Framework.ECS.Systems.Render.OpenGL
 
             GL.DrawBuffer(framebuffer.DrawMode);
             GL.ReadBuffer(framebuffer.ReadMode);
+            GL.DrawBuffers(framebuffer.DrawTargets.Length, framebuffer.DrawTargets);
 
             GL.BindFramebuffer(framebuffer.Target, 0);
         }

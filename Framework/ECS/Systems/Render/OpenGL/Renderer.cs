@@ -30,6 +30,13 @@ namespace Framework.ECS.Systems.Render.OpenGL
 
             foreach (var binding in shader.BlockBindings.Values)
                 GL.BindBufferBase(binding.Target, binding.Layout, binding.Handle);
+
+            foreach (var binding in shader.TextureBindings.Values)
+            {
+                GL.ActiveTexture(TextureUnit.Texture0 + binding.Layout);
+                GL.BindTexture(binding.Target, binding.Handle);
+                GL.Uniform1(binding.Layout, binding.Layout);
+            }
         }
 
         /// <summary>
@@ -90,36 +97,29 @@ namespace Framework.ECS.Systems.Render.OpenGL
                     GL.UniformMatrix4(layout, false, ref foo);
                 }
 
-            foreach (var uniformTexture in shader.UniformInfos.Where(f => f.Type == ActiveUniformType.Sampler2D))
-            {
-                GL.Uniform1(uniformTexture.Layout, uniformTexture.Layout);
-                GL.ActiveTexture(TextureUnit.Texture0 + uniformTexture.Layout);
-
-                if (uniformTexture.Name.ToLower().Contains("normal"))
-                    GL.BindTexture(Defaults.Texture.Normal.Target, Defaults.Texture.Normal.Handle);
-                else
-                    GL.BindTexture(Defaults.Texture.White.Target, Defaults.Texture.White.Handle);
-            }
-
             foreach (var uniform in material.UniformTextures)
                 if (shader.IdentifierToLayout.TryGetValue(uniform.Key, out var layout))
                 {
                     if (uniform.Value.Handle <= 0)
                         GPUSync.Push(uniform.Value);
 
-                    GL.Uniform1(layout, layout);
                     GL.ActiveTexture(TextureUnit.Texture0 + layout);
                     GL.BindTexture(uniform.Value.Target, uniform.Value.Handle);
+                    GL.Uniform1(layout, layout);
                 }
 
-            foreach (var frameBuffer in AssetRegister.Framebuffers)
-                foreach (var renderTexture in frameBuffer.Textures)
-                    if (shader.IdentifierToLayout.TryGetValue(renderTexture.Name, out var layout))
-                    {
-                        GL.Uniform1(layout, layout);
-                        GL.ActiveTexture(TextureUnit.Texture0 + layout);
-                        GL.BindTexture(renderTexture.Target, renderTexture.Handle);
-                    }
+            foreach (var uniform in shader.UniformInfos)
+                if (uniform.Type == ActiveUniformType.Sampler2D && !shader.TextureBindings.ContainsKey(uniform.Name) && !material.UniformTextures.ContainsKey(uniform.Name))
+                {
+                    GL.ActiveTexture(TextureUnit.Texture0 + uniform.Layout);
+
+                    if (uniform.Name.ToLower().Contains("normal"))
+                        GL.BindTexture(Defaults.Texture.Normal.Target, Defaults.Texture.Normal.Handle);
+                    else
+                        GL.BindTexture(Defaults.Texture.White.Target, Defaults.Texture.White.Handle);
+
+                    GL.Uniform1(uniform.Layout, uniform.Layout);
+                }
         }
 
         /// <summary>

@@ -93,11 +93,6 @@ layout (std430) buffer ShaderTimeBlock {
     float Fixed;
 } _time;
 
-layout (std430) buffer ShaderPrimitiveSpace {
-    mat4 LocalToWorld;
-    mat4 LocalToWorldRotation;
-} _primitiveSpace;
-
 layout (std430) buffer ShaderViewSpaceBlock {
     mat4 WorldToView;
     mat4 WorldToProjection;
@@ -107,10 +102,6 @@ layout (std430) buffer ShaderViewSpaceBlock {
     vec4 ViewDirection;
     vec2 Resolution;
 } _viewSpace;
-
-layout (std430) buffer ShaderShadowSpace {
-    mat4 ShadowSpace;
-} _shadowSpace;
 
 // INPUT GLOBAL UNIFORMS LIGHT
 struct DirectionalLight

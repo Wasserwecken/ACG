@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using ACG.Framework.Assets;
 using Framework.Assets.Shader.Info;
+using Framework.Assets.Textures;
 using OpenTK.Graphics.OpenGL;
 
 namespace Framework.Assets.Shader
@@ -30,13 +31,30 @@ namespace Framework.Assets.Shader
             }
         }
 
+        [DebuggerDisplay("Target: {Target}, Layout: {Layout}, Handle: {Handle}")]
+        public struct TextureBinding
+        {
+            public int Layout;
+            public int Handle;
+            public TextureTarget Target;
+
+            public TextureBinding(int layout, TextureBaseAsset texture)
+            {
+                Layout = layout;
+                Handle = texture.Handle;
+                Target = texture.Target;
+            }
+        }
+
         public int Handle;
         public string Name;
         public readonly ShaderAttributeInfo[] AttributeInfos;
         public readonly ShaderUniformInfo[] UniformInfos;
         public readonly ShaderBlockInfo[] BlockInfos;
+        public readonly float[] OutputInfos;
         public readonly Dictionary<string, int> IdentifierToLayout;
         public readonly Dictionary<string, BlockBinding> BlockBindings;
+        public readonly Dictionary<string, TextureBinding> TextureBindings;
 
         /// <summary>
         /// 
@@ -50,7 +68,9 @@ namespace Framework.Assets.Shader
             AttributeInfos = GetAttributesInfos();
             UniformInfos = GetUniformInfos();
             BlockInfos = GetBlockInfos();
+            OutputInfos = GetOutputInfos();
             BlockBindings = new Dictionary<string, BlockBinding>();
+            TextureBindings = new Dictionary<string, TextureBinding>();
 
             AssetRegister.Shaders.Add(this);
         }
@@ -65,6 +85,18 @@ namespace Framework.Assets.Shader
                     BlockBindings[block.Name] = new BlockBinding(layout, block);
                 else
                     BlockBindings.Add(block.Name, new BlockBinding(layout, block));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SetTextureBinding(TextureBaseAsset texture)
+        {
+            if (IdentifierToLayout.TryGetValue(texture.Name, out var layout))
+                if (TextureBindings.ContainsKey(texture.Name))
+                    TextureBindings[texture.Name] = new TextureBinding(layout, texture);
+                else
+                    TextureBindings.Add(texture.Name, new TextureBinding(layout, texture));
         }
 
         /// <summary>
@@ -157,6 +189,23 @@ namespace Framework.Assets.Shader
                 IdentifierToLayout.Add(uniformBlock.Name, uniformBlock.Layout);
 
             return infos;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private float[] GetOutputInfos()
+        {
+            GL.GetProgramInterface(Handle, ProgramInterface.ProgramOutput, ProgramInterfaceParameter.ActiveResources, out var outputCount);
+            var infos = new float[outputCount];
+
+            for(int outputId = 0; outputId < infos.Length; outputId++)
+            {
+                GL.GetProgramResourceName(Handle, ProgramInterface.ProgramOutput, outputId, 255, out _, out var name);
+                IdentifierToLayout.Add(name, GL.GetProgramResourceLocation(Handle, ProgramInterface.ProgramOutput, name));
+            }
+
+            return default;
         }
     }
 }
