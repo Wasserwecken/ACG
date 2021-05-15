@@ -278,7 +278,7 @@ namespace Window
 
             var reflectionProbe = _scene.CreateEntity();
             reflectionProbe.Set(new TransformComponent(new Vector3(0f, 1f, 0f)));
-            reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 4096, NearClipping = 0.01f, FarClipping = 30f });
+            reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 512, NearClipping = 0.01f, FarClipping = 30f });
         }
 
         /// <summary>

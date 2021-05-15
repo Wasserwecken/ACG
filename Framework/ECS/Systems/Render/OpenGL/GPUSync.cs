@@ -61,6 +61,7 @@ namespace Framework.ECS.Systems.Render.OpenGL
         public static void Push(FramebufferStorageAsset storage)
         {
             storage.Handle = GL.GenRenderbuffer();
+            GL.BindRenderbuffer(storage.Target, storage.Handle);
             GL.RenderbufferStorage(storage.Target, storage.DataType, storage.Width, storage.Height);
         }
 

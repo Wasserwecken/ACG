@@ -110,6 +110,8 @@ namespace Framework.ECS.Systems.RenderPipeline
                             Renderer.Draw(primitive.Verticies);
                         }
                     }
+
+                    probeConfig.HasChanged = false;
                 }
             }
 
