@@ -96,17 +96,17 @@ namespace Framework.ECS.Systems.Render
 
             foreach (var shaderRelation in _graph)
             {
-                Renderer.UseShader(shaderRelation.Key);
-                Renderer.UseShaderBlock(cameraData.ShaderViewSpace, shaderRelation.Key);
+                Renderer.Use(shaderRelation.Key);
+                Renderer.Use(cameraData.ShaderViewSpace, shaderRelation.Key);
 
                 foreach (var materialRelation in shaderRelation.Value)
                 {
                     materialRelation.Key.SetUniform(Definitions.Shader.Uniform.ReflectionMap, skyboxTexture);
-                    Renderer.UseMaterial(materialRelation.Key, shaderRelation.Key);
+                    Renderer.Use(materialRelation.Key, shaderRelation.Key);
 
                     foreach (var primitive in materialRelation.Value)
                     {
-                        Renderer.UseShaderBlock(primitive.ShaderSpaceBlock, shaderRelation.Key);
+                        Renderer.Use(primitive.PrimitiveSpaceBlock, shaderRelation.Key);
                         Renderer.Draw(primitive.Verticies);
                     }
                 }

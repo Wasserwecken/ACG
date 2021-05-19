@@ -1,9 +1,6 @@
 ﻿using Framework.Extensions;
 using OpenTK.Mathematics;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace Framework.Assets.Shader.Block
 {
@@ -11,6 +8,7 @@ namespace Framework.Assets.Shader.Block
     {
         public struct ShaderReflectionProbe
         {
+            public Vector4 Position;
             public Vector4 Area;
         }
 
@@ -23,6 +21,7 @@ namespace Framework.Assets.Shader.Block
         {
             foreach(var probe in Probes)
             {
+                writer.Write(probe.Position);
                 writer.Write(probe.Area);
             }
         }

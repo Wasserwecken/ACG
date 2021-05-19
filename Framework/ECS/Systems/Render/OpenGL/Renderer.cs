@@ -13,7 +13,7 @@ namespace Framework.ECS.Systems.Render.OpenGL
         /// <summary>
         /// 
         /// </summary>
-        public static void UseFrameBuffer(FramebufferAsset framebuffer)
+        public static void Use(FramebufferAsset framebuffer)
         {
             if (framebuffer.Handle <= 0)
                 GPUSync.Push(framebuffer);
@@ -24,7 +24,7 @@ namespace Framework.ECS.Systems.Render.OpenGL
         /// <summary>
         /// 
         /// </summary>
-        public static void UseShader(ShaderProgramAsset shader)
+        public static void Use(ShaderProgramAsset shader)
         {
             GL.UseProgram(shader.Handle);
 
@@ -42,7 +42,7 @@ namespace Framework.ECS.Systems.Render.OpenGL
         /// <summary>
         /// 
         /// </summary>
-        public static void UseShaderBlock(ShaderBlockBase block, ShaderProgramAsset shader)
+        public static void Use(ShaderBlockBase block, ShaderProgramAsset shader)
         {
             if (shader.IdentifierToLayout.TryGetValue(block.Name, out var layout))
                 GL.BindBufferBase(block.Target, layout, block.Handle);
@@ -51,7 +51,7 @@ namespace Framework.ECS.Systems.Render.OpenGL
         /// <summary>
         /// 
         /// </summary>
-        public static void UseMaterial(MaterialAsset material, ShaderProgramAsset shader)
+        public static void Use(MaterialAsset material, ShaderProgramAsset shader)
         {
             // MATERIAL SETTINGS
             GL.ShadeModel(material.Model);

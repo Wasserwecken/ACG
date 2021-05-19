@@ -43,7 +43,7 @@ namespace Framework.ECS.Systems.Render
             var material = new MaterialAsset("FramebufferDebug") { DepthTest = DepthFunction.Always };
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-            Renderer.UseShader(shader);
+            Renderer.Use(shader);
 
             for (int i = 0; i < _renderTextures.Count; i++)
             {
@@ -58,7 +58,7 @@ namespace Framework.ECS.Systems.Render
                 );
 
                 material.SetUniform("BufferMap", _renderTextures[i]);
-                Renderer.UseMaterial(material, shader);
+                Renderer.Use(material, shader);
                 Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
             }
         }

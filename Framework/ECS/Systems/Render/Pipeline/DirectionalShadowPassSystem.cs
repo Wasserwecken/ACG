@@ -49,9 +49,9 @@ namespace Framework.ECS.Systems.Render.Pipeline
             // GLOBAL PREPERATION
             ref var shadowBuffer = ref _worldComponents.Get<ShadowBufferComponent>();
 
-            Renderer.UseFrameBuffer(shadowBuffer.FramebufferBuffer);
-            Renderer.UseShader(Defaults.Shader.Program.Shadow);
-            Renderer.UseMaterial(Defaults.Material.Shadow, Defaults.Shader.Program.Shadow);
+            Renderer.Use(shadowBuffer.FramebufferBuffer);
+            Renderer.Use(Defaults.Shader.Program.Shadow);
+            Renderer.Use(Defaults.Material.Shadow, Defaults.Shader.Program.Shadow);
 
             GL.Enable(EnableCap.ScissorTest);
             GL.ClearColor(shadowBuffer.FramebufferBuffer.ClearColor);
@@ -80,7 +80,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
                     shadowConfig.ViewSpaceBlock.ViewDirection = new Vector4(-transform.Forward, 0);
                     shadowConfig.ViewSpaceBlock.Resolution = new Vector2(shadowConfig.Resolution, shadowConfig.Resolution);
                     GPUSync.Push(shadowConfig.ViewSpaceBlock);
-                    Renderer.UseShaderBlock(shadowConfig.ViewSpaceBlock, Defaults.Shader.Program.Shadow);
+                    Renderer.Use(shadowConfig.ViewSpaceBlock, Defaults.Shader.Program.Shadow);
 
                     // SHADOW DATA
                     shadowBuffer.DirectionalBlock.Shadows[lightConfig.InfoId].Strength = new Vector4(shadowConfig.Strength, shadowConfig.NearClipping, shadowConfig.FarClipping, shadowConfig.Width);
@@ -102,7 +102,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
                         var primitive = candidate.Get<PrimitiveComponent>();
                         if (primitive.IsShadowCaster)
                         {
-                            Renderer.UseShaderBlock(primitive.ShaderSpaceBlock, Defaults.Shader.Program.Shadow);
+                            Renderer.Use(primitive.PrimitiveSpaceBlock, Defaults.Shader.Program.Shadow);
                             Renderer.Draw(primitive.Verticies);
                         }
                     }

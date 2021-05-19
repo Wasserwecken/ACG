@@ -51,9 +51,9 @@ namespace Framework.ECS.Systems.RenderPipeline
             // GLOBAL PREPERATION
             ref var shadowBuffer = ref _worldComponents.Get<ShadowBufferComponent>();
 
-            Renderer.UseFrameBuffer(shadowBuffer.FramebufferBuffer);
-            Renderer.UseShader(Defaults.Shader.Program.Shadow);
-            Renderer.UseMaterial(Defaults.Material.Shadow, Defaults.Shader.Program.Shadow);
+            Renderer.Use(shadowBuffer.FramebufferBuffer);
+            Renderer.Use(Defaults.Shader.Program.Shadow);
+            Renderer.Use(Defaults.Material.Shadow, Defaults.Shader.Program.Shadow);
 
             GL.Enable(EnableCap.ScissorTest);
             GL.ClearColor(shadowBuffer.FramebufferBuffer.ClearColor);
@@ -102,13 +102,13 @@ namespace Framework.ECS.Systems.RenderPipeline
                         GPUSync.Push(_viewBlock);
 
                         // RENDER SHADOW CASTERS
-                        Renderer.UseShaderBlock(_viewBlock, Defaults.Shader.Program.Shadow);
+                        Renderer.Use(_viewBlock, Defaults.Shader.Program.Shadow);
                         foreach (ref readonly var candidate in _renderCandidates.GetEntities())
                         {
                             var primitive = candidate.Get<PrimitiveComponent>();
                             if (primitive.IsShadowCaster)
                             {
-                                Renderer.UseShaderBlock(primitive.ShaderSpaceBlock, Defaults.Shader.Program.Shadow);
+                                Renderer.Use(primitive.PrimitiveSpaceBlock, Defaults.Shader.Program.Shadow);
                                 Renderer.Draw(primitive.Verticies);
                             }
                         }

@@ -8,7 +8,7 @@ namespace Framework.ECS.Components.Render
     public struct PrimitiveComponent
     {
         public bool IsShadowCaster;
-        public ShaderPrimitiveSpaceBlock ShaderSpaceBlock;
+        public ShaderPrimitiveSpaceBlock PrimitiveSpaceBlock;
         public VertexPrimitiveAsset Verticies;
         public ShaderProgramAsset Shader;
         public MaterialAsset Material;

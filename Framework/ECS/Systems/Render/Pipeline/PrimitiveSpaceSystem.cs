@@ -30,13 +30,13 @@ namespace Framework.ECS.Systems.Render.Pipeline
             ref var transform = ref entity.Get<TransformComponent>();
             ref var primitive = ref entity.Get<PrimitiveComponent>();
 
-            if (primitive.ShaderSpaceBlock == null)
-                primitive.ShaderSpaceBlock = new ShaderPrimitiveSpaceBlock();
+            if (primitive.PrimitiveSpaceBlock == null)
+                primitive.PrimitiveSpaceBlock = new ShaderPrimitiveSpaceBlock();
 
-            primitive.ShaderSpaceBlock.LocalToWorld = transform.WorldSpace;
-            primitive.ShaderSpaceBlock.LocalToWorldRotation = transform.WorldSpace.ClearScale();
+            primitive.PrimitiveSpaceBlock.LocalToWorld = transform.WorldSpace;
+            primitive.PrimitiveSpaceBlock.LocalToWorldRotation = transform.WorldSpace.ClearScale();
 
-            GPUSync.Push(primitive.ShaderSpaceBlock);
+            GPUSync.Push(primitive.PrimitiveSpaceBlock);
         }
     }
 }

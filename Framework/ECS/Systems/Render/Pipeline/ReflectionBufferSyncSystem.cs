@@ -24,7 +24,12 @@ namespace Framework.ECS.Systems.Render.Pipeline
             GPUSync.Push(component.ReflectionBlock);
 
             foreach (var shader in AssetRegister.Shaders)
+            {
                 shader.SetBlockBinding(component.ReflectionBlock);
+
+                foreach (var texture in component.DeferredLightBuffer.Textures)
+                    shader.SetTextureBinding(texture);
+            }
         }
     }
 }

@@ -38,12 +38,18 @@ namespace Framework.ECS.Systems.Render.OpenGL
 
             foreach(var storage in framebuffer.Storages)
             {
+                storage.Width = framebuffer.Width;
+                storage.Height = framebuffer.Height;
+
                 if (storage.Handle <= 0) Push(storage);
                 GL.FramebufferRenderbuffer(framebuffer.Target, storage.Attachment, storage.Target, storage.Handle);
             }
 
             foreach (var texture in framebuffer.Textures)
             {
+                texture.Width = framebuffer.Width;
+                texture.Height = framebuffer.Height;
+
                 if (texture.Handle <= 0) Push(texture);
                 GL.FramebufferTexture2D(framebuffer.Target, texture.Attachment, texture.Target, texture.Handle, 0);
             }

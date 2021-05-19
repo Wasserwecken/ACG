@@ -1,5 +1,6 @@
 ﻿using DefaultEcs;
 using DefaultEcs.System;
+using Framework.Assets.Materials;
 using Framework.Assets.Shader.Block;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.Render;
@@ -19,6 +20,8 @@ namespace Framework.ECS.Systems.RenderPipeline
         private readonly Entity _worldComponents;
         private readonly EntitySet _renderCandidates;
         private readonly ShaderViewSpaceBlock _viewBlock;
+        private readonly ShaderDeferredViewBlock _viewDeferredBlock;
+        private readonly MaterialAsset _lightMaterial;
 
         /// <summary>
         /// 
@@ -26,11 +29,17 @@ namespace Framework.ECS.Systems.RenderPipeline
         public ReflectionDeferredPassSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
-            _viewBlock = new ShaderViewSpaceBlock();
             _renderCandidates = World.GetEntities()
                 .With<TransformComponent>()
                 .With<PrimitiveComponent>()
                 .AsSet();
+
+            _viewBlock = new ShaderViewSpaceBlock();
+            _viewDeferredBlock = new ShaderDeferredViewBlock();
+
+            _lightMaterial = new MaterialAsset("DeferredLight") { DepthTest = DepthFunction.Always };
+            foreach (var texture in _worldComponents.Get<ReflectionBufferComponent>().DeferredGBuffer.Textures)
+                _lightMaterial.SetUniform(texture.Name, texture);
         }
 
         /// <summary>
@@ -48,45 +57,45 @@ namespace Framework.ECS.Systems.RenderPipeline
         protected override void Update(bool state, ReadOnlySpan<Entity> entities)
         {
             // GLOBAL PREPERATION
-            ref var reflection = ref _worldComponents.Get<ReflectionBufferComponent>();
+            ref var buffer = ref _worldComponents.Get<ReflectionBufferComponent>();
+            var renderCandidates = _renderCandidates.GetEntities();
 
-            Renderer.UseFrameBuffer(reflection.DeferredBuffer);
-            Renderer.UseShader(Defaults.Shader.Program.MeshBlinnPhongDeferredBuffer);
+            Renderer.Use(buffer.DeferredGBuffer);
+            Renderer.Use(Defaults.Shader.Program.MeshLitDeferredBuffer);
 
             GL.Enable(EnableCap.ScissorTest);
-            GL.ClearColor(reflection.DeferredBuffer.ClearColor);
-            GL.ClearColor(Color4.Aqua);
+            GL.ClearColor(buffer.DeferredGBuffer.ClearColor);
 
-            for(int i = 0; i < entities.Length; i++)
+            for (int i = 0; i < entities.Length; i++)
             {
-                // DATA COLLECTION
-                var transform = entities[i].Get<TransformComponent>();
                 ref var probeConfig = ref entities[i].Get<ReflectionProbeComponent>();
+                ref var transform = ref entities[i].Get<TransformComponent>();
 
-                if (reflection.TextureAtlas.Add(probeConfig.Resolution, out var reflectionMapSpace))
+                if (buffer.TextureAtlas.Add(probeConfig.Resolution, out var reflectionMapSpace))
                 {
+                    probeConfig.InfoID = i;
+
                     // SHADOW DATA
                     var foo = (probeConfig.Resolution / 3f) % (probeConfig.Resolution / 3) > 0.5f ? 2f : 1f;
                     var widthCorrection = (probeConfig.Resolution - foo) / probeConfig.Resolution;
-                    reflection.ReflectionBlock.Probes[i].Area = new Vector4(reflectionMapSpace, reflectionMapSpace.Z * widthCorrection);
+                    buffer.ReflectionBlock.Probes[i].Area = new Vector4(reflectionMapSpace, reflectionMapSpace.Z * widthCorrection);
 
                     // RENDER 6 SIDES
-                    var renderCandidates = _renderCandidates.GetEntities();
                     var cubeOrientations = Helper.CreateCubeOrientations(transform.Position);
                     for (int c = 0; c < cubeOrientations.Length; c++)
                     {
                         // VIEWPORT PREPERATION
                         var viewPort = reflectionMapSpace * new Vector3(
-                            reflection.DeferredBuffer.Width,
-                            reflection.DeferredBuffer.Height,
-                            reflection.DeferredBuffer.Width);
+                            buffer.DeferredGBuffer.Width,
+                            buffer.DeferredGBuffer.Height,
+                            buffer.DeferredGBuffer.Width);
                         var width = (int)viewPort.Z / 3;
                         var height = (int)viewPort.Z / 2;
                         var x = (int)viewPort.X + (c % 3) * width;
                         var y = (int)viewPort.Y + (c < 3 ? 0 : height);
                         GL.Viewport(x, y, width, height);
                         GL.Scissor(x, y, width, height);
-                        GL.Clear(reflection.DeferredBuffer.ClearMask);
+                        GL.Clear(buffer.DeferredGBuffer.ClearMask);
 
                         // VIEW SPACE SETUP
                         var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1f, probeConfig.NearClipping, probeConfig.FarClipping);
@@ -100,20 +109,56 @@ namespace Framework.ECS.Systems.RenderPipeline
                         GPUSync.Push(_viewBlock);
 
                         // RENDER SCENE
-                        Renderer.UseShaderBlock(_viewBlock, Defaults.Shader.Program.MeshBlinnPhongDeferredBuffer);
+                        Renderer.Use(_viewBlock, Defaults.Shader.Program.MeshLitDeferredBuffer);
                         foreach (ref readonly var candidate in renderCandidates)
                         {
                             var primitive = candidate.Get<PrimitiveComponent>();
 
-                            Renderer.UseMaterial(primitive.Material, Defaults.Shader.Program.MeshBlinnPhongDeferredBuffer);
-                            Renderer.UseShaderBlock(primitive.ShaderSpaceBlock, Defaults.Shader.Program.MeshBlinnPhongDeferredBuffer);
+                            Renderer.Use(primitive.Material, Defaults.Shader.Program.MeshLitDeferredBuffer);
+                            Renderer.Use(primitive.PrimitiveSpaceBlock, Defaults.Shader.Program.MeshLitDeferredBuffer);
                             Renderer.Draw(primitive.Verticies);
                         }
                     }
-
-                    probeConfig.HasChanged = false;
                 }
             }
+
+            Renderer.Use(buffer.DeferredLightBuffer);
+            Renderer.Use(Defaults.Shader.Program.MeshLitDeferredLight);
+
+            for (int i = 0; i < entities.Length; i++)
+            {
+                ref var probeConfig = ref entities[i].Get<ReflectionProbeComponent>();
+                ref var transform = ref entities[i].Get<TransformComponent>();
+
+                var bufferSize = new Vector2(buffer.DeferredLightBuffer.Width, buffer.DeferredLightBuffer.Height);
+                var viewportStart = buffer.ReflectionBlock.Probes[i].Area.Xy * bufferSize;
+                var viewportSize = buffer.ReflectionBlock.Probes[i].Area.Zw * bufferSize;
+
+                _viewDeferredBlock.ViewPosition = new Vector4(transform.Position, 1f);
+                _viewDeferredBlock.ViewPort = new Vector4(viewportStart.X, viewportStart.Y, viewportSize.X, viewportSize.Y);
+                _viewDeferredBlock.Resolution = bufferSize;
+                GPUSync.Push(_viewDeferredBlock);
+
+                GL.Viewport((int)viewportStart.X, (int)viewportStart.Y, (int)viewportSize.X, (int)viewportSize.Y);
+                GL.Scissor((int)viewportStart.X, (int)viewportStart.Y, (int)viewportSize.X, (int)viewportSize.Y);
+                GL.Clear(buffer.DeferredLightBuffer.ClearMask);
+
+                _lightMaterial.SetUniform("SkyboxMap", probeConfig.Skybox);
+                Renderer.Use(_lightMaterial, Defaults.Shader.Program.MeshLitDeferredLight);
+                Renderer.Use(_viewDeferredBlock, Defaults.Shader.Program.MeshLitDeferredLight);
+                Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
+            }
+
+            GL.Viewport(0, 0, buffer.Size, buffer.Size);
+            GL.Scissor(0, 0, buffer.Size, buffer.Size);
+            GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, buffer.DeferredGBuffer.Handle);
+            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, buffer.DeferredLightBuffer.Handle);
+            GL.BlitFramebuffer(
+                0, 0, buffer.Size, buffer.Size,
+                0, 0, buffer.Size, buffer.Size,
+                ClearBufferMask.DepthBufferBit,
+                BlitFramebufferFilter.Nearest
+            );
 
             GL.Disable(EnableCap.ScissorTest);
         }

@@ -58,15 +58,14 @@ namespace Window
             _sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
             _sceneComponents.Set(new ShadowBufferComponent()
             {
+                Size = 4096,
+
                 DirectionalBlock = new ShaderDirectionalShadowBlock(),
                 PointBlock = new ShaderPointShadowBlock(),
                 SpotBlock = new ShaderSpotShadowBlock(),
-                TextureAtlas = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
+
                 FramebufferBuffer = new FramebufferAsset("ShadowBuffer")
                 {
-                    Width = 4096,
-                    Height = 4096,
-
                     DrawMode = DrawBufferMode.None,
                     ReadMode = ReadBufferMode.None,
 
@@ -75,8 +74,6 @@ namespace Window
                         new TextureRenderAsset("ShadowMap")
                         {
                             Attachment = FramebufferAttachment.DepthAttachment,
-                            Width = 4096,
-                            Height = 4096,
 
                             InternalFormat = PixelInternalFormat.DepthComponent,
                             Format = PixelFormat.DepthComponent,
@@ -87,13 +84,38 @@ namespace Window
             });
             _sceneComponents.Set(new ReflectionBufferComponent()
             {
+                Size = 1024,
                 ReflectionBlock = new ShaderReflectionBlock(),
-                TextureAtlas = new TextureSpace(4096, new Vector3(0f, 0f, 1f)),
-                DeferredBuffer = new FramebufferAsset("DeferredRelfectionBuffer")
+                DeferredLightBuffer = new FramebufferAsset("DeferredRelfectionResult")
                 {
-                    Target = FramebufferTarget.Framebuffer,
-                    Width = 4096,
-                    Height = 4096,
+                    DrawMode = DrawBufferMode.None,
+                    ReadMode = ReadBufferMode.None,
+
+                    DrawTargets = new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0 },
+                    Storages = new List<FramebufferStorageAsset>()
+                    {
+                        new FramebufferStorageAsset("ReflectionDepth")
+                        {
+                            Attachment = FramebufferAttachment.DepthStencilAttachment,
+                            Target = RenderbufferTarget.Renderbuffer,
+                            DataType = RenderbufferStorage.Depth24Stencil8
+                        }
+                    },
+                    Textures = new List<TextureRenderAsset>()
+                    {
+                        new TextureRenderAsset("ReflectionMap")
+                        {
+                            Attachment = FramebufferAttachment.ColorAttachment0,
+                            InternalFormat = PixelInternalFormat.Rgb16,
+                            Format = PixelFormat.Rgb,
+                            PixelType = PixelType.Float,
+                        }
+                    }
+                },
+                DeferredGBuffer = new FramebufferAsset("DeferredRelfectionBuffer")
+                {
+                    DrawMode = DrawBufferMode.None,
+                    ReadMode = ReadBufferMode.None,
 
                     DrawTargets = new DrawBuffersEnum[]
                     {
@@ -109,12 +131,9 @@ namespace Window
                     {
                         new FramebufferStorageAsset("ReflectionDeferredDepth")
                         {
-                            Attachment = FramebufferAttachment.DepthAttachment,
-                            Width = 4096,
-                            Height = 4096,
-
+                            Attachment = FramebufferAttachment.DepthStencilAttachment,
                             Target = RenderbufferTarget.Renderbuffer,
-                            DataType = RenderbufferStorage.DepthComponent
+                            DataType = RenderbufferStorage.Depth24Stencil8
                         }
                     },
                     Textures = new List<TextureRenderAsset>()
@@ -122,49 +141,34 @@ namespace Window
                         new TextureRenderAsset("DeferredPosition")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment0,
-                            Width = 4096,
-                            Height = 4096,
-
-                            InternalFormat = PixelInternalFormat.Rgba16,
+                            InternalFormat = PixelInternalFormat.Rgba16f,
                             Format = PixelFormat.Rgba,
                             PixelType = PixelType.Float,
                         },
                         new TextureRenderAsset("DeferredAlbedo")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment1,
-                            Width = 4096,
-                            Height = 4096,
-
-                            InternalFormat = PixelInternalFormat.Rgb16,
+                            InternalFormat = PixelInternalFormat.Rgb16f,
                             Format = PixelFormat.Rgb,
                             PixelType = PixelType.Float
                         },
                         new TextureRenderAsset("DeferredNormalSurface")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment2,
-                            Width = 4096,
-                            Height = 4096,
-
-                            InternalFormat = PixelInternalFormat.Rgb16,
+                            InternalFormat = PixelInternalFormat.Rgb16f,
                             Format = PixelFormat.Rgb,
                             PixelType = PixelType.Float
                         },
                         new TextureRenderAsset("DeferredNormalTexture")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment3,
-                            Width = 4096,
-                            Height = 4096,
-
-                            InternalFormat = PixelInternalFormat.Rgb16,
+                            InternalFormat = PixelInternalFormat.Rgb16f,
                             Format = PixelFormat.Rgb,
                             PixelType = PixelType.Float
                         },
                         new TextureRenderAsset("DeferredMRO")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment4,
-                            Width = 4096,
-                            Height = 4096,
-
                             InternalFormat = PixelInternalFormat.Rgb16,
                             Format = PixelFormat.Rgb,
                             PixelType = PixelType.Float
@@ -172,9 +176,6 @@ namespace Window
                         new TextureRenderAsset("DeferredEmission")
                         {
                             Attachment = FramebufferAttachment.ColorAttachment5,
-                            Width = 4096,
-                            Height = 4096,
-
                             InternalFormat = PixelInternalFormat.Rgb16,
                             Format = PixelFormat.Rgb,
                             PixelType = PixelType.Float
@@ -203,12 +204,13 @@ namespace Window
             _renderPipeline = new SequentialSystem<bool>(
                 new ShaderTimeSystem(_scene, _sceneComponents),
 
-                new ShadowBufferPrepareSystem(_scene, _sceneComponents),
                 new DirectionalLightSystem(_scene, _sceneComponents),
-                new DirectionalShadowPassSystem(_scene, _sceneComponents),
                 new PointLightSystem(_scene, _sceneComponents),
-                new PointShadowPassSystem(_scene, _sceneComponents),
                 new SpotLightSystem(_scene, _sceneComponents),
+
+                new ShadowBufferPrepareSystem(_scene, _sceneComponents),
+                new DirectionalShadowPassSystem(_scene, _sceneComponents),
+                new PointShadowPassSystem(_scene, _sceneComponents),
                 new SpotShadowPassSystem(_scene, _sceneComponents),
                 new ShadowBufferSyncSystem(_scene, _sceneComponents),
 
@@ -242,7 +244,7 @@ namespace Window
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
-            //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
+            sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var sphereMaterial = new MaterialAsset("Foo");
             sphereMaterial.SetUniform("Albedo", Vector4.One);
@@ -278,7 +280,11 @@ namespace Window
 
             var reflectionProbe = _scene.CreateEntity();
             reflectionProbe.Set(new TransformComponent(new Vector3(0f, 1f, 0f)));
-            reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 512, NearClipping = 0.01f, FarClipping = 30f });
+            reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 512, NearClipping = 0.01f, FarClipping = 30f, Skybox = Defaults.Texture.SkyboxCoast });
+
+            var reflectionProbe2 = _scene.CreateEntity();
+            reflectionProbe2.Set(new TransformComponent(new Vector3(5f, 1f, 0f)));
+            reflectionProbe2.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 512, NearClipping = 0.01f, FarClipping = 30f, Skybox = Defaults.Texture.SkyboxCoast });
         }
 
         /// <summary>
