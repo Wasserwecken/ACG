@@ -71,7 +71,7 @@ namespace Framework.ECS.Systems.RenderPipeline
                 ref var probeConfig = ref entities[i].Get<ReflectionProbeComponent>();
                 ref var transform = ref entities[i].Get<TransformComponent>();
 
-                if (buffer.TextureAtlas.Add(probeConfig.Resolution, out var reflectionMapSpace))
+                if (probeConfig.HasChanged && buffer.TextureAtlas.Add(probeConfig.Resolution, out var reflectionMapSpace))
                 {
                     probeConfig.InfoID = i;
 
@@ -147,6 +147,8 @@ namespace Framework.ECS.Systems.RenderPipeline
                 Renderer.Use(_lightMaterial, Defaults.Shader.Program.MeshLitDeferredLight);
                 Renderer.Use(_viewDeferredBlock, Defaults.Shader.Program.MeshLitDeferredLight);
                 Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
+
+                probeConfig.HasChanged = false;
             }
 
             GL.Viewport(0, 0, buffer.Size, buffer.Size);

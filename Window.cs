@@ -198,7 +198,8 @@ namespace Window
                 new PrimitiveSpaceSystem(_scene, _sceneComponents),
 
                 new CameraControllerSystem(_scene, _sceneComponents),
-                new TransformRotatorSystem(_scene, _sceneComponents)
+                new TransformRotatorSystem(_scene, _sceneComponents),
+                new ReflectionProbeUpdateSystem(_scene, _sceneComponents)
             );
 
             _renderPipeline = new SequentialSystem<bool>(
@@ -281,6 +282,7 @@ namespace Window
             var reflectionProbe = _scene.CreateEntity();
             reflectionProbe.Set(new TransformComponent(new Vector3(0f, 1f, 0f)));
             reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 512, NearClipping = 0.01f, FarClipping = 30f, Skybox = Defaults.Texture.SkyboxCoast });
+            reflectionProbe.Set(new ReflectionProbeUpdateComponent());
 
             var reflectionProbe2 = _scene.CreateEntity();
             reflectionProbe2.Set(new TransformComponent(new Vector3(5f, 1f, 0f)));
