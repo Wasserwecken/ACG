@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using DefaultEcs;
+using Framework.Assets.Framebuffer;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader;
 using Framework.Assets.Textures;
@@ -170,8 +171,6 @@ namespace Framework
                 entity.Set(TransformComponent.Default);
                 entity.Set(new PerspectiveCameraComponent()
                 {
-                    ClearColor = new Vector4(0.2f),
-                    ClearMask = ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit,
                     FarClipping = 100f,
                     NearClipping = 0.01f,
                     FieldOfView = 90f
@@ -193,6 +192,125 @@ namespace Framework
 
                 return entity;
             }
+        }
+
+        public static class Framebuffer
+        {
+            public static FramebufferAsset CreateShadowBuffer() => new FramebufferAsset("ShadowBuffer")
+            {
+                DrawMode = DrawBufferMode.None,
+                ReadMode = ReadBufferMode.None,
+
+                Textures = new List<TextureRenderAsset>()
+                {
+                    new TextureRenderAsset("ShadowMap")
+                    {
+                        Attachment = FramebufferAttachment.DepthAttachment,
+
+                        InternalFormat = PixelInternalFormat.DepthComponent,
+                        Format = PixelFormat.DepthComponent,
+                        PixelType = PixelType.Float
+                    }
+                }
+            };
+
+            public static FramebufferAsset CreateDeferredLightBuffer(string resultName) => new FramebufferAsset("DeferredLightBuffer")
+            {
+                DrawMode = DrawBufferMode.None,
+                ReadMode = ReadBufferMode.None,
+
+                DrawTargets = new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0 },
+                Storages = new List<FramebufferStorageAsset>()
+                {
+                    new FramebufferStorageAsset("DeferredDepth")
+                    {
+                        Attachment = FramebufferAttachment.DepthStencilAttachment,
+                        Target = RenderbufferTarget.Renderbuffer,
+                        DataType = RenderbufferStorage.Depth24Stencil8
+                    }
+                },
+                Textures = new List<TextureRenderAsset>()
+                {
+                    new TextureRenderAsset(resultName)
+                    {
+                        Attachment = FramebufferAttachment.ColorAttachment0,
+                        InternalFormat = PixelInternalFormat.Rgb16,
+                        Format = PixelFormat.Rgb,
+                        PixelType = PixelType.Float,
+                    }
+                }
+            };
+
+            public static FramebufferAsset CreateDeferredGBuffer() => new FramebufferAsset("DeferredGBuffer")
+            {
+                DrawMode = DrawBufferMode.None,
+                ReadMode = ReadBufferMode.None,
+
+                DrawTargets = new DrawBuffersEnum[]
+                {
+                    DrawBuffersEnum.ColorAttachment0,
+                    DrawBuffersEnum.ColorAttachment1,
+                    DrawBuffersEnum.ColorAttachment2,
+                    DrawBuffersEnum.ColorAttachment3,
+                    DrawBuffersEnum.ColorAttachment4,
+                    DrawBuffersEnum.ColorAttachment5,
+                },
+
+                Storages = new List<FramebufferStorageAsset>()
+                {
+                    new FramebufferStorageAsset("DeferredDepth")
+                    {
+                        Attachment = FramebufferAttachment.DepthStencilAttachment,
+                        Target = RenderbufferTarget.Renderbuffer,
+                        DataType = RenderbufferStorage.Depth24Stencil8
+                    }
+                },
+                Textures = new List<TextureRenderAsset>()
+                {
+                    new TextureRenderAsset("DeferredPosition")
+                    {
+                        Attachment = FramebufferAttachment.ColorAttachment0,
+                        InternalFormat = PixelInternalFormat.Rgba16f,
+                        Format = PixelFormat.Rgba,
+                        PixelType = PixelType.Float,
+                    },
+                    new TextureRenderAsset("DeferredAlbedo")
+                    {
+                        Attachment = FramebufferAttachment.ColorAttachment1,
+                        InternalFormat = PixelInternalFormat.Rgb16f,
+                        Format = PixelFormat.Rgb,
+                        PixelType = PixelType.Float
+                    },
+                    new TextureRenderAsset("DeferredNormalSurface")
+                    {
+                        Attachment = FramebufferAttachment.ColorAttachment2,
+                        InternalFormat = PixelInternalFormat.Rgb16f,
+                        Format = PixelFormat.Rgb,
+                        PixelType = PixelType.Float
+                    },
+                    new TextureRenderAsset("DeferredNormalTexture")
+                    {
+                        Attachment = FramebufferAttachment.ColorAttachment3,
+                        InternalFormat = PixelInternalFormat.Rgb16f,
+                        Format = PixelFormat.Rgb,
+                        PixelType = PixelType.Float
+                    },
+                    new TextureRenderAsset("DeferredMRO")
+                    {
+                        Attachment = FramebufferAttachment.ColorAttachment4,
+                        InternalFormat = PixelInternalFormat.Rgb16,
+                        Format = PixelFormat.Rgb,
+                        PixelType = PixelType.Float
+                    },
+                    new TextureRenderAsset("DeferredEmission")
+                    {
+                        Attachment = FramebufferAttachment.ColorAttachment5,
+                        InternalFormat = PixelInternalFormat.Rgb16,
+                        Format = PixelFormat.Rgb,
+                        PixelType = PixelType.Float
+                    }
+                }
+            };
         }
     }
 }

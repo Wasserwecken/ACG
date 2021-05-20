@@ -54,134 +54,30 @@ namespace Window
             _scene = new World();
             _sceneComponents = _scene.CreateEntity();
             _sceneComponents.Set(new TimeComponent());
-            _sceneComponents.Set(new InputComponent() { Keyboard = KeyboardState, Mouse = MouseState });
-            _sceneComponents.Set(new AspectRatioComponent() { Width = nativeSettings.Size.X, Height = nativeSettings.Size.Y });
+            _sceneComponents.Set(new InputComponent()
+            {
+                Keyboard = KeyboardState,
+                Mouse = MouseState
+            });
+            _sceneComponents.Set(new AspectRatioComponent()
+            {
+                Width = nativeSettings.Size.X,
+                Height = nativeSettings.Size.Y
+            });
             _sceneComponents.Set(new ShadowBufferComponent()
             {
                 Size = 4096,
-
                 DirectionalBlock = new ShaderDirectionalShadowBlock(),
                 PointBlock = new ShaderPointShadowBlock(),
                 SpotBlock = new ShaderSpotShadowBlock(),
-
-                FramebufferBuffer = new FramebufferAsset("ShadowBuffer")
-                {
-                    DrawMode = DrawBufferMode.None,
-                    ReadMode = ReadBufferMode.None,
-
-                    Textures = new List<TextureRenderAsset>()
-                    {
-                        new TextureRenderAsset("ShadowMap")
-                        {
-                            Attachment = FramebufferAttachment.DepthAttachment,
-
-                            InternalFormat = PixelInternalFormat.DepthComponent,
-                            Format = PixelFormat.DepthComponent,
-                            PixelType = PixelType.Float
-                        }
-                    }
-                }
+                FramebufferBuffer = Defaults.Framebuffer.CreateShadowBuffer()
             });
             _sceneComponents.Set(new ReflectionBufferComponent()
             {
                 Size = 1024,
                 ReflectionBlock = new ShaderReflectionBlock(),
-                DeferredLightBuffer = new FramebufferAsset("DeferredRelfectionResult")
-                {
-                    DrawMode = DrawBufferMode.None,
-                    ReadMode = ReadBufferMode.None,
-
-                    DrawTargets = new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0 },
-                    Storages = new List<FramebufferStorageAsset>()
-                    {
-                        new FramebufferStorageAsset("ReflectionDepth")
-                        {
-                            Attachment = FramebufferAttachment.DepthStencilAttachment,
-                            Target = RenderbufferTarget.Renderbuffer,
-                            DataType = RenderbufferStorage.Depth24Stencil8
-                        }
-                    },
-                    Textures = new List<TextureRenderAsset>()
-                    {
-                        new TextureRenderAsset("ReflectionMap")
-                        {
-                            Attachment = FramebufferAttachment.ColorAttachment0,
-                            InternalFormat = PixelInternalFormat.Rgb16,
-                            Format = PixelFormat.Rgb,
-                            PixelType = PixelType.Float,
-                        }
-                    }
-                },
-                DeferredGBuffer = new FramebufferAsset("DeferredRelfectionBuffer")
-                {
-                    DrawMode = DrawBufferMode.None,
-                    ReadMode = ReadBufferMode.None,
-
-                    DrawTargets = new DrawBuffersEnum[]
-                    {
-                        DrawBuffersEnum.ColorAttachment0,
-                        DrawBuffersEnum.ColorAttachment1,
-                        DrawBuffersEnum.ColorAttachment2,
-                        DrawBuffersEnum.ColorAttachment3,
-                        DrawBuffersEnum.ColorAttachment4,
-                        DrawBuffersEnum.ColorAttachment5,
-                    },
-
-                    Storages = new List<FramebufferStorageAsset>()
-                    {
-                        new FramebufferStorageAsset("ReflectionDeferredDepth")
-                        {
-                            Attachment = FramebufferAttachment.DepthStencilAttachment,
-                            Target = RenderbufferTarget.Renderbuffer,
-                            DataType = RenderbufferStorage.Depth24Stencil8
-                        }
-                    },
-                    Textures = new List<TextureRenderAsset>()
-                    {
-                        new TextureRenderAsset("DeferredPosition")
-                        {
-                            Attachment = FramebufferAttachment.ColorAttachment0,
-                            InternalFormat = PixelInternalFormat.Rgba16f,
-                            Format = PixelFormat.Rgba,
-                            PixelType = PixelType.Float,
-                        },
-                        new TextureRenderAsset("DeferredAlbedo")
-                        {
-                            Attachment = FramebufferAttachment.ColorAttachment1,
-                            InternalFormat = PixelInternalFormat.Rgb16f,
-                            Format = PixelFormat.Rgb,
-                            PixelType = PixelType.Float
-                        },
-                        new TextureRenderAsset("DeferredNormalSurface")
-                        {
-                            Attachment = FramebufferAttachment.ColorAttachment2,
-                            InternalFormat = PixelInternalFormat.Rgb16f,
-                            Format = PixelFormat.Rgb,
-                            PixelType = PixelType.Float
-                        },
-                        new TextureRenderAsset("DeferredNormalTexture")
-                        {
-                            Attachment = FramebufferAttachment.ColorAttachment3,
-                            InternalFormat = PixelInternalFormat.Rgb16f,
-                            Format = PixelFormat.Rgb,
-                            PixelType = PixelType.Float
-                        },
-                        new TextureRenderAsset("DeferredMRO")
-                        {
-                            Attachment = FramebufferAttachment.ColorAttachment4,
-                            InternalFormat = PixelInternalFormat.Rgb16,
-                            Format = PixelFormat.Rgb,
-                            PixelType = PixelType.Float
-                        },
-                        new TextureRenderAsset("DeferredEmission")
-                        {
-                            Attachment = FramebufferAttachment.ColorAttachment5,
-                            InternalFormat = PixelInternalFormat.Rgb16,
-                            Format = PixelFormat.Rgb,
-                            PixelType = PixelType.Float
-                        }
-                    }
-                }
+                DeferredLightBuffer = Defaults.Framebuffer.CreateDeferredLightBuffer("ReflectionMap"),
+                DeferredGBuffer = Defaults.Framebuffer.CreateDeferredGBuffer()
             });
 
 
@@ -219,8 +115,12 @@ namespace Window
                 new ReflectionDeferredPassSystem(_scene, _sceneComponents),
                 new ReflectionBufferSyncSystem(_scene, _sceneComponents),
 
-                new ForwardPassSystemOLD(_scene, _sceneComponents)
-                ,new FrameBufferDebugSystem(_scene, _sceneComponents)
+                new CameraPrepareSystem(_scene, _sceneComponents),
+                new CameraDeferredPassSystem(_scene, _sceneComponents),
+                new CameraPublishSystem(_scene, _sceneComponents)
+
+                // new ForwardPassSystemOLD(_scene, _sceneComponents)
+                //, new FrameBufferDebugSystem(_scene, _sceneComponents)
             );
         }
 
@@ -237,15 +137,18 @@ namespace Window
             //var scenePath = "./Assets/Samples/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf";
             GLTF2Loader.Load(_scene, scenePath, Defaults.Shader.Program.MeshBlinnPhong);
 
-            var cameraEntity = Defaults.Entities.Camera(_scene);
-            cameraEntity.Set(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
+
+            var camera = _scene.CreateEntity();
+            camera.Set(new TransformComponent(Vector3.UnitY * 2f));
+            camera.Set(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
+            camera.Set(new PerspectiveCameraComponent() { FarClipping = 100f, NearClipping = 0.01f, FieldOfView = 90f, Skybox = Defaults.Texture.SkyboxCoast });
 
 
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One, AmbientFactor = 0.005f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
-            sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
+            //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var sphereMaterial = new MaterialAsset("Foo");
             sphereMaterial.SetUniform("Albedo", Vector4.One);
@@ -282,7 +185,7 @@ namespace Window
             var reflectionProbe = _scene.CreateEntity();
             reflectionProbe.Set(new TransformComponent(new Vector3(0f, 1f, 0f)));
             reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 512, NearClipping = 0.01f, FarClipping = 30f, Skybox = Defaults.Texture.SkyboxCoast });
-            reflectionProbe.Set(new ReflectionProbeUpdateComponent());
+            //reflectionProbe.Set(new ReflectionProbeUpdateComponent());
 
             var reflectionProbe2 = _scene.CreateEntity();
             reflectionProbe2.Set(new TransformComponent(new Vector3(5f, 1f, 0f)));

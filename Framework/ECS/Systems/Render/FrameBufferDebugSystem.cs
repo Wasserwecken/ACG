@@ -35,7 +35,7 @@ namespace Framework.ECS.Systems.Render
                     _renderTextures.Add(texture);
 
             var aspect = _worldComponents.Get<AspectRatioComponent>();
-            var tileCount = 5;
+            var tileCount = 8;
             var gridWidth = aspect.Width / tileCount;
             var gridHeight = gridWidth;
 

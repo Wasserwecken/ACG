@@ -3,8 +3,6 @@ using DefaultEcs.System;
 using Framework.Assets.Shader.Block;
 using Framework.Assets.Textures;
 using Framework.ECS.Components.Scene;
-using Framework.ECS.Systems.Render.OpenGL;
-using OpenTK.Graphics.OpenGL;
 
 namespace Framework.ECS.Systems.Render.Pipeline
 {

@@ -41,7 +41,7 @@ namespace Framework.ECS.Systems.Render.OpenGL
                 storage.Width = framebuffer.Width;
                 storage.Height = framebuffer.Height;
 
-                if (storage.Handle <= 0) Push(storage);
+                Push(storage);
                 GL.FramebufferRenderbuffer(framebuffer.Target, storage.Attachment, storage.Target, storage.Handle);
             }
 
@@ -50,7 +50,7 @@ namespace Framework.ECS.Systems.Render.OpenGL
                 texture.Width = framebuffer.Width;
                 texture.Height = framebuffer.Height;
 
-                if (texture.Handle <= 0) Push(texture);
+                Push(texture);
                 GL.FramebufferTexture2D(framebuffer.Target, texture.Attachment, texture.Target, texture.Handle, 0);
             }
 
