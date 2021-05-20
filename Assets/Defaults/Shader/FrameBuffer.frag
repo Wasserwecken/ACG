@@ -6,9 +6,9 @@ in VertexScreenQuad
 } _vertexScreenQuad;
 
 uniform sampler2D BufferMap;
-out vec4 FragColor;
+out vec4 OutputColor;
 
 void main()
 {    
-    FragColor = texture(BufferMap, _vertexScreenQuad.UV0);
+    OutputColor = texture(BufferMap, _vertexScreenQuad.UV0);
 }

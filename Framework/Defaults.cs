@@ -33,7 +33,9 @@ namespace Framework
                 public static ShaderSourceAsset FragmentLitDeferredLight { get; }
                 public static ShaderSourceAsset FragmentSkybox { get; }
                 public static ShaderSourceAsset FragmentShadow { get; }
+
                 public static ShaderSourceAsset FragmentFrameBuffer { get; }
+                public static ShaderSourceAsset FragmentTonemapping { get; }
 
                 static Source()
                 {
@@ -46,7 +48,9 @@ namespace Framework
                     FragmentLitDeferredLight = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitDeferredLight.frag"));
                     FragmentSkybox = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.frag"));
                     FragmentShadow = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "Shadow.frag"));
+                
                     FragmentFrameBuffer = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "FrameBuffer.frag"));
+                    FragmentTonemapping = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "Tonemapping.frag"));
                 }
             }
 
@@ -59,6 +63,8 @@ namespace Framework
                 public static ShaderProgramAsset MeshLitDeferredBuffer { get; }
                 public static ShaderProgramAsset MeshLitDeferredLight { get; }
 
+                public static ShaderProgramAsset PostTonemapping { get; }
+
                 static Program()
                 {
                     FrameBuffer = new ShaderProgramAsset("FrameBuffer", Source.VertexScreenQuad, Source.FragmentFrameBuffer);
@@ -67,6 +73,8 @@ namespace Framework
                     MeshBlinnPhong = new ShaderProgramAsset("MeshBlinnPhong", Source.VertexMesh, Source.FragmentLitBlinnPhong);
                     MeshLitDeferredBuffer = new ShaderProgramAsset("MeshLitDeferredBuffer", Source.VertexMesh, Source.FragmentLitDeferredBuffer);
                     MeshLitDeferredLight = new ShaderProgramAsset("MeshLitDeferredLight", Source.VertexScreenQuad, Source.FragmentLitDeferredLight);
+
+                    PostTonemapping = new ShaderProgramAsset("PostTonemapping", Source.VertexScreenQuad, Source.FragmentTonemapping);
                 }
             }
         }

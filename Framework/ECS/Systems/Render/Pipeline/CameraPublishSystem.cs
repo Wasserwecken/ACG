@@ -15,7 +15,6 @@ namespace Framework.ECS.Systems.Render.Pipeline
     public class CameraPublishSystem : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
-        private readonly EntitySet _renderCandidates;
         private readonly MaterialAsset _bufferMaterial;
 
         /// <summary>
@@ -24,11 +23,6 @@ namespace Framework.ECS.Systems.Render.Pipeline
         public CameraPublishSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
-            _renderCandidates = World.GetEntities()
-                .With<TransformComponent>()
-                .With<PrimitiveComponent>()
-                .AsSet();
-
             _bufferMaterial = new MaterialAsset("BufferDisplay") { DepthTest = DepthFunction.Always };
         }
 
