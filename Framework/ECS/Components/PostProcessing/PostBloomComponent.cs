@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Framework.ECS.Components.PostProcessing
 {
-    public struct TonemappingComponent
+    public struct PostBloomComponent
     {
-        public float Exposure;
+        public float Threshold;
     }
 }

@@ -8,9 +8,9 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Framework.ECS.Systems.Render.Pipeline
 {
-    [With(typeof(TonemappingComponent))]
+    [With(typeof(PostTonemappingComponent))]
     [With(typeof(PerspectiveCameraComponent))]
-    public class CameraPostToneMappingSystem : AEntitySetSystem<bool>
+    public class CameraPostTonemappingSystem : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
         private readonly MaterialAsset _postMaterial;
@@ -18,7 +18,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
         /// <summary>
         /// 
         /// </summary>
-        public CameraPostToneMappingSystem(World world, Entity worldComponents) : base(world)
+        public CameraPostTonemappingSystem(World world, Entity worldComponents) : base(world)
         {
             _worldComponents = worldComponents;
             _postMaterial = new MaterialAsset("PostTonemaping") { DepthTest = DepthFunction.Always };
@@ -29,7 +29,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
         /// </summary>
         protected override void Update(bool state, in Entity entity)
         {
-            var config = entity.Get<TonemappingComponent>();
+            var config = entity.Get<PostTonemappingComponent>();
             var camera = entity.Get<PerspectiveCameraComponent>();
 
             _postMaterial.SetUniform("BufferMap", camera.DeferredLightBuffer.Textures[0]);
