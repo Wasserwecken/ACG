@@ -23,9 +23,12 @@
     <None Remove="Assets\Defaults\Shader\FrameBuffer.frag" />
     <None Remove="Assets\Defaults\Shader\LitDeferredBuffer.frag" />
     <None Remove="Assets\Defaults\Shader\LitDeferredLight.frag" />
+    <None Remove="Assets\Defaults\Shader\PostBloomMerge.frag" />
+    <None Remove="Assets\Defaults\Shader\PostBloomSelect.frag" />
+    <None Remove="Assets\Defaults\Shader\PostGaussianBlur.frag" />
+    <None Remove="Assets\Defaults\Shader\PostTonemapping.frag" />
     <None Remove="Assets\Defaults\Shader\ScreenQuad.vert" />
     <None Remove="Assets\Defaults\Shader\Shadow.frag" />
-    <None Remove="Assets\Defaults\Shader\Tonemapping.frag" />
   </ItemGroup>
 
 </Project>

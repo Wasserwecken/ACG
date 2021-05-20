@@ -56,6 +56,7 @@ namespace Framework.ECS.Systems.Render.OpenGL
             // MATERIAL SETTINGS
             GL.ShadeModel(material.Model);
             GL.FrontFace(material.FaceDirection);
+            GL.DepthMask(material.IsWritingDepth);
 
             if (material.IsDepthTesting)
             {
@@ -80,6 +81,8 @@ namespace Framework.ECS.Systems.Render.OpenGL
             }
             else
                 GL.Disable(EnableCap.Blend);
+
+
 
             // MATERIAL UNIFORMS
             foreach (var uniform in material.UniformFloats)
@@ -120,6 +123,20 @@ namespace Framework.ECS.Systems.Render.OpenGL
 
                     GL.Uniform1(uniform.Layout, uniform.Layout);
                 }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void Blit(FramebufferAsset source, FramebufferAsset destination, ClearBufferMask mask)
+        {
+            GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, source.Handle);
+            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, destination.Handle);
+            GL.BlitFramebuffer(
+                0, 0, source.Width, source.Height,
+                0, 0, destination.Width, destination.Height,
+                mask, BlitFramebufferFilter.Nearest
+            );
         }
 
         /// <summary>

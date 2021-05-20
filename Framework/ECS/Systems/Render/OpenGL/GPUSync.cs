@@ -54,8 +54,8 @@ namespace Framework.ECS.Systems.Render.OpenGL
                 GL.FramebufferTexture2D(framebuffer.Target, texture.Attachment, texture.Target, texture.Handle, 0);
             }
 
-            GL.DrawBuffer(framebuffer.DrawMode);
-            GL.ReadBuffer(framebuffer.ReadMode);
+            //GL.DrawBuffer(framebuffer.DrawMode);
+            //GL.ReadBuffer(framebuffer.ReadMode);
             GL.DrawBuffers(framebuffer.DrawTargets.Length, framebuffer.DrawTargets);
 
             GL.BindFramebuffer(framebuffer.Target, 0);

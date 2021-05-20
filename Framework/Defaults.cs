@@ -36,6 +36,9 @@ namespace Framework
 
                 public static ShaderSourceAsset FragmentFrameBuffer { get; }
                 public static ShaderSourceAsset FragmentTonemapping { get; }
+                public static ShaderSourceAsset FragmentBloomSelect { get; }
+                public static ShaderSourceAsset FragmentBloomMerge { get; }
+                public static ShaderSourceAsset FragmentGaussianBlur { get; }
 
                 static Source()
                 {
@@ -50,7 +53,10 @@ namespace Framework
                     FragmentShadow = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "Shadow.frag"));
                 
                     FragmentFrameBuffer = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "FrameBuffer.frag"));
-                    FragmentTonemapping = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "Tonemapping.frag"));
+                    FragmentTonemapping = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostTonemapping.frag"));
+                    FragmentBloomSelect = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostBloomSelect.frag"));
+                    FragmentBloomMerge = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostBloomMerge.frag"));
+                    FragmentGaussianBlur = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostGaussianBlur.frag"));
                 }
             }
 
@@ -64,6 +70,9 @@ namespace Framework
                 public static ShaderProgramAsset MeshLitDeferredLight { get; }
 
                 public static ShaderProgramAsset PostTonemapping { get; }
+                public static ShaderProgramAsset PostBloomSelect { get; }
+                public static ShaderProgramAsset PostBloomMerge { get; }
+                public static ShaderProgramAsset PostGaussianBlur { get; }
 
                 static Program()
                 {
@@ -75,6 +84,9 @@ namespace Framework
                     MeshLitDeferredLight = new ShaderProgramAsset("MeshLitDeferredLight", Source.VertexScreenQuad, Source.FragmentLitDeferredLight);
 
                     PostTonemapping = new ShaderProgramAsset("PostTonemapping", Source.VertexScreenQuad, Source.FragmentTonemapping);
+                    PostBloomSelect = new ShaderProgramAsset("PostBloomSelect", Source.VertexScreenQuad, Source.FragmentBloomSelect);
+                    PostBloomMerge = new ShaderProgramAsset("PostBloomMerge", Source.VertexScreenQuad, Source.FragmentBloomMerge);
+                    PostGaussianBlur = new ShaderProgramAsset("PostGaussianBlur", Source.VertexScreenQuad, Source.FragmentGaussianBlur);
                 }
             }
         }
@@ -263,7 +275,6 @@ namespace Framework
                     DrawBuffersEnum.ColorAttachment4,
                     DrawBuffersEnum.ColorAttachment5,
                 },
-
                 Storages = new List<FramebufferStorageAsset>()
                 {
                     new FramebufferStorageAsset("DeferredDepth")

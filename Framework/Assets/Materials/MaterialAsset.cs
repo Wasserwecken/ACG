@@ -13,6 +13,7 @@ namespace Framework.Assets.Materials
         public bool IsTransparent { get; set; }
         public bool IsCulling { get; set; }
         public bool IsDepthTesting { get; set; }
+        public bool IsWritingDepth { get; set; }
         public ShadingModel Model { get; set; }
         public DepthFunction DepthTest { get; set; }
         public CullFaceMode CullingMode { get; set; }
@@ -41,6 +42,7 @@ namespace Framework.Assets.Materials
             IsTransparent = false;
             IsCulling = true;
             IsDepthTesting = true;
+            IsWritingDepth = true;
             DepthTest = DepthFunction.Less;
             Model = ShadingModel.Smooth;
             CullingMode = CullFaceMode.Back;

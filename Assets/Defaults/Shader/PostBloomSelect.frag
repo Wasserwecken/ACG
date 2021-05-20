@@ -7,15 +7,13 @@ in VertexScreenQuad
 
 
 uniform sampler2D BufferMap;
-uniform float Exposure;
+uniform float Threshold;
 out vec4 OutputColor;
 
 void main()
 {             
     vec3 color = texture(BufferMap, _vertexScreenQuad.UV0).xyz;
+    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
 
-    vec3 mapped = vec3(1.0) - exp(-color * Exposure);
-    mapped = pow(mapped, vec3(0.4545454545));
-  
-    OutputColor = vec4(mapped, 1.0);
-}  
+    OutputColor = vec4(step(Threshold, brightness) * color, 1.0);
+}

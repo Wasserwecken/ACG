@@ -20,6 +20,9 @@ namespace Framework.Assets.Textures
             GenerateMipMaps = false;
             MinFilter = TextureMinFilter.Nearest;
             MagFilter = TextureMagFilter.Nearest;
+
+            WrapModeS = TextureWrapMode.ClampToEdge;
+            WrapModeT = TextureWrapMode.ClampToEdge;
         }
     }
 }
