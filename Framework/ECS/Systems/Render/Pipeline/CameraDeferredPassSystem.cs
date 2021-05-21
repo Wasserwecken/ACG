@@ -110,17 +110,6 @@ namespace Framework.ECS.Systems.Render.Pipeline
                 ClearBufferMask.DepthBufferBit,
                 BlitFramebufferFilter.Nearest
             );
-
-
-            // DEV
-            GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, camera.DeferredLightBuffer.Handle);
-            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-            GL.BlitFramebuffer(
-                0, 0, camera.DeferredLightBuffer.Width, camera.DeferredLightBuffer.Height,
-                0, 0, camera.DeferredLightBuffer.Width, camera.DeferredLightBuffer.Height,
-                ClearBufferMask.ColorBufferBit,
-                BlitFramebufferFilter.Nearest
-            );
         }
     }
 }
