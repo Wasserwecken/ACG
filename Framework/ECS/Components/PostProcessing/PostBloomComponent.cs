@@ -9,8 +9,9 @@ namespace Framework.ECS.Components.PostProcessing
     {
         public FramebufferAsset BufferB;
         public FramebufferAsset BufferA;
-        public float Threshold;
-        public float Size;
         public int Samples;
+        public float ThresholdStart;
+        public float ThresholdEnd;
+        public float Intensity;
     }
 }

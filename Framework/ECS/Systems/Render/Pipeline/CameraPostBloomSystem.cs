@@ -60,7 +60,9 @@ namespace Framework.ECS.Systems.Render.Pipeline
 
             // SELECT FRAGMENTS
             _postMaterial.SetUniform("BufferMap", camera.DeferredLightBuffer.Textures[0]);
-            _postMaterial.SetUniform("Threshold", config.Threshold);
+            _postMaterial.SetUniform("ThresholdStart", config.ThresholdStart);
+            _postMaterial.SetUniform("ThresholdEnd", config.ThresholdEnd);
+            _postMaterial.SetUniform("Intensity", config.Intensity);
 
             Renderer.Use(config.BufferA);
             Renderer.Use(Defaults.Shader.Program.PostBloomSelect);
