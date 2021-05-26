@@ -46,21 +46,6 @@ namespace Framework.ECS.Systems.Render.Pipeline
 
 
             // G BUFFER
-            camera.ShaderViewSpace.Projection = Matrix4.CreatePerspectiveFieldOfView(
-                MathHelper.DegreesToRadians(camera.FieldOfView),
-                aspect.Ratio,
-                camera.NearClipping,
-                camera.FarClipping
-            );
-            camera.ShaderViewSpace.WorldToView = transform.WorldSpaceInverse;
-            camera.ShaderViewSpace.WorldToProjection = transform.WorldSpaceInverse * camera.ShaderViewSpace.Projection;
-            camera.ShaderViewSpace.WorldToViewRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation();
-            camera.ShaderViewSpace.WorldToProjectionRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation() * camera.ShaderViewSpace.Projection;
-            camera.ShaderViewSpace.ViewPosition = new Vector4(transform.Position, 1);
-            camera.ShaderViewSpace.ViewDirection = new Vector4(transform.Forward, 0);
-            camera.ShaderViewSpace.Resolution = new Vector2(aspect.Width, aspect.Height);
-            GPUSync.Push(camera.ShaderViewSpace);
-
             Renderer.Use(camera.DeferredGBuffer);
             Renderer.Use(Defaults.Shader.Program.MeshLitDeferredBuffer);
             Renderer.Use(camera.ShaderViewSpace, Defaults.Shader.Program.MeshLitDeferredBuffer);
@@ -72,10 +57,12 @@ namespace Framework.ECS.Systems.Render.Pipeline
             foreach (ref readonly var candidate in _renderCandidates.GetEntities())
             {
                 var primitive = candidate.Get<PrimitiveComponent>();
-
-                Renderer.Use(primitive.Material, Defaults.Shader.Program.MeshLitDeferredBuffer);
-                Renderer.Use(primitive.PrimitiveSpaceBlock, Defaults.Shader.Program.MeshLitDeferredBuffer);
-                Renderer.Draw(primitive.Verticies);
+                if (primitive.Shader == Defaults.Shader.Program.MeshLitDeferredLight)
+                {
+                    Renderer.Use(primitive.Material, Defaults.Shader.Program.MeshLitDeferredBuffer);
+                    Renderer.Use(primitive.PrimitiveSpaceBlock, Defaults.Shader.Program.MeshLitDeferredBuffer);
+                    Renderer.Draw(primitive.Verticies);
+                }
             }
 
             // LIGHT BUFFER

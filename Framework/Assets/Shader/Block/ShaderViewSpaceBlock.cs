@@ -20,7 +20,6 @@ namespace Framework.Assets.Shader.Block
         /// </summary>
         protected override void WriteBytes(BinaryWriter writer)
         {
-            writer.Write(Projection);
             writer.Write(WorldToView);
             writer.Write(WorldToProjection);
             writer.Write(WorldToViewRotation);

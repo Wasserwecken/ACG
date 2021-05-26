@@ -3,11 +3,15 @@ using DefaultEcs.System;
 using Framework.Assets.Shader.Block;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Components.Scene;
+using Framework.ECS.Components.Transform;
 using Framework.ECS.Systems.Render.OpenGL;
+using OpenTK.Mathematics;
 
 namespace Framework.ECS.Systems.Render.Pipeline
 {
-    public class CameraPrepareSystem : AComponentSystem<bool, PerspectiveCameraComponent>
+    [With(typeof(TransformComponent))]
+    [With(typeof(PerspectiveCameraComponent))]
+    public class CameraPrepareSystem : AEntitySetSystem<bool>
     {
         private readonly Entity _worldComponents;
 
@@ -19,43 +23,59 @@ namespace Framework.ECS.Systems.Render.Pipeline
             _worldComponents = worldComponents;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        protected override void Update(bool state, ref PerspectiveCameraComponent component)
+        protected override void Update(bool state, in Entity entity)
         {
-            var aspect = _worldComponents.Get<AspectRatioComponent>();
+            ref var transform = ref entity.Get<TransformComponent>();
+            ref var camera = ref entity.Get<PerspectiveCameraComponent>();
+            ref var aspect = ref _worldComponents.Get<AspectRatioComponent>();
 
-            if (component.ShaderViewSpace == null)
-                component.ShaderViewSpace = new ShaderViewSpaceBlock();
+            if (camera.ShaderViewSpace == null)
+                camera.ShaderViewSpace = new ShaderViewSpaceBlock();
 
-            if (component.ShaderDeferredView == null)
-                component.ShaderDeferredView = new ShaderDeferredViewBlock();
+            if (camera.ShaderDeferredView == null)
+                camera.ShaderDeferredView = new ShaderDeferredViewBlock();
 
-            if (component.DeferredGBuffer == null)
-                component.DeferredGBuffer = Defaults.Framebuffer.CreateDeferredGBuffer();
+            if (camera.DeferredGBuffer == null)
+                camera.DeferredGBuffer = Defaults.Framebuffer.CreateDeferredGBuffer();
 
-            if (component.DeferredLightBuffer == null)
-                component.DeferredLightBuffer = Defaults.Framebuffer.CreateDeferredLightBuffer("DeferredCameraResult");
+            if (camera.DeferredLightBuffer == null)
+                camera.DeferredLightBuffer = Defaults.Framebuffer.CreateDeferredLightBuffer("DeferredCameraResult");
 
             
-            if (component.DeferredGBuffer.Width != aspect.Width || component.DeferredGBuffer.Height != aspect.Height)
+            if (camera.DeferredGBuffer.Width != aspect.Width || camera.DeferredGBuffer.Height != aspect.Height)
             {
-                component.DeferredGBuffer.Handle = 0;
-                component.DeferredGBuffer.Width = aspect.Width;
-                component.DeferredGBuffer.Height = aspect.Height;
+                camera.DeferredGBuffer.Handle = 0;
+                camera.DeferredGBuffer.Width = aspect.Width;
+                camera.DeferredGBuffer.Height = aspect.Height;
 
-                GPUSync.Push(component.DeferredGBuffer);
+                GPUSync.Push(camera.DeferredGBuffer);
             }
 
-            if (component.DeferredLightBuffer.Width != aspect.Width || component.DeferredLightBuffer.Height != aspect.Height)
+            if (camera.DeferredLightBuffer.Width != aspect.Width || camera.DeferredLightBuffer.Height != aspect.Height)
             {
-                component.DeferredLightBuffer.Handle = 0;
-                component.DeferredLightBuffer.Width = aspect.Width;
-                component.DeferredLightBuffer.Height = aspect.Height;
+                camera.DeferredLightBuffer.Handle = 0;
+                camera.DeferredLightBuffer.Width = aspect.Width;
+                camera.DeferredLightBuffer.Height = aspect.Height;
 
-                GPUSync.Push(component.DeferredLightBuffer);
+                GPUSync.Push(camera.DeferredLightBuffer);
             }
+
+            camera.ShaderViewSpace.Projection = Matrix4.CreatePerspectiveFieldOfView(
+                MathHelper.DegreesToRadians(camera.FieldOfView),
+                aspect.Ratio,
+                camera.NearClipping,
+                camera.FarClipping
+            );
+
+            camera.ShaderViewSpace.WorldToView = transform.WorldSpaceInverse;
+            camera.ShaderViewSpace.WorldToProjection = transform.WorldSpaceInverse * camera.ShaderViewSpace.Projection;
+            camera.ShaderViewSpace.WorldToViewRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation();
+            camera.ShaderViewSpace.WorldToProjectionRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation() * camera.ShaderViewSpace.Projection;
+            camera.ShaderViewSpace.ViewPosition = new Vector4(transform.Position, 1);
+            camera.ShaderViewSpace.ViewDirection = new Vector4(transform.Forward, 0);
+            camera.ShaderViewSpace.Resolution = new Vector2(aspect.Width, aspect.Height);
+            
+            GPUSync.Push(camera.ShaderViewSpace);
         }
     }
 }

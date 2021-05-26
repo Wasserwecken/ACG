@@ -91,7 +91,7 @@ namespace Framework.ECS.GLTF2
                     subEntity.Set(new PrimitiveComponent()
                     {
                         IsShadowCaster = true,
-                        Shader = _defaultShader,
+                        Shader = gltfPrimitive.Material.Alpha != AlphaMode.OPAQUE ? _defaultShader : Defaults.Shader.Program.MeshLitDeferredLight,
                         Material = gltfPrimitive.Material != null && _materials.ContainsKey(gltfPrimitive.Material) ? _materials[gltfPrimitive.Material] : Defaults.Material.PBR,
                         Verticies = primitive
                     });

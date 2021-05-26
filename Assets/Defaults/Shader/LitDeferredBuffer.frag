@@ -58,7 +58,6 @@ layout (std430) buffer ShaderPrimitiveSpace {
 } _primitiveSpace;
 
 layout (std430) buffer ShaderViewSpaceBlock {
-    mat4 Projection;
     mat4 WorldToView;
     mat4 WorldToProjection;
     mat4 WorldToViewRotation;

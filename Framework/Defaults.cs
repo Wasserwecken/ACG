@@ -28,7 +28,7 @@ namespace Framework
                 public static ShaderSourceAsset VertexMesh { get; }
                 public static ShaderSourceAsset VertexSkybox { get; }
 
-                public static ShaderSourceAsset FragmentLitBlinnPhong { get; }
+                public static ShaderSourceAsset FragmentLitForward { get; }
                 public static ShaderSourceAsset FragmentLitDeferredBuffer { get; }
                 public static ShaderSourceAsset FragmentLitDeferredLight { get; }
                 public static ShaderSourceAsset FragmentSkybox { get; }
@@ -48,7 +48,7 @@ namespace Framework
                     VertexMesh = new ShaderSourceAsset(ShaderType.VertexShader, Path.Combine(Definitions.Directories.DefaultShader, "mesh.vert"));
                     VertexSkybox = new ShaderSourceAsset(ShaderType.VertexShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.vert"));
 
-                    FragmentLitBlinnPhong = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitBlinnPhong.frag"));
+                    FragmentLitForward = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitForward.frag"));
                     FragmentLitDeferredBuffer = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitDeferredBuffer.frag"));
                     FragmentLitDeferredLight = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "LitDeferredLight.frag"));
                     FragmentSkybox = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "skybox.frag"));
@@ -69,7 +69,7 @@ namespace Framework
                 public static ShaderProgramAsset FrameBuffer { get; }
                 public static ShaderProgramAsset Skybox { get; }
                 public static ShaderProgramAsset Shadow { get; }
-                public static ShaderProgramAsset MeshBlinnPhong { get; }
+                public static ShaderProgramAsset MeshLitForward { get; }
                 public static ShaderProgramAsset MeshLitDeferredBuffer { get; }
                 public static ShaderProgramAsset MeshLitDeferredLight { get; }
 
@@ -85,7 +85,7 @@ namespace Framework
                     FrameBuffer = new ShaderProgramAsset("FrameBuffer", Source.VertexScreenQuad, Source.FragmentFrameBuffer);
                     Skybox = new ShaderProgramAsset("Skybox", Source.VertexSkybox, Source.FragmentSkybox);
                     Shadow = new ShaderProgramAsset("Shadow", Source.VertexMesh, Source.FragmentShadow);
-                    MeshBlinnPhong = new ShaderProgramAsset("MeshBlinnPhong", Source.VertexMesh, Source.FragmentLitBlinnPhong);
+                    MeshLitForward = new ShaderProgramAsset("MeshLitForward", Source.VertexMesh, Source.FragmentLitForward);
                     MeshLitDeferredBuffer = new ShaderProgramAsset("MeshLitDeferredBuffer", Source.VertexMesh, Source.FragmentLitDeferredBuffer);
                     MeshLitDeferredLight = new ShaderProgramAsset("MeshLitDeferredLight", Source.VertexScreenQuad, Source.FragmentLitDeferredLight);
 

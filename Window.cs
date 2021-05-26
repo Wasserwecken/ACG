@@ -1,10 +1,8 @@
 ﻿using DefaultEcs;
 using DefaultEcs.System;
 using Framework;
-using Framework.Assets.Framebuffer;
 using Framework.Assets.Materials;
 using Framework.Assets.Shader.Block;
-using Framework.Assets.Textures;
 using Framework.ECS.Components.Light;
 using Framework.ECS.Components.PostProcessing;
 using Framework.ECS.Components.Render;
@@ -12,7 +10,6 @@ using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2;
 using Framework.ECS.Systems.Hierarchy;
-using Framework.ECS.Systems.Render;
 using Framework.ECS.Systems.Render.Pipeline;
 using Framework.ECS.Systems.RenderPipeline;
 using Framework.ECS.Systems.Sync;
@@ -25,7 +22,6 @@ using OpenTK.Windowing.Desktop;
 using Project.ECS.Components;
 using Project.ECS.Systems;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Window
@@ -118,6 +114,7 @@ namespace Window
 
                 new CameraPrepareSystem(_scene, _sceneComponents),
                 new CameraDeferredPassSystem(_scene, _sceneComponents),
+                new CameraForwardPassSystem(_scene, _sceneComponents),
                 new CameraPostAmbientOcclusionSystem(_scene, _sceneComponents),
                 new CameraPostBloomSystem(_scene, _sceneComponents),
                 new CameraPostTonemappingSystem(_scene, _sceneComponents),
@@ -138,7 +135,7 @@ namespace Window
             //var scenePath = "./Assets/Samples/DamagedHelmet/glTF-Binary/DamagedHelmet.glb";
             var scenePath = "./Assets/Samples/Sponza/glTF/Sponza.gltf";
             //var scenePath = "./Assets/Samples/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf";
-            GLTF2Loader.Load(_scene, scenePath, Defaults.Shader.Program.MeshBlinnPhong);
+            GLTF2Loader.Load(_scene, scenePath, Defaults.Shader.Program.MeshLitForward);
 
 
             var camera = _scene.CreateEntity();
@@ -166,7 +163,7 @@ namespace Window
             {
                 IsShadowCaster = false,
                 Material = sphereMaterial,
-                Shader = Defaults.Shader.Program.MeshBlinnPhong,
+                Shader = Defaults.Shader.Program.MeshLitForward,
                 Verticies = Defaults.Vertex.Mesh.Sphere[0]
             });
 
