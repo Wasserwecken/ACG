@@ -6,6 +6,7 @@ namespace Framework.Assets.Shader.Block
 {
     public class ShaderViewSpaceBlock : ShaderBlockBase
     {
+        public Matrix4 Projection;
         public Matrix4 WorldToView;
         public Matrix4 WorldToProjection;
         public Matrix4 WorldToViewRotation;
@@ -19,6 +20,7 @@ namespace Framework.Assets.Shader.Block
         /// </summary>
         protected override void WriteBytes(BinaryWriter writer)
         {
+            writer.Write(Projection);
             writer.Write(WorldToView);
             writer.Write(WorldToProjection);
             writer.Write(WorldToViewRotation);

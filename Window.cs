@@ -118,6 +118,7 @@ namespace Window
 
                 new CameraPrepareSystem(_scene, _sceneComponents),
                 new CameraDeferredPassSystem(_scene, _sceneComponents),
+                new CameraPostAmbientOcclusionSystem(_scene, _sceneComponents),
                 new CameraPostBloomSystem(_scene, _sceneComponents),
                 new CameraPostTonemappingSystem(_scene, _sceneComponents),
                 new CameraPublishSystem(_scene, _sceneComponents)
@@ -146,6 +147,7 @@ namespace Window
             camera.Set(new PerspectiveCameraComponent() { FarClipping = 100f, NearClipping = 0.01f, FieldOfView = 90f, Skybox = Defaults.Texture.SkyboxCoast });
             camera.Set(new PostTonemappingComponent() { Exposure = 1f });
             camera.Set(new PostBloomComponent() { ThresholdStart = 0.8f, ThresholdEnd = 1.5f, Intensity = 1f, Samples = 5 });
+            camera.Set(new PostAmbientOcclusionComponent() { Strength = 1f, Radius = 0.5f, Bias = 0.025f });
 
 
             var sunEntity = _scene.CreateEntity();

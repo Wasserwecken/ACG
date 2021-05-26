@@ -39,6 +39,8 @@ namespace Framework
                 public static ShaderSourceAsset FragmentBloomSelect { get; }
                 public static ShaderSourceAsset FragmentBloomMerge { get; }
                 public static ShaderSourceAsset FragmentGaussianBlur { get; }
+                public static ShaderSourceAsset FragmentAmbientOcclusionSelect { get; }
+                public static ShaderSourceAsset FragmentAmbientOcclusionMerge { get; }
 
                 static Source()
                 {
@@ -57,6 +59,8 @@ namespace Framework
                     FragmentBloomSelect = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostBloomSelect.frag"));
                     FragmentBloomMerge = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostBloomMerge.frag"));
                     FragmentGaussianBlur = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostGaussianBlur.frag"));
+                    FragmentAmbientOcclusionSelect = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostAmbientOcclusionSelect.frag"));
+                    FragmentAmbientOcclusionMerge = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostAmbientOcclusionMerge.frag"));
                 }
             }
 
@@ -73,6 +77,8 @@ namespace Framework
                 public static ShaderProgramAsset PostBloomSelect { get; }
                 public static ShaderProgramAsset PostBloomMerge { get; }
                 public static ShaderProgramAsset PostGaussianBlur { get; }
+                public static ShaderProgramAsset PostAmbientOcclusionSelect { get; }
+                public static ShaderProgramAsset PostAmbientOcclusionMerge { get; }
 
                 static Program()
                 {
@@ -87,6 +93,8 @@ namespace Framework
                     PostBloomSelect = new ShaderProgramAsset("PostBloomSelect", Source.VertexScreenQuad, Source.FragmentBloomSelect);
                     PostBloomMerge = new ShaderProgramAsset("PostBloomMerge", Source.VertexScreenQuad, Source.FragmentBloomMerge);
                     PostGaussianBlur = new ShaderProgramAsset("PostGaussianBlur", Source.VertexScreenQuad, Source.FragmentGaussianBlur);
+                    PostAmbientOcclusionSelect = new ShaderProgramAsset("PostAmbientOcclusionSelect", Source.VertexScreenQuad, Source.FragmentAmbientOcclusionSelect);
+                    PostAmbientOcclusionMerge = new ShaderProgramAsset("PostAmbientOcclusionMerge", Source.VertexScreenQuad, Source.FragmentAmbientOcclusionMerge);
                 }
             }
         }
@@ -230,6 +238,21 @@ namespace Framework
                         InternalFormat = PixelInternalFormat.DepthComponent,
                         Format = PixelFormat.DepthComponent,
                         PixelType = PixelType.Float
+                    }
+                }
+            };
+
+            public static FramebufferAsset CreateDeferredAmbientOcclusionBuffer() => new FramebufferAsset("DeferredAmbientOcclusionBuffer")
+            {
+                DrawTargets = new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0 },
+                Textures = new List<TextureRenderAsset>()
+                {
+                    new TextureRenderAsset("AmbientOcclusionMap")
+                    {
+                        Attachment = FramebufferAttachment.ColorAttachment0,
+                        InternalFormat = PixelInternalFormat.Rgba16f,
+                        Format = PixelFormat.Rgba,
+                        PixelType = PixelType.Float,
                     }
                 }
             };

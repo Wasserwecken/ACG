@@ -9,6 +9,7 @@ using Framework.ECS.Components.Transform;
 using Framework.ECS.Systems.Render.OpenGL;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using System.Linq;
 
 namespace Framework.ECS.Systems.Render.Pipeline
 {
@@ -45,16 +46,16 @@ namespace Framework.ECS.Systems.Render.Pipeline
 
 
             // G BUFFER
-            var projection = Matrix4.CreatePerspectiveFieldOfView(
+            camera.ShaderViewSpace.Projection = Matrix4.CreatePerspectiveFieldOfView(
                 MathHelper.DegreesToRadians(camera.FieldOfView),
                 aspect.Ratio,
                 camera.NearClipping,
                 camera.FarClipping
             );
             camera.ShaderViewSpace.WorldToView = transform.WorldSpaceInverse;
-            camera.ShaderViewSpace.WorldToProjection = transform.WorldSpaceInverse * projection;
+            camera.ShaderViewSpace.WorldToProjection = transform.WorldSpaceInverse * camera.ShaderViewSpace.Projection;
             camera.ShaderViewSpace.WorldToViewRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation();
-            camera.ShaderViewSpace.WorldToProjectionRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation() * projection;
+            camera.ShaderViewSpace.WorldToProjectionRotation = transform.WorldSpaceInverse.ClearScale().ClearTranslation() * camera.ShaderViewSpace.Projection;
             camera.ShaderViewSpace.ViewPosition = new Vector4(transform.Position, 1);
             camera.ShaderViewSpace.ViewDirection = new Vector4(transform.Forward, 0);
             camera.ShaderViewSpace.Resolution = new Vector2(aspect.Width, aspect.Height);
@@ -77,7 +78,6 @@ namespace Framework.ECS.Systems.Render.Pipeline
                 Renderer.Draw(primitive.Verticies);
             }
 
-
             // LIGHT BUFFER
             camera.ShaderDeferredView.ViewPosition = new Vector4(transform.Position, 1f);
             camera.ShaderDeferredView.ViewPort = new Vector4(0, 0, aspect.Width, aspect.Height);
@@ -99,7 +99,6 @@ namespace Framework.ECS.Systems.Render.Pipeline
             Renderer.Use(_lightMaterial, Defaults.Shader.Program.MeshLitDeferredLight);
             Renderer.Use(camera.ShaderDeferredView, Defaults.Shader.Program.MeshLitDeferredLight);
             Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
-
 
             // BLIT DEPTH
             GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, camera.DeferredGBuffer.Handle);

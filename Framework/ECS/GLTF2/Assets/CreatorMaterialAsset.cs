@@ -13,7 +13,7 @@ namespace Framework.ECS.GLTF2.Assets
         public static MaterialAsset Create(Material gltfMaterial, Dictionary<Texture, TextureBaseAsset> textures)
         {
             var material = new MaterialAsset(gltfMaterial.Name);
-            material.IsTransparent = gltfMaterial.Alpha != AlphaMode.OPAQUE;
+            //material.IsTransparent = gltfMaterial.Alpha != AlphaMode.OPAQUE;
             material.IsCulling = !gltfMaterial.DoubleSided;
 
             material.SetUniform("AlphaCutoff", gltfMaterial.AlphaCutoff);

@@ -7,7 +7,6 @@ using Framework.ECS.Components.PostProcessing;
 using Framework.ECS.Components.Render;
 using Framework.ECS.Systems.Render.OpenGL;
 using OpenTK.Graphics.OpenGL;
-using System;
 using System.Collections.Generic;
 
 namespace Framework.ECS.Systems.Render.Pipeline

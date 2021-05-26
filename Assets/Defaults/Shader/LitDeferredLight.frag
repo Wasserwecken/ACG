@@ -162,7 +162,7 @@ float ShadowHash(vec2 point)
   return fract(seed.z * fract(dot(point, seed.xy)));
 }
 
-vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float roughness, vec3 normal, vec3 halfway, vec3 lightDirection, vec3 lightColor)
+vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float roughness, float occlusion, vec3 normal, vec3 halfway, vec3 lightDirection, vec3 lightColor)
 {
     roughness = 1.0 - roughness;
     roughness = roughness * roughness;
@@ -171,7 +171,7 @@ vec3 blinn_phong(vec3 surfaceDiffuse, vec3 surfaceSpecular, float roughness, vec
     float luminance = max(dot(normal, lightDirection), 0.0);
     vec3 specular = roughness * pow(max(dot(normal, halfway), 0.0), glossy) * surfaceSpecular;
 
-    return (surfaceDiffuse + specular) * lightColor * luminance;
+    return (surfaceDiffuse * occlusion + specular) * lightColor * luminance;
 }
 
 float LinearizeDepth(float depth, float near, float far)
@@ -261,8 +261,7 @@ void main()
     _fragmentMaterial.MRO = texture(DeferredMRO, screenUV).xyz;
     _fragmentMaterial.Emmision = texture(DeferredEmission, screenUV).xyz;
     _fragmentMaterial.Normal = texture(DeferredNormalTexture, screenUV).xyz;
-
-        
+            
     vec3 reflectionDirection = reflect(_fragmentSurface.ViewDirection, _fragmentMaterial.Normal);
     vec3 reflectionColor = texture(SkyboxMap, reflectionDirection).xyz;
     OutputColor = vec4(_fragmentMaterial.Emmision, 1.0);
@@ -280,7 +279,7 @@ void main()
         vec3 halfwayDirection = normalize(lightDirection + _fragmentSurface.ViewDirection);
         vec3 diffuseColor = _fragmentMaterial.Albedo * (1.0 - _fragmentMaterial.MRO.x);
         vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.MRO.x);
-        vec3 surfaceColor = blinn_phong(diffuseColor, specularColor, _fragmentMaterial.MRO.y, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor);
+        vec3 surfaceColor = blinn_phong(diffuseColor, specularColor, _fragmentMaterial.MRO.y, _fragmentMaterial.MRO.z, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor);
 
         if (_directionalShadows[i].Strength.x > 0.001)
         {
@@ -312,7 +311,8 @@ void main()
             surfaceColor *= 1 - (occluderCount / float(SHADOWSAMPLECOUNT));
         }
 
-        OutputColor.xyz += surfaceColor + _directionalLights[i].Color.w * _fragmentMaterial.Albedo * lightColor;
+        vec3 indirect = _fragmentMaterial.MRO.z * _directionalLights[i].Color.w * _fragmentMaterial.Albedo * lightColor;
+        OutputColor.xyz += surfaceColor + indirect;
     }
     
     for(int i = 0; i < _pointLights.length(); i++)
@@ -328,7 +328,7 @@ void main()
             float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 3.0);
             vec3 diffuseColor = _fragmentMaterial.Albedo * (1.0 - _fragmentMaterial.MRO.x);
             vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.MRO.x);
-            vec3 surfaceColor = blinn_phong(diffuseColor, specularColor, _fragmentMaterial.MRO.y, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * attenuation;
+            vec3 surfaceColor = blinn_phong(diffuseColor, specularColor, _fragmentMaterial.MRO.y, _fragmentMaterial.MRO.z, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * attenuation;
 
             if (_pointShadows[i].Strength.x > 0.001)
             {
@@ -358,7 +358,8 @@ void main()
                 surfaceColor *= 1 - (occluderCount / float(SHADOWSAMPLECOUNT));
             }
 
-            OutputColor.xyz += surfaceColor + _pointLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuation;
+            vec3 indirect = _fragmentMaterial.MRO.z * _pointLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuation;
+            OutputColor.xyz += surfaceColor + indirect;
         }
     }   
     
@@ -380,7 +381,7 @@ void main()
             float epsilon = innerAngle - outerAngle;
             float spotIntensity = clamp((theta - outerAngle) / epsilon, 0.0, 1.0);
             vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.MRO.x);
-            vec3 surfaceColor = blinn_phong(_fragmentMaterial.Albedo, specularColor, _fragmentMaterial.MRO.y, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * spotIntensity * attenuation;
+            vec3 surfaceColor = blinn_phong(_fragmentMaterial.Albedo, specularColor, _fragmentMaterial.MRO.y, _fragmentMaterial.MRO.z, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * spotIntensity * attenuation;
 
             if (_spotShadows[i].Strength.x > 0.001)
             {
@@ -411,7 +412,8 @@ void main()
                 surfaceColor *= 1 - (occluderCount / float(SHADOWSAMPLECOUNT));
             }
 
-            OutputColor.xyz += surfaceColor + _spotLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuation;
+            vec3 indirect = _fragmentMaterial.MRO.z * _pointLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuation;
+            OutputColor.xyz += surfaceColor + indirect;
         }
     }
 }

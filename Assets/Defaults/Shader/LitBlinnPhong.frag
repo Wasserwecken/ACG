@@ -94,6 +94,7 @@ layout (std430) buffer ShaderTimeBlock {
 } _time;
 
 layout (std430) buffer ShaderViewSpaceBlock {
+    mat4 Projection;
     mat4 WorldToView;
     mat4 WorldToProjection;
     mat4 WorldToViewRotation;

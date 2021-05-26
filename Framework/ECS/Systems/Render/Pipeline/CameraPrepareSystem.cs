@@ -38,6 +38,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
             if (component.DeferredLightBuffer == null)
                 component.DeferredLightBuffer = Defaults.Framebuffer.CreateDeferredLightBuffer("DeferredCameraResult");
 
+            
             if (component.DeferredGBuffer.Width != aspect.Width || component.DeferredGBuffer.Height != aspect.Height)
             {
                 component.DeferredGBuffer.Handle = 0;
