@@ -144,7 +144,7 @@ namespace Window
             camera.Set(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
             camera.Set(new PerspectiveCameraComponent() { FarClipping = 100f, NearClipping = 0.01f, FieldOfView = 90f, Skybox = Defaults.Texture.SkyboxCoast });
             camera.Set(new PostTonemappingComponent() { Exposure = 1f });
-            camera.Set(new PostBloomComponent() { ThresholdStart = 0.8f, ThresholdEnd = 1.5f, Intensity = 1f, Samples = 5 });
+            camera.Set(new PostBloomComponent() { ThresholdStart = 0.7f, ThresholdEnd = 1.0f, Intensity = 1f, Samples = 5 });
             camera.Set(new PostAmbientOcclusionComponent() { Strength = 1f, Radius = 0.5f, Bias = 0.025f });
 
 
@@ -170,7 +170,7 @@ namespace Window
 
             var spotLight = _scene.CreateEntity();
             spotLight.Set(new TransformComponent(new Vector3(8.0f, 2f, 3f), new Vector3(0.5f, -0.1f, -1f)));
-            spotLight.Set(new SpotLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 3f, AmbientFactor = 0.001f, InnerAngle = 0.3f, OuterAngle = 0.5f, Range = 10f });
+            spotLight.Set(new SpotLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 5f, AmbientFactor = 0.001f, InnerAngle = 0.3f, OuterAngle = 0.5f, Range = 10f });
             spotLight.Set(new SpotShadowComponent() { Resolution = 256, Strength = 1.0f, NearClipping = 0.01f });
             spotLight.Set(new TransformRotatorComponent() { Speed = 0.5f });
 
