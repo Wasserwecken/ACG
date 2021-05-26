@@ -5,7 +5,6 @@ in VertexScreenQuad
     vec2 UV0;
 } _vertexScreenQuad;
 
-
 uniform sampler2D BufferMap;
 uniform float ThresholdStart;
 uniform float ThresholdEnd;
@@ -13,8 +12,9 @@ out vec4 OutputColor;
 
 void main()
 {             
-    vec3 color = texture(BufferMap, _vertexScreenQuad.UV0).xyz;
-    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
+    vec3 linear = texture(BufferMap, _vertexScreenQuad.UV0).xyz;
+    vec3 sRGB = pow(linear, vec3(0.4545454545));
 
-    OutputColor = vec4(smoothstep(ThresholdStart, ThresholdEnd, brightness) * color, 1.0);
+    float brightness = dot(sRGB, vec3(0.2126, 0.7152, 0.0722));
+    OutputColor = vec4(smoothstep(ThresholdStart, ThresholdEnd, brightness) * linear, 1.0);
 }

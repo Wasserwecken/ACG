@@ -144,13 +144,13 @@ namespace Window
             camera.Set(new TransformComponent(Vector3.UnitY * 2f));
             camera.Set(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
             camera.Set(new PerspectiveCameraComponent() { FarClipping = 100f, NearClipping = 0.01f, FieldOfView = 90f, Skybox = Defaults.Texture.SkyboxCoast });
-            camera.Set(new PostTonemappingComponent() { Exposure = 1.0f });
-            camera.Set(new PostBloomComponent() { ThresholdStart = 0.8f, ThresholdEnd = 1.0f, Intensity = 1.0f, Samples = 5 });
+            camera.Set(new PostTonemappingComponent() { Exposure = 1f });
+            camera.Set(new PostBloomComponent() { ThresholdStart = 0.8f, ThresholdEnd = 1.5f, Intensity = 1f, Samples = 5 });
 
 
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
-            sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One * 2f, AmbientFactor = 0.005f });
+            sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One * 3f, AmbientFactor = 0.005f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
             //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 

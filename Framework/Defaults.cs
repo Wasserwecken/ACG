@@ -254,7 +254,7 @@ namespace Framework
                     new TextureRenderAsset(resultName)
                     {
                         Attachment = FramebufferAttachment.ColorAttachment0,
-                        InternalFormat = PixelInternalFormat.Rgb16,
+                        InternalFormat = PixelInternalFormat.Rgb16f,
                         Format = PixelFormat.Rgb,
                         PixelType = PixelType.Float,
                     }
