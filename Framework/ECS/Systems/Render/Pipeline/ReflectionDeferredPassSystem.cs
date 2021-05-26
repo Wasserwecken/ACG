@@ -47,8 +47,8 @@ namespace Framework.ECS.Systems.RenderPipeline
         /// </summary>
         protected override void PreUpdate(bool state)
         {
-            var lightCount = World.GetEntities().With<TransformComponent>().With<ReflectionProbeComponent>().AsSet().Count;
-            _worldComponents.Get<ReflectionBufferComponent>().ReflectionBlock.Probes = new ShaderReflectionBlock.ShaderReflectionProbe[lightCount];
+            var reflectionCount = World.GetEntities().With<TransformComponent>().With<ReflectionProbeComponent>().AsSet().Count;
+            _worldComponents.Get<ReflectionBufferComponent>().ReflectionBlock.Probes = new ShaderReflectionBlock.ShaderReflectionProbe[reflectionCount];
         }
 
         /// <summary>
@@ -113,10 +113,12 @@ namespace Framework.ECS.Systems.RenderPipeline
                         foreach (ref readonly var candidate in renderCandidates)
                         {
                             var primitive = candidate.Get<PrimitiveComponent>();
-
-                            Renderer.Use(primitive.Material, Defaults.Shader.Program.MeshLitDeferredBuffer);
-                            Renderer.Use(primitive.PrimitiveSpaceBlock, Defaults.Shader.Program.MeshLitDeferredBuffer);
-                            Renderer.Draw(primitive.Verticies);
+                            if (primitive.Shader == Defaults.Shader.Program.MeshLitDeferredLight)
+                            {
+                                Renderer.Use(primitive.Material, Defaults.Shader.Program.MeshLitDeferredBuffer);
+                                Renderer.Use(primitive.PrimitiveSpaceBlock, Defaults.Shader.Program.MeshLitDeferredBuffer);
+                                Renderer.Draw(primitive.Verticies);
+                            }
                         }
                     }
                 }

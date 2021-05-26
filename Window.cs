@@ -110,6 +110,7 @@ namespace Window
 
                 new ReflectionBufferPrepareSystem(_scene, _sceneComponents),
                 new ReflectionDeferredPassSystem(_scene, _sceneComponents),
+                new ReflectionForwardPassSystem(_scene, _sceneComponents),
                 new ReflectionBufferSyncSystem(_scene, _sceneComponents),
 
                 new CameraPrepareSystem(_scene, _sceneComponents),
