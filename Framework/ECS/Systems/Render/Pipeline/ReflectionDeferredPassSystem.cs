@@ -71,7 +71,7 @@ namespace Framework.ECS.Systems.RenderPipeline
                 ref var probeConfig = ref entities[i].Get<ReflectionProbeComponent>();
                 ref var transform = ref entities[i].Get<TransformComponent>();
 
-                if (probeConfig.HasChanged && buffer.TextureAtlas.Add(probeConfig.Resolution, out var reflectionMapSpace))
+                if (buffer.TextureAtlas.Add(probeConfig.Resolution, out var reflectionMapSpace))
                 {
                     probeConfig.InfoID = i;
 
@@ -79,45 +79,49 @@ namespace Framework.ECS.Systems.RenderPipeline
                     var foo = (probeConfig.Resolution / 3f) % (probeConfig.Resolution / 3) > 0.5f ? 2f : 1f;
                     var widthCorrection = (probeConfig.Resolution - foo) / probeConfig.Resolution;
                     buffer.ReflectionBlock.Probes[i].Area = new Vector4(reflectionMapSpace, reflectionMapSpace.Z * widthCorrection);
+                    buffer.ReflectionBlock.Probes[i].Position = new Vector4(transform.Position, 1f);
 
                     // RENDER 6 SIDES
-                    var cubeOrientations = Helper.CreateCubeOrientations(transform.Position);
-                    for (int c = 0; c < cubeOrientations.Length; c++)
+                    if (probeConfig.HasChanged)
                     {
-                        // VIEWPORT PREPERATION
-                        var viewPort = reflectionMapSpace * new Vector3(
-                            buffer.DeferredGBuffer.Width,
-                            buffer.DeferredGBuffer.Height,
-                            buffer.DeferredGBuffer.Width);
-                        var width = (int)viewPort.Z / 3;
-                        var height = (int)viewPort.Z / 2;
-                        var x = (int)viewPort.X + (c % 3) * width;
-                        var y = (int)viewPort.Y + (c < 3 ? 0 : height);
-                        GL.Viewport(x, y, width, height);
-                        GL.Scissor(x, y, width, height);
-                        GL.Clear(buffer.DeferredGBuffer.ClearMask);
-
-                        // VIEW SPACE SETUP
-                        var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1f, probeConfig.NearClipping, probeConfig.FarClipping);
-                        _viewBlock.WorldToView = cubeOrientations[c];
-                        _viewBlock.WorldToProjection = cubeOrientations[c] * projection;
-                        _viewBlock.WorldToViewRotation = cubeOrientations[c].ClearScale().ClearTranslation();
-                        _viewBlock.WorldToProjectionRotation = cubeOrientations[c].ClearScale().ClearTranslation() * projection;
-                        _viewBlock.ViewPosition = new Vector4(transform.Position, 1);
-                        _viewBlock.ViewDirection = new Vector4(cubeOrientations[c].Row2);
-                        _viewBlock.Resolution = new Vector2(probeConfig.Resolution, probeConfig.Resolution);
-                        GPUSync.Push(_viewBlock);
-
-                        // RENDER SCENE
-                        Renderer.Use(_viewBlock, Defaults.Shader.Program.MeshLitDeferredBuffer);
-                        foreach (ref readonly var candidate in renderCandidates)
+                        var cubeOrientations = Helper.CreateCubeOrientations(transform.Position);
+                        for (int c = 0; c < cubeOrientations.Length; c++)
                         {
-                            var primitive = candidate.Get<PrimitiveComponent>();
-                            if (primitive.Shader == Defaults.Shader.Program.MeshLitDeferredLight)
+                            // VIEWPORT PREPERATION
+                            var viewPort = reflectionMapSpace * new Vector3(
+                                buffer.DeferredGBuffer.Width,
+                                buffer.DeferredGBuffer.Height,
+                                buffer.DeferredGBuffer.Width);
+                            var width = (int)viewPort.Z / 3;
+                            var height = (int)viewPort.Z / 2;
+                            var x = (int)viewPort.X + (c % 3) * width;
+                            var y = (int)viewPort.Y + (c < 3 ? 0 : height);
+                            GL.Viewport(x, y, width, height);
+                            GL.Scissor(x, y, width, height);
+                            GL.Clear(buffer.DeferredGBuffer.ClearMask);
+
+                            // VIEW SPACE SETUP
+                            var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1f, probeConfig.NearClipping, probeConfig.FarClipping);
+                            _viewBlock.WorldToView = cubeOrientations[c];
+                            _viewBlock.WorldToProjection = cubeOrientations[c] * projection;
+                            _viewBlock.WorldToViewRotation = cubeOrientations[c].ClearScale().ClearTranslation();
+                            _viewBlock.WorldToProjectionRotation = cubeOrientations[c].ClearScale().ClearTranslation() * projection;
+                            _viewBlock.ViewPosition = new Vector4(transform.Position, 1);
+                            _viewBlock.ViewDirection = new Vector4(cubeOrientations[c].Row2);
+                            _viewBlock.Resolution = new Vector2(probeConfig.Resolution, probeConfig.Resolution);
+                            GPUSync.Push(_viewBlock);
+
+                            // RENDER SCENE
+                            Renderer.Use(_viewBlock, Defaults.Shader.Program.MeshLitDeferredBuffer);
+                            foreach (ref readonly var candidate in renderCandidates)
                             {
-                                Renderer.Use(primitive.Material, Defaults.Shader.Program.MeshLitDeferredBuffer);
-                                Renderer.Use(primitive.PrimitiveSpaceBlock, Defaults.Shader.Program.MeshLitDeferredBuffer);
-                                Renderer.Draw(primitive.Verticies);
+                                var primitive = candidate.Get<PrimitiveComponent>();
+                                if (primitive.Shader == Defaults.Shader.Program.MeshLitDeferredLight)
+                                {
+                                    Renderer.Use(primitive.Material, Defaults.Shader.Program.MeshLitDeferredBuffer);
+                                    Renderer.Use(primitive.PrimitiveSpaceBlock, Defaults.Shader.Program.MeshLitDeferredBuffer);
+                                    Renderer.Draw(primitive.Verticies);
+                                }
                             }
                         }
                     }
@@ -132,25 +136,28 @@ namespace Framework.ECS.Systems.RenderPipeline
                 ref var probeConfig = ref entities[i].Get<ReflectionProbeComponent>();
                 ref var transform = ref entities[i].Get<TransformComponent>();
 
-                var bufferSize = new Vector2(buffer.DeferredLightBuffer.Width, buffer.DeferredLightBuffer.Height);
-                var viewportStart = buffer.ReflectionBlock.Probes[i].Area.Xy * bufferSize;
-                var viewportSize = buffer.ReflectionBlock.Probes[i].Area.Zw * bufferSize;
+                if (probeConfig.HasChanged)
+                {
+                    var bufferSize = new Vector2(buffer.DeferredLightBuffer.Width, buffer.DeferredLightBuffer.Height);
+                    var viewportStart = buffer.ReflectionBlock.Probes[i].Area.Xy * bufferSize;
+                    var viewportSize = buffer.ReflectionBlock.Probes[i].Area.Zw * bufferSize;
 
-                _viewDeferredBlock.ViewPosition = new Vector4(transform.Position, 1f);
-                _viewDeferredBlock.ViewPort = new Vector4(viewportStart.X, viewportStart.Y, viewportSize.X, viewportSize.Y);
-                _viewDeferredBlock.Resolution = bufferSize;
-                GPUSync.Push(_viewDeferredBlock);
+                    _viewDeferredBlock.ViewPosition = new Vector4(transform.Position, 1f);
+                    _viewDeferredBlock.ViewPort = new Vector4(viewportStart.X, viewportStart.Y, viewportSize.X, viewportSize.Y);
+                    _viewDeferredBlock.Resolution = bufferSize;
+                    GPUSync.Push(_viewDeferredBlock);
 
-                GL.Viewport((int)viewportStart.X, (int)viewportStart.Y, (int)viewportSize.X, (int)viewportSize.Y);
-                GL.Scissor((int)viewportStart.X, (int)viewportStart.Y, (int)viewportSize.X, (int)viewportSize.Y);
-                GL.Clear(buffer.DeferredLightBuffer.ClearMask);
+                    GL.Viewport((int)viewportStart.X, (int)viewportStart.Y, (int)viewportSize.X, (int)viewportSize.Y);
+                    GL.Scissor((int)viewportStart.X, (int)viewportStart.Y, (int)viewportSize.X, (int)viewportSize.Y);
+                    GL.Clear(buffer.DeferredLightBuffer.ClearMask);
 
-                _lightMaterial.SetUniform("SkyboxMap", probeConfig.Skybox);
-                Renderer.Use(_lightMaterial, Defaults.Shader.Program.MeshLitDeferredLight);
-                Renderer.Use(_viewDeferredBlock, Defaults.Shader.Program.MeshLitDeferredLight);
-                Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
+                    _lightMaterial.SetUniform("SkyboxMap", probeConfig.Skybox);
+                    Renderer.Use(_lightMaterial, Defaults.Shader.Program.MeshLitDeferredLight);
+                    Renderer.Use(_viewDeferredBlock, Defaults.Shader.Program.MeshLitDeferredLight);
+                    Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
 
-                probeConfig.HasChanged = false;
+                    probeConfig.HasChanged = false;
+                }
             }
 
             GL.Viewport(0, 0, buffer.Size, buffer.Size);

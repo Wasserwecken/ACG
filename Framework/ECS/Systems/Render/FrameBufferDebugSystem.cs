@@ -6,6 +6,7 @@ using Framework.Assets.Textures;
 using Framework.ECS.Components.Scene;
 using Framework.ECS.Systems.Render.OpenGL;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Collections.Generic;
 
 namespace Framework.ECS.Systems.Render
@@ -14,6 +15,7 @@ namespace Framework.ECS.Systems.Render
     {
         protected readonly Entity _worldComponents;
         private List<TextureBaseAsset> _renderTextures;
+        private bool _isVisible;
 
         /// <summary>
         /// 
@@ -29,6 +31,13 @@ namespace Framework.ECS.Systems.Render
         /// </summary>
         protected override void PreUpdate(bool state)
         {
+            var input = _worldComponents.Get<InputComponent>();
+            if (input.Keyboard.WasKeyDown(Keys.F9))
+                _isVisible = !_isVisible;
+
+            if (!_isVisible)
+                return;
+
             _renderTextures.Clear();
             foreach (var buffer in AssetRegister.Framebuffers)
                 foreach (var texture in buffer.Textures)

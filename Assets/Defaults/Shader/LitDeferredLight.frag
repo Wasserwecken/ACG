@@ -216,6 +216,40 @@ float SamplePointShadowDepth(vec3 direction, vec2 atlasStart, vec2 atlasSize, ve
     return LinearizeDepth(texture(ShadowMap, shadowUV).r, clipping.x, clipping.y) * depthCorrection;
 }
 
+
+void CubeAtlasUV(vec3 direction, vec2 atlasStart, vec2 atlasSize, out vec2 sampleUV, out vec2 faceUV)
+{
+	vec3 directionAbs = abs(direction);
+	float ma;
+    vec2 faceId;
+    
+	if(directionAbs.z >= directionAbs.x && directionAbs.z >= directionAbs.y)
+	{
+        faceId.x = 0.0;
+		faceId.y = direction.z < 0.0 ? 0.0 : 1.0;
+		ma = 0.5 / directionAbs.z;
+		faceUV = vec2(direction.z > 0.0 ? -direction.x : direction.x, -direction.y);
+	}
+	else if(directionAbs.y >= directionAbs.x)
+	{
+        faceId.x = 1.0;
+		faceId.y = direction.y < 0.0 ? 0.0 : 1.0;
+		ma = 0.5 / directionAbs.y;
+		faceUV = vec2(direction.z, direction.y < 0.0 ? -direction.x : direction.x);
+	}
+	else
+	{
+        faceId.x = 2.0;
+		faceId.y = direction.x < 0.0 ? 0.0 : 1.0;
+		ma = 0.5 / directionAbs.x;
+		faceUV = vec2(direction.x > 0.0 ? direction.z : -direction.z, -direction.y);
+	}
+
+    faceUV = faceUV * ma + 0.5;
+    sampleUV = atlasStart + ((faceUV + faceId) / vec2(3.0, 2.0)) * atlasSize;
+}
+
+
 // FRAGMENT STRUCTS
 struct FragmentMaterial
 {
@@ -262,10 +296,39 @@ void main()
     _fragmentMaterial.Emmision = texture(DeferredEmission, screenUV).xyz;
     _fragmentMaterial.Normal = texture(DeferredNormalTexture, screenUV).xyz;
             
+
+
+
+    vec3 reflectionColor = vec3(0.0);
     vec3 reflectionDirection = reflect(_fragmentSurface.ViewDirection, _fragmentMaterial.Normal);
-    vec3 reflectionColor = texture(SkyboxMap, reflectionDirection).xyz;
+
+    if (_reflectionProbes.length() > 0)
+    {
+        int probeId = -1;
+        float closestDistance = 100.0;
+        for (int i = 0; i < _reflectionProbes.length(); i++)
+        {
+            vec3 probeDiff = _reflectionProbes[i].Position.xyz - _fragmentSurface.Position.xyz;
+            float probeDistance = dot(probeDiff, probeDiff);// * dot(probeDiff, _fragmentMaterial.Normal);
+
+            if (probeDistance < closestDistance)
+            {
+                probeId = i;
+                closestDistance = probeDistance;
+            }
+        }
+            
+        vec2 probeSampleUV, probeFaceUV;
+        CubeAtlasUV(-reflectionDirection, _reflectionProbes[probeId].Area.xy, _reflectionProbes[probeId].Area.zw, probeSampleUV, probeFaceUV);
+        reflectionColor = texture(ReflectionMap, probeSampleUV).xyz;
+    }
+    else
+    {
+        reflectionColor = texture(SkyboxMap, reflectionDirection).xyz;
+    }
+
     OutputColor = vec4(_fragmentMaterial.Emmision, 1.0);
-    OutputColor.xyz = reflectionColor * _fragmentMaterial.Albedo * _fragmentMaterial.MRO.x * (1.0 - _fragmentMaterial.MRO.y);
+    OutputColor.xyz = reflectionColor * _fragmentMaterial.Albedo * _fragmentMaterial.MRO.x;
 
         
     float shadowSampleSeed = ShadowHash(gl_FragCoord.xy);
@@ -350,8 +413,13 @@ void main()
             
                 for (int i = 0; i < SHADOWSAMPLECOUNT; i++)
                 {
-                    vec3 samplePoint = sampleRotation * vec3(vogelRotation * VOGELDISKPOINTS[i] * VOGELPOINTRATIO * penumbra, 1.0);
-                    float sampleDepth = SamplePointShadowDepth(samplePoint, shadowAtlasStart, shadowAtlasSize, shadowClipping);
+                    vec2 sampleUV, faceUV;
+                    vec3 sampleDirection = sampleRotation * vec3(vogelRotation * VOGELDISKPOINTS[i] * VOGELPOINTRATIO * penumbra, 1.0);
+                    CubeAtlasUV(sampleDirection, shadowAtlasStart, shadowAtlasSize, sampleUV, faceUV);
+
+                    float depthCorrection = length(vec3(faceUV * 2.0 - 1.0, 1.0));
+                    float sampleDepth = LinearizeDepth(texture(ShadowMap, sampleUV).r, shadowClipping.x, shadowClipping.y) * depthCorrection;
+
                     occluderCount += lightDistance > sampleDepth + shadowBias ? 1 : 0;
                 }
   

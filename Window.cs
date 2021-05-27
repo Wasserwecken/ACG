@@ -10,6 +10,7 @@ using Framework.ECS.Components.Scene;
 using Framework.ECS.Components.Transform;
 using Framework.ECS.GLTF2;
 using Framework.ECS.Systems.Hierarchy;
+using Framework.ECS.Systems.Render;
 using Framework.ECS.Systems.Render.Pipeline;
 using Framework.ECS.Systems.RenderPipeline;
 using Framework.ECS.Systems.Sync;
@@ -71,7 +72,7 @@ namespace Window
             });
             _sceneComponents.Set(new ReflectionBufferComponent()
             {
-                Size = 1024,
+                Size = 4096,
                 ReflectionBlock = new ShaderReflectionBlock(),
                 DeferredLightBuffer = Defaults.Framebuffer.CreateDeferredLightBuffer("ReflectionMap"),
                 DeferredGBuffer = Defaults.Framebuffer.CreateDeferredGBuffer()
@@ -115,13 +116,13 @@ namespace Window
 
                 new CameraPrepareSystem(_scene, _sceneComponents),
                 new CameraDeferredPassSystem(_scene, _sceneComponents),
-                new CameraForwardPassSystem(_scene, _sceneComponents),
                 new CameraPostAmbientOcclusionSystem(_scene, _sceneComponents),
+                new CameraForwardPassSystem(_scene, _sceneComponents),
                 new CameraPostBloomSystem(_scene, _sceneComponents),
                 new CameraPostTonemappingSystem(_scene, _sceneComponents),
                 new CameraPublishSystem(_scene, _sceneComponents)
 
-                //, new FrameBufferDebugSystem(_scene, _sceneComponents)
+                , new FrameBufferDebugSystem(_scene, _sceneComponents)
             );
         }
 
@@ -150,23 +151,9 @@ namespace Window
 
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
-            sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One * 3f, AmbientFactor = 0.005f });
+            sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One * 3f, AmbientFactor = 0.05f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
-            //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
-
-            var sphereMaterial = new MaterialAsset("Foo");
-            sphereMaterial.SetUniform("Albedo", Vector4.One);
-            sphereMaterial.SetUniform("MREO", new Vector4(1f, 0f, 0f, 0f));
-
-            var sphere = _scene.CreateEntity();
-            sphere.Set(new TransformComponent(new Vector3(0f, 2f, 0f)));
-            sphere.Set(new PrimitiveComponent()
-            {
-                IsShadowCaster = false,
-                Material = sphereMaterial,
-                Shader = Defaults.Shader.Program.MeshLitForward,
-                Verticies = Defaults.Vertex.Mesh.Sphere[0]
-            });
+            sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var spotLight = _scene.CreateEntity();
             spotLight.Set(new TransformComponent(new Vector3(8.0f, 2f, 3f), new Vector3(0.5f, -0.1f, -1f)));
@@ -186,14 +173,25 @@ namespace Window
                 pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 0.01f });
             }
 
-            var reflectionProbe = _scene.CreateEntity();
-            reflectionProbe.Set(new TransformComponent(new Vector3(0f, 1f, 0f)));
-            reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 512, NearClipping = 0.01f, FarClipping = 30f, Skybox = Defaults.Texture.SkyboxCoast });
-            //reflectionProbe.Set(new ReflectionProbeUpdateComponent());
+            var sphereMaterial = new MaterialAsset("ReflectionProbe");
+            sphereMaterial.SetUniform("Albedo", Vector4.One);
+            sphereMaterial.SetUniform("MREO", new Vector4(1f, 0f, 0f, 0f));
+            for (int x = 0; x < 3; x++)
+            {
+                for (int y = 0; y < 2; y++)
+                {
+                    for (int z = 0; z < 3; z++)
+                    {
+                        var position = new Vector3(x - 1, y , z - 1) * new Vector3(9.5f, 3.5f, 3.3f) + new Vector3(-0.5f, 1.5f, -0.1f);
+                        var reflectionProbe = _scene.CreateEntity();
+                        reflectionProbe.Set(new TransformComponent(position));
+                        reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 256, NearClipping = 0.01f, FarClipping = 30f, Skybox = Defaults.Texture.SkyboxCoast });
+                        reflectionProbe.Set(new PrimitiveComponent() { IsShadowCaster = false, Material = sphereMaterial, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
 
-            var reflectionProbe2 = _scene.CreateEntity();
-            reflectionProbe2.Set(new TransformComponent(new Vector3(5f, 1f, 0f)));
-            reflectionProbe2.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 512, NearClipping = 0.01f, FarClipping = 30f, Skybox = Defaults.Texture.SkyboxCoast });
+                        if (x == 1 && y == 0 && z == 1) reflectionProbe.Set(new ReflectionProbeUpdateComponent());
+                    }
+                }
+            }
         }
 
         /// <summary>
