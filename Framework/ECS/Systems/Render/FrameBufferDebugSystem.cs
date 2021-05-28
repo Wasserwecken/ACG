@@ -32,7 +32,7 @@ namespace Framework.ECS.Systems.Render
         protected override void PreUpdate(bool state)
         {
             var input = _worldComponents.Get<InputComponent>();
-            if (input.Keyboard.WasKeyDown(Keys.F9))
+            if (input.Keyboard.IsKeyReleased(Keys.F9))
                 _isVisible = !_isVisible;
 
             if (!_isVisible)
