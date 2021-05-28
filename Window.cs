@@ -151,25 +151,25 @@ namespace Window
 
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
-            sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One * 3f, AmbientFactor = 0.05f });
+            sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One * 5f, AmbientFactor = 0.003f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
-            sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
+            //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 
             var spotLight = _scene.CreateEntity();
             spotLight.Set(new TransformComponent(new Vector3(8.0f, 2f, 3f), new Vector3(0.5f, -0.1f, -1f)));
-            spotLight.Set(new SpotLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 5f, AmbientFactor = 0.001f, InnerAngle = 0.3f, OuterAngle = 0.5f, Range = 10f });
+            spotLight.Set(new SpotLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 5f, AmbientFactor = 0.002f, InnerAngle = 0.3f, OuterAngle = 0.5f, Range = 10f });
             spotLight.Set(new SpotShadowComponent() { Resolution = 256, Strength = 1.0f, NearClipping = 0.01f });
             spotLight.Set(new TransformRotatorComponent() { Speed = 0.5f });
 
             var rand = new Random();
-            int pointLightCount = 1;
+            int pointLightCount = 5;
             for (int i = 0; i < pointLightCount; i++)
             {
                 var pointLight = _scene.CreateEntity();
-                //var position = new Vector3((float)rand.NextDouble() * 2f - 1f, (float)rand.NextDouble() * 0.8f, (float)rand.NextDouble() * 0.25f - 0.125f);
-                var position = new Vector3(i - 1, 0.3f, 0f);
+                var position = new Vector3((float)rand.NextDouble() * 2f - 1f, (float)rand.NextDouble() * 0.8f, (float)rand.NextDouble() * 0.25f - 0.125f);
+                //var position = new Vector3(i - 1, 0.3f, 0f);
                 pointLight.Set(new TransformComponent(position * 8.0f));
-                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 3f, AmbientFactor = 0.001f, Range = 8f });
+                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 3f, AmbientFactor = 0.002f, Range = 8f });
                 pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 0.01f });
             }
 
@@ -186,7 +186,7 @@ namespace Window
                         var reflectionProbe = _scene.CreateEntity();
                         reflectionProbe.Set(new TransformComponent(position));
                         reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 256, NearClipping = 0.01f, FarClipping = 30f, Skybox = Defaults.Texture.SkyboxCoast });
-                        reflectionProbe.Set(new PrimitiveComponent() { IsShadowCaster = false, Material = sphereMaterial, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
+                        reflectionProbe.Set(new PrimitiveComponent() { IsShadowCaster = true, Material = sphereMaterial, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
 
                         if (x == 1 && y == 0 && z == 1) reflectionProbe.Set(new ReflectionProbeUpdateComponent());
                     }

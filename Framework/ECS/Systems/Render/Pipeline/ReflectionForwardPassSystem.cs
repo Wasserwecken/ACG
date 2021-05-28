@@ -65,10 +65,14 @@ namespace Framework.ECS.Systems.Render.Pipeline
         /// </summary>
         protected override void Update(bool state, in Entity entity)
         {
+
             ref var transform = ref entity.Get<TransformComponent>();
             ref var buffer = ref _worldComponents.Get<ReflectionBufferComponent>();
             ref var probeConfig = ref entity.Get<ReflectionProbeComponent>();
 
+            if (!probeConfig.HasChanged) return;
+            probeConfig.HasChanged = false;
+            
             Renderer.Use(buffer.DeferredLightBuffer);
 
             var cubeOrientations = Helper.CreateCubeOrientations(transform.Position);

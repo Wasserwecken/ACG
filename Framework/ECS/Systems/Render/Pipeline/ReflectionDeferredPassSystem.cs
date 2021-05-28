@@ -155,8 +155,6 @@ namespace Framework.ECS.Systems.RenderPipeline
                     Renderer.Use(_lightMaterial, Defaults.Shader.Program.MeshLitDeferredLight);
                     Renderer.Use(_viewDeferredBlock, Defaults.Shader.Program.MeshLitDeferredLight);
                     Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
-
-                    probeConfig.HasChanged = false;
                 }
             }
 

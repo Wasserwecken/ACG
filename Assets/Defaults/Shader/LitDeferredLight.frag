@@ -56,6 +56,41 @@ uniform samplerCube SkyboxMap;
 uniform sampler2D ReflectionMap;
 uniform sampler2D ShadowMap;
 
+// FRAGMENT STRUCTS
+struct FragmentMaterial
+{
+    vec3 Albedo;
+    vec3 MRO;
+    vec3 Emmision;
+    vec3 Normal;
+    vec3 FresnelColor;
+    float NdV;
+} _fragmentMaterial;
+
+struct FragmentSurface
+{
+    vec4 Position;
+    vec3 ViewDiff;
+    vec3 ViewDirection;
+    vec3 NormalWorld;
+    float ViewLength;
+} _fragmentSurface;
+
+struct LightInfo
+{
+    vec3 Color;
+    vec3 Direction;
+    float Ambient;
+} _lightInfo;
+
+// INPUT SPECIFIC UNIFORMS
+uniform sampler2D DeferredPosition;
+uniform sampler2D DeferredAlbedo;
+uniform sampler2D DeferredNormalSurface;
+uniform sampler2D DeferredNormalTexture;
+uniform sampler2D DeferredMRO;
+uniform sampler2D DeferredEmission;
+
 // INPUT GLOBAL UNIFORMS
 layout (std430) buffer ShaderDeferredViewBlock {
     vec4 ViewPosition;
@@ -249,33 +284,80 @@ void CubeAtlasUV(vec3 direction, vec2 atlasStart, vec2 atlasSize, out vec2 sampl
     sampleUV = atlasStart + ((faceUV + faceId) / vec2(3.0, 2.0)) * atlasSize;
 }
 
-
-// FRAGMENT STRUCTS
-struct FragmentMaterial
+vec3 FresnelSchlick(float nDotV, vec3 f0, float roughness)
 {
-  vec3 Albedo;
-  vec3 MRO;
-  vec3 Emmision;
-  vec3 Normal;
-} _fragmentMaterial;
+    return f0 + (1.0 - f0) * pow(1.0 - nDotV, 5.0);
+}
 
-struct FragmentSurface
+float DistributionTrowbridgeReitzGGX(float nDotH, float roughness)
 {
-    vec4 Position;
-    vec3 ViewDiff;
-    vec3 ViewDirection;
-    float ViewLength;
-    vec3 NormalWorld;
-    mat3 TangentSpace;
-} _fragmentSurface;
+    roughness *= roughness;
+    roughness *= roughness;
+    nDotH *= nDotH;
 
-// INPUT SPECIFIC UNIFORMS
-uniform sampler2D DeferredPosition;
-uniform sampler2D DeferredAlbedo;
-uniform sampler2D DeferredNormalSurface;
-uniform sampler2D DeferredNormalTexture;
-uniform sampler2D DeferredMRO;
-uniform sampler2D DeferredEmission;
+    float denom = (nDotH * (roughness - 1.0) + 1.0);
+    return roughness / (PI * denom * denom);
+}
+
+float GeometrySchlickGGX(float nDotV, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r*r) / 8.0;
+    float denom = nDotV * (1.0 - k) + k;
+	
+    return nDotV / denom;
+}
+
+float GeometrySmith(float nDotV, float nDotL, float roughness)
+{
+    float ggxView  = GeometrySchlickGGX(nDotV, roughness);
+    float ggxLight  = GeometrySchlickGGX(nDotL, roughness);
+	
+    return ggxView * ggxLight;
+}
+
+vec3 PBRDRDF(FragmentMaterial material, FragmentSurface surface, LightInfo light)
+{            
+    vec3 halfway = normalize(light.Direction + surface.ViewDirection);
+    float hDv = max(0.0, dot(halfway, surface.ViewDirection));
+    float nDl = max(0.0, dot(material.Normal, light.Direction));
+    float nDh = max(0.0, dot(material.Normal, halfway));
+    vec3 fresnelColor = FresnelSchlick(hDv, material.FresnelColor, material.MRO.y);
+
+    // SPECULAR
+    float normalDistribution = DistributionTrowbridgeReitzGGX(nDh, material.MRO.y);
+    float selfShadowing = GeometrySmith(material.NdV, nDl, material.MRO.y);
+
+    vec3 numerator = fresnelColor * normalDistribution * selfShadowing;
+    float denominator = 4 * material.NdV * nDl;
+    vec3 specular = numerator / max(denominator, 0.001);
+
+    // DIFFUSE
+    vec3 diffuse = vec3(1.0 - fresnelColor) * (1.0 - material.MRO.x) * material.Albedo;
+
+    // MIX
+    return ((diffuse / PI) + specular) * nDl * light.Color * material.MRO.z;
+}
+
+vec3 PBRAmbient(FragmentMaterial material, LightInfo light)
+{
+    vec3 result = mix(vec3(1.0), material.Albedo, material.MRO.x);
+    result *= material.MRO.y;
+    result *= light.Color;
+    result *= light.Ambient;
+    return result;
+}
+
+vec3 Reflection(FragmentMaterial material, vec3 reflectionColor)
+{
+    vec3 result = mix(reflectionColor, material.Albedo * reflectionColor, material.MRO.x);
+    result *= (1.0 - material.MRO.y);
+    result *= (1.0 - material.MRO.y);
+    result *= (1.0 - material.MRO.y);
+    result *= (1.0 - material.MRO.y);
+    result *= material.MRO.x;
+    return result;
+}
 
 // SHADER OUTPUT
 out vec4 OutputColor;
@@ -286,22 +368,24 @@ void main()
     vec2 screenUV = (gl_FragCoord.xy / _viewDeferred.Resolution);
    
     _fragmentSurface.Position = texture(DeferredPosition, screenUV);
-    _fragmentSurface.ViewDiff = _fragmentSurface.Position.xyz - _viewDeferred.ViewPosition.xyz;
+    _fragmentSurface.ViewDiff = _viewDeferred.ViewPosition.xyz - _fragmentSurface.Position.xyz;
     _fragmentSurface.ViewDirection = normalize(_fragmentSurface.ViewDiff);
-    _fragmentSurface.ViewLength = length(_fragmentSurface.ViewDiff);
     _fragmentSurface.NormalWorld = texture(DeferredNormalSurface, screenUV).xyz;
+    _fragmentSurface.ViewLength = length(_fragmentSurface.ViewDiff);
 
     _fragmentMaterial.Albedo = pow(texture(DeferredAlbedo, screenUV).xyz, vec3(2.2));
     _fragmentMaterial.MRO = texture(DeferredMRO, screenUV).xyz;
     _fragmentMaterial.Emmision = texture(DeferredEmission, screenUV).xyz;
     _fragmentMaterial.Normal = texture(DeferredNormalTexture, screenUV).xyz;
+    _fragmentMaterial.FresnelColor = mix(vec3(0.04), _fragmentMaterial.Albedo, _fragmentMaterial.MRO.x);
+    _fragmentMaterial.NdV = max(0.0, dot(_fragmentMaterial.Normal, _fragmentSurface.ViewDirection));
             
-
+            
+    OutputColor = vec4(_fragmentMaterial.Emmision, 1.0);
 
 
     vec3 reflectionColor = vec3(0.0);
-    vec3 reflectionDirection = reflect(_fragmentSurface.ViewDirection, _fragmentMaterial.Normal);
-
+    vec3 reflectionDirection = reflect(-_fragmentSurface.ViewDirection, _fragmentMaterial.Normal);
     if (_reflectionProbes.length() > 0)
     {
         int probeId = -1;
@@ -327,23 +411,21 @@ void main()
         reflectionColor = texture(SkyboxMap, reflectionDirection).xyz;
     }
 
-    OutputColor = vec4(_fragmentMaterial.Emmision, 1.0);
-    OutputColor.xyz = reflectionColor * _fragmentMaterial.Albedo * _fragmentMaterial.MRO.x;
+    OutputColor.xyz += Reflection(_fragmentMaterial, reflectionColor);
 
         
     float shadowSampleSeed = ShadowHash(gl_FragCoord.xy);
     vec2 ShadowMapPixels = vec2(textureSize(ShadowMap, 0));
-   
     
     for(int i = 0; i < _directionalLights.length(); i++)
     {
-        vec3 lightColor = _directionalLights[i].Color.xyz;
-        vec3 lightDirection = _directionalLights[i].Direction.xyz;
-        vec3 halfwayDirection = normalize(lightDirection + _fragmentSurface.ViewDirection);
-        vec3 diffuseColor = _fragmentMaterial.Albedo * (1.0 - _fragmentMaterial.MRO.x);
-        vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.MRO.x);
-        vec3 surfaceColor = blinn_phong(diffuseColor, specularColor, _fragmentMaterial.MRO.y, _fragmentMaterial.MRO.z, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor);
+        _lightInfo.Color = _directionalLights[i].Color.xyz;
+        _lightInfo.Direction = _directionalLights[i].Direction.xyz;
+        _lightInfo.Ambient = _directionalLights[i].Color.w;
 
+        OutputColor.xyz += PBRAmbient(_fragmentMaterial, _lightInfo);
+        vec3 surfaceColor = PBRDRDF(_fragmentMaterial, _fragmentSurface, _lightInfo);
+        
         if (_directionalShadows[i].Strength.x > 0.001)
         {
             float shadowWidth = _directionalShadows[i].Strength.w;
@@ -353,7 +435,7 @@ void main()
 
             vec4 shadowWorldPosition = _directionalShadows[i].Space * _fragmentSurface.Position;
             vec3 shadowScreenPosition = (shadowWorldPosition.xyz / shadowWorldPosition.w) * 0.5 + 0.5;
-            float shadowBias = 0.003 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.001;
+            float shadowBias = 0.003 * (1.0 - dot(_fragmentSurface.NormalWorld, _lightInfo.Direction)) + 0.001;
             float penumbra = 0.1 * (shadowWidth / ShadowMapPixels.x);
             float occluderCount = 0.0;
 
@@ -374,24 +456,25 @@ void main()
             surfaceColor *= 1 - (occluderCount / float(SHADOWSAMPLECOUNT));
         }
 
-        vec3 indirect = _fragmentMaterial.MRO.z * _directionalLights[i].Color.w * _fragmentMaterial.Albedo * lightColor;
-        OutputColor.xyz += surfaceColor + indirect;
+        OutputColor.xyz += surfaceColor;
     }
     
     for(int i = 0; i < _pointLights.length(); i++)
     {
         vec3 lightDiff = _pointLights[i].Position.xyz - _fragmentSurface.Position.xyz;
-        vec3 lightColor = _pointLights[i].Color.xyz;
         float lightDistance = length(lightDiff);
-
+        
         if (_pointLights[i].Position.w > lightDistance)
         {
-            vec3 lightDirection = normalize(lightDiff);
-            vec3 halfwayDirection = normalize(lightDirection + -_fragmentSurface.ViewDirection);
-            float attenuation = pow(1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1), 3.0);
-            vec3 diffuseColor = _fragmentMaterial.Albedo * (1.0 - _fragmentMaterial.MRO.x);
-            vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.MRO.x);
-            vec3 surfaceColor = blinn_phong(diffuseColor, specularColor, _fragmentMaterial.MRO.y, _fragmentMaterial.MRO.z, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * attenuation;
+            _lightInfo.Color = _pointLights[i].Color.xyz;
+            _lightInfo.Direction = normalize(lightDiff);
+            _lightInfo.Ambient = _pointLights[i].Color.w;
+
+            float attenuation = 1 - clamp(lightDistance / _pointLights[i].Position.w, 0, 1);
+            attenuation *= attenuation * attenuation;
+
+            OutputColor.xyz += PBRAmbient(_fragmentMaterial, _lightInfo) * attenuation;
+            vec3 surfaceColor = PBRDRDF(_fragmentMaterial, _fragmentSurface, _lightInfo) * attenuation;
 
             if (_pointShadows[i].Strength.x > 0.001)
             {
@@ -400,10 +483,10 @@ void main()
                 vec2 shadowAtlasSize = _pointShadows[i].Area.wz;
                 float penumbra = 0.005 * lightDistance;
 
-                vec3 s = normalize(cross(-lightDirection, vec3(0.0, 1.0, 0.0)));
-                vec3 u = cross(s, -lightDirection);
-                mat3 sampleRotation = mat3(s, u, lightDirection);
-                float shadowBias = 0.2 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.01;
+                vec3 s = normalize(cross(-_lightInfo.Direction, vec3(0.0, 1.0, 0.0)));
+                vec3 u = cross(s, -_lightInfo.Direction);
+                mat3 sampleRotation = mat3(s, u, _lightInfo.Direction);
+                float shadowBias = 0.2 * (1.0 - dot(_fragmentSurface.NormalWorld, _lightInfo.Direction)) + 0.01;
                 float occluderCount = 0.0;
             
                 float sampleAngle = shadowSampleSeed * PI;
@@ -425,31 +508,32 @@ void main()
   
                 surfaceColor *= 1 - (occluderCount / float(SHADOWSAMPLECOUNT));
             }
-
-            vec3 indirect = _fragmentMaterial.MRO.z * _pointLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuation;
-            OutputColor.xyz += surfaceColor + indirect;
+            
+            OutputColor.xyz += surfaceColor;
         }
     }   
     
     for(int i = 0; i < _spotLights.length(); i++)
     {
         vec3 lightDiff = _spotLights[i].Position.xyz - _fragmentSurface.Position.xyz;
-        vec3 lightColor = _spotLights[i].Color.xyz;
         float lightDistance = length(lightDiff);
 
         if (_spotLights[i].Range.x > lightDistance)
         {
-            vec3 lightDirection = normalize(lightDiff);
-            vec3 halfwayDirection = normalize(lightDirection + -_fragmentSurface.ViewDirection);
-            float attenuation = pow(1 - clamp(lightDistance / _spotLights[i].Range.x, 0, 1), 3.0);
-
+            _lightInfo.Color = _spotLights[i].Color.xyz;
+            _lightInfo.Direction = normalize(lightDiff);
+            _lightInfo.Ambient = _spotLights[i].Color.w;
+            
             float outerAngle = _spotLights[i].Position.w;
             float innerAngle = _spotLights[i].Direction.w;
-            float theta = dot(lightDirection, normalize(_spotLights[i].Direction.xyz));
             float epsilon = innerAngle - outerAngle;
-            float spotIntensity = clamp((theta - outerAngle) / epsilon, 0.0, 1.0);
-            vec3 specularColor = mix(lightColor, _fragmentMaterial.Albedo * lightColor, _fragmentMaterial.MRO.x);
-            vec3 surfaceColor = blinn_phong(_fragmentMaterial.Albedo, specularColor, _fragmentMaterial.MRO.y, _fragmentMaterial.MRO.z, _fragmentMaterial.Normal, halfwayDirection, lightDirection, lightColor) * spotIntensity * attenuation;
+            float theta = dot(_lightInfo.Direction, normalize(_spotLights[i].Direction.xyz));
+            float attenuation = 1 - clamp(lightDistance / _spotLights[i].Range.x, 0, 1);
+            attenuation *= attenuation * attenuation;
+            attenuation *= clamp((theta - outerAngle) / epsilon, 0.0, 1.0);
+
+            OutputColor.xyz += PBRAmbient(_fragmentMaterial, _lightInfo) * attenuation;
+            vec3 surfaceColor = PBRDRDF(_fragmentMaterial, _fragmentSurface, _lightInfo) * attenuation;
 
             if (_spotShadows[i].Strength.x > 0.001)
             {
@@ -460,7 +544,7 @@ void main()
 
                 vec4 shadowWorldPosition = _spotShadows[i].Space * _fragmentSurface.Position;
                 vec3 shadowScreenPosition = (shadowWorldPosition.xyz / shadowWorldPosition.w) * 0.5 + 0.5;
-                float shadowBias = 0.0001 * (1.0 - dot(_fragmentSurface.NormalWorld, lightDirection)) + 0.000;
+                float shadowBias = 0.0001 * (1.0 - dot(_fragmentSurface.NormalWorld, _lightInfo.Direction)) + 0.000;
                 float penumbra = 0.001 * lightDistance;
                 float occluderCount = 0.0;
             
@@ -479,9 +563,8 @@ void main()
                 }
                 surfaceColor *= 1 - (occluderCount / float(SHADOWSAMPLECOUNT));
             }
-
-            vec3 indirect = _fragmentMaterial.MRO.z * _pointLights[i].Color.w * _fragmentMaterial.Albedo * lightColor * attenuation;
-            OutputColor.xyz += surfaceColor + indirect;
+            
+            OutputColor.xyz += surfaceColor;
         }
     }
 }
