@@ -41,6 +41,7 @@ namespace Framework
                 public static ShaderSourceAsset FragmentGaussianBlur { get; }
                 public static ShaderSourceAsset FragmentAmbientOcclusionSelect { get; }
                 public static ShaderSourceAsset FragmentAmbientOcclusionMerge { get; }
+                public static ShaderSourceAsset FragmentGlobalIllumination { get; }
 
                 static Source()
                 {
@@ -61,6 +62,7 @@ namespace Framework
                     FragmentGaussianBlur = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostGaussianBlur.frag"));
                     FragmentAmbientOcclusionSelect = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostAmbientOcclusionSelect.frag"));
                     FragmentAmbientOcclusionMerge = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostAmbientOcclusionMerge.frag"));
+                    FragmentGlobalIllumination = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostGlobalIllumination.frag"));
                 }
             }
 
@@ -79,6 +81,7 @@ namespace Framework
                 public static ShaderProgramAsset PostGaussianBlur { get; }
                 public static ShaderProgramAsset PostAmbientOcclusionSelect { get; }
                 public static ShaderProgramAsset PostAmbientOcclusionMerge { get; }
+                public static ShaderProgramAsset PostGlobalIllumination { get; }
 
                 static Program()
                 {
@@ -95,6 +98,7 @@ namespace Framework
                     PostGaussianBlur = new ShaderProgramAsset("PostGaussianBlur", Source.VertexScreenQuad, Source.FragmentGaussianBlur);
                     PostAmbientOcclusionSelect = new ShaderProgramAsset("PostAmbientOcclusionSelect", Source.VertexScreenQuad, Source.FragmentAmbientOcclusionSelect);
                     PostAmbientOcclusionMerge = new ShaderProgramAsset("PostAmbientOcclusionMerge", Source.VertexScreenQuad, Source.FragmentAmbientOcclusionMerge);
+                    PostGlobalIllumination = new ShaderProgramAsset("PostGlobalIllumination", Source.VertexScreenQuad, Source.FragmentGlobalIllumination);
                 }
             }
         }

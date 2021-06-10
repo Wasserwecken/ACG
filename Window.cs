@@ -118,6 +118,7 @@ namespace Window
                 new CameraDeferredPassSystem(_scene, _sceneComponents),
                 new CameraPostAmbientOcclusionSystem(_scene, _sceneComponents),
                 new CameraForwardPassSystem(_scene, _sceneComponents),
+                new CameraPostGlobalIllumination(_scene, _sceneComponents),
                 new CameraPostBloomSystem(_scene, _sceneComponents),
                 new CameraPostTonemappingSystem(_scene, _sceneComponents),
                 new CameraPublishSystem(_scene, _sceneComponents)
@@ -147,6 +148,7 @@ namespace Window
             camera.Set(new PostTonemappingComponent() { Exposure = 1f });
             camera.Set(new PostBloomComponent() { ThresholdStart = 0.7f, ThresholdEnd = 1.0f, Intensity = 1f, Samples = 5 });
             camera.Set(new PostAmbientOcclusionComponent() { Strength = 1f, Radius = 0.5f, Bias = 0.025f });
+            camera.Set(new PostGlobalIllumination() { });
             camera.Set(new PrimitiveComponent() { IsShadowCaster = true, Material = Defaults.Material.PBR, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
 
 
@@ -166,7 +168,7 @@ namespace Window
             pointMaterial.SetUniform("Albedo", Vector4.One);
             pointMaterial.SetUniform("MREO", new Vector4(0f, 1f, 3f, 0f));
             var rand = new Random();
-            int pointLightCount = 5;
+            int pointLightCount = 0;
             for (int i = 0; i < pointLightCount; i++)
             {
                 var pointLight = _scene.CreateEntity();
@@ -193,7 +195,7 @@ namespace Window
                         reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 256, NearClipping = 0.01f, FarClipping = 30f, Skybox = Defaults.Texture.SkyboxCoast });
                         reflectionProbe.Set(new PrimitiveComponent() { IsShadowCaster = false, Material = probeMaterial, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
 
-                        if (x == 1 && y == 0 && z == 1) reflectionProbe.Set(new ReflectionProbeUpdateComponent());
+                        //if (x == 1 && y == 0 && z == 1) reflectionProbe.Set(new ReflectionProbeUpdateComponent());
                     }
                 }
             }
