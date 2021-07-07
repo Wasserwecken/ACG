@@ -1,5 +1,8 @@
 ﻿#version 430 core
 
+const float WHITE_NOISE_SCALE = 5461.5461;
+
+
 in VertexScreenQuad
 {
     vec4 Position;
@@ -7,76 +10,106 @@ in VertexScreenQuad
 }
 _vertexScreenQuad;
 
+float random(vec2 p)
+{
+    p *= WHITE_NOISE_SCALE;
+	vec3 p3  = fract(vec3(p.xyx) * .1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
 
 vec3 random_hemisphere(vec3 p, vec3 normal)
 {
     p = fract(p);
-    p *= 5461.5461;
+    p *= WHITE_NOISE_SCALE;
 	p = fract(p * vec3(.1031, .1030, .0973));
     p += dot(p, p.yxz+33.33);
     
+    // random direction
     vec3 direction = normalize(fract((p.xxy + p.yxx)*p.zyx) * 2.0 - 1.0);
-    return direction * sign(dot(direction, -normal));
+
+    // orient to hemi sphere
+    return direction * sign(dot(direction, normal));
+}
+
+vec2 DDAStep(vec3 direction, mat4 projection)
+{
+    // to SS
+    vec2 result = (projection * vec4(direction, 0.0)).xy;
+
+    // sclae to 1 on bigger axis
+    if (abs(result.x) > abs(result.y))
+        return result * (1.0 / abs(result.x));
+    else
+        return result * (1.0 / abs(result.y));
 }
 
 
-uniform sampler2D BufferMap;
-uniform sampler2D DeferredMRO;
+uniform sampler2D LightMap;
 uniform sampler2D DeferredPosition;
 uniform sampler2D DeferredNormalTexture;
 
 uniform mat4 Projection;
 uniform vec4 ViewPosition;
+uniform vec4 ViewDirection;
 
 out vec4 OutputColor;
 
 
 void main()
 {
-    vec2 texelSize = 1.0 / textureSize(DeferredPosition, 0);
-    vec3 position = texture(DeferredPosition, _vertexScreenQuad.UV0).xyz;
+    OutputColor = vec4(vec3(0.0), 1.0);
+    
+    float texelScale = 5.0 + 10.0 * random(_vertexScreenQuad.UV0);
+    vec2 texelSize = texelScale / textureSize(DeferredPosition, 0);
     vec3 normal = texture(DeferredNormalTexture, _vertexScreenQuad.UV0).xyz;
 
-    vec3 inderectColor = vec3(0.0);
-    vec2 sampleSSPosition = vec2(0.0);
-    vec2 sampleDirection = vec2(0.0);
-    vec4 worldPosition = vec4(0.0);
-    vec4 worldDirection = vec4(0.0);
+    vec3 sampleOriginWS = texture(DeferredPosition, _vertexScreenQuad.UV0).xyz;
+    vec2 sampleOriginSS = _vertexScreenQuad.UV0;
+    vec3 seed = sampleOriginWS - normal - vec3(_vertexScreenQuad.UV0, 0.0);
 
-    int samples = 1;
-    for(int i = 0; i < samples; i++)
+    int samples = 3;
+    for (int i = 0; i < samples; i++)
     {
-        vec3 seed = position + vec3(_vertexScreenQuad.UV0, 0.0) + worldDirection.xyz;
+        seed = (1.0 / seed) + 1.0; 
 
-        worldDirection = vec4(random_hemisphere(seed, normal), 0.0);
-        sampleDirection = (Projection * worldDirection).xy;
+        vec3 sampleDirectionWS = normalize(mix(random_hemisphere(seed, normal), normal, 0.3));
+        vec2 sampleDirectionSS = texelSize * DDAStep(sampleDirectionWS, Projection);
+        float sampleDot = dot(ViewDirection.xyz, sampleDirectionWS);
 
-        if (abs(sampleDirection.x) > abs(sampleDirection.y))
-            sampleDirection = vec2(sign(sampleDirection.x), sampleDirection.y / sampleDirection.x);
-        else
-            sampleDirection = vec2(sampleDirection.x / sampleDirection.y, sign(sampleDirection.y));
-            
-        sampleDirection *= texelSize;
-        sampleSSPosition = _vertexScreenQuad.UV0;
-        worldPosition = vec4(position, 1.0);
+        vec2 testPositionSS = sampleOriginSS + sampleDirectionSS;
+        vec3 hitPositon = vec3(testPositionSS, 0.0);
+        vec3 traceColor = vec3(0.0);
 
-        vec3 testPosition = worldPosition.xyz;
-        
-        while (true)
+        int steps = 0;
+        int hits = 0;
+        while(testPositionSS.x > 0 && testPositionSS.x < 1 && testPositionSS.y > 0 && testPositionSS.y < 1)
         {
-            sampleSSPosition += sampleDirection * 10.0;
+            steps++;
 
-            vec4 newPosition = texture(DeferredPosition, sampleSSPosition);
-            minDepth += testPosition * (1.0 / length(newPosition - worldPosition));
-                        
-            worldPosition = newPosition;
+            vec3 testPositionWS = texture(DeferredPosition, testPositionSS).xyz;
+            vec3 testDiff = testPositionWS - sampleOriginWS;
+            vec3 testDirectionWS = normalize(testDiff);
+            float testDot = dot(ViewDirection.xyz, testDirectionWS);
 
-            OutputColor = sampleWSPosition;
-            return;
+            if (testDot > hitPositon.z)
+            {
+                hits++;
+                hitPositon = vec3(testPositionSS, testDot);
+                
+                float attenuation = 1.0 / (1.0 + dot(testDiff, testDiff));
+                float lambert = max(0.0, dot(normal, testDirectionWS));
+                traceColor += lambert * texture(LightMap, testPositionSS).xyz;
+            }
+  
+            if (testDot > sampleDot)
+                break;
 
+            testPositionSS += sampleDirectionSS;
         }
 
+        OutputColor += vec4(traceColor / float(hits), 1.0);
     }
 
-    OutputColor = vec4(samples / inderectColor, 1.0);
+    OutputColor /= samples;
 }

@@ -42,6 +42,7 @@ namespace Framework
                 public static ShaderSourceAsset FragmentAmbientOcclusionSelect { get; }
                 public static ShaderSourceAsset FragmentAmbientOcclusionMerge { get; }
                 public static ShaderSourceAsset FragmentGlobalIllumination { get; }
+                public static ShaderSourceAsset FragmentGlobalIlluminationStorage { get; }
 
                 static Source()
                 {
@@ -63,6 +64,7 @@ namespace Framework
                     FragmentAmbientOcclusionSelect = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostAmbientOcclusionSelect.frag"));
                     FragmentAmbientOcclusionMerge = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostAmbientOcclusionMerge.frag"));
                     FragmentGlobalIllumination = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostGlobalIllumination.frag"));
+                    FragmentGlobalIlluminationStorage = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostGlobalIlluminationStorage.frag"));
                 }
             }
 
@@ -82,6 +84,7 @@ namespace Framework
                 public static ShaderProgramAsset PostAmbientOcclusionSelect { get; }
                 public static ShaderProgramAsset PostAmbientOcclusionMerge { get; }
                 public static ShaderProgramAsset PostGlobalIllumination { get; }
+                public static ShaderProgramAsset PostGlobalIlluminationStorage { get; }
 
                 static Program()
                 {
@@ -99,6 +102,7 @@ namespace Framework
                     PostAmbientOcclusionSelect = new ShaderProgramAsset("PostAmbientOcclusionSelect", Source.VertexScreenQuad, Source.FragmentAmbientOcclusionSelect);
                     PostAmbientOcclusionMerge = new ShaderProgramAsset("PostAmbientOcclusionMerge", Source.VertexScreenQuad, Source.FragmentAmbientOcclusionMerge);
                     PostGlobalIllumination = new ShaderProgramAsset("PostGlobalIllumination", Source.VertexScreenQuad, Source.FragmentGlobalIllumination);
+                    PostGlobalIlluminationStorage = new ShaderProgramAsset("PostGlobalIlluminationStorage", Source.VertexScreenQuad, Source.FragmentGlobalIlluminationStorage);
                 }
             }
         }
@@ -238,7 +242,6 @@ namespace Framework
                     new TextureRenderAsset("ShadowMap")
                     {
                         Attachment = FramebufferAttachment.DepthAttachment,
-
                         InternalFormat = PixelInternalFormat.DepthComponent,
                         Format = PixelFormat.DepthComponent,
                         PixelType = PixelType.Float
@@ -304,12 +307,6 @@ namespace Framework
                 },
                 Storages = new List<FramebufferStorageAsset>()
                 {
-                    new FramebufferStorageAsset("DeferredDepth")
-                    {
-                        Attachment = FramebufferAttachment.DepthStencilAttachment,
-                        Target = RenderbufferTarget.Renderbuffer,
-                        DataType = RenderbufferStorage.Depth24Stencil8
-                    }
                 },
                 Textures = new List<TextureRenderAsset>()
                 {
@@ -353,6 +350,14 @@ namespace Framework
                         Attachment = FramebufferAttachment.ColorAttachment5,
                         InternalFormat = PixelInternalFormat.Rgb16,
                         Format = PixelFormat.Rgb,
+                        PixelType = PixelType.Float
+                    },
+
+                    new TextureRenderAsset("DeferredDepth")
+                    {
+                        Attachment = FramebufferAttachment.DepthAttachment,
+                        InternalFormat = PixelInternalFormat.DepthComponent,
+                        Format = PixelFormat.DepthComponent,
                         PixelType = PixelType.Float
                     }
                 }

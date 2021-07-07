@@ -119,7 +119,7 @@ namespace Window
                 new CameraPostAmbientOcclusionSystem(_scene, _sceneComponents),
                 new CameraForwardPassSystem(_scene, _sceneComponents),
                 new CameraPostGlobalIllumination(_scene, _sceneComponents),
-                new CameraPostBloomSystem(_scene, _sceneComponents),
+                //new CameraPostBloomSystem(_scene, _sceneComponents),
                 new CameraPostTonemappingSystem(_scene, _sceneComponents),
                 new CameraPublishSystem(_scene, _sceneComponents)
 
@@ -142,7 +142,7 @@ namespace Window
 
 
             var camera = _scene.CreateEntity();
-            camera.Set(new TransformComponent(Vector3.UnitY * 2f));
+            camera.Set(new TransformComponent(Vector3.UnitY * 4f, -Vector3.UnitX));
             camera.Set(new CameraControllerComponent() { MoveSpeed = 2f, LookSpeed = 1f });
             camera.Set(new PerspectiveCameraComponent() { FarClipping = 100f, NearClipping = 0.01f, FieldOfView = 90f, Skybox = Defaults.Texture.SkyboxCoast });
             camera.Set(new PostTonemappingComponent() { Exposure = 1f });

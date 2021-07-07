@@ -29,6 +29,7 @@
     <None Remove="Assets\Defaults\Shader\PostBloomSelect.frag" />
     <None Remove="Assets\Defaults\Shader\PostGaussianBlur.frag" />
     <None Remove="Assets\Defaults\Shader\PostGlobalIllumination.frag" />
+    <None Remove="Assets\Defaults\Shader\PostGlobalIlluminationStorage.frag" />
     <None Remove="Assets\Defaults\Shader\PostTonemapping.frag" />
     <None Remove="Assets\Defaults\Shader\ScreenQuad.vert" />
     <None Remove="Assets\Defaults\Shader\Shadow.frag" />
