@@ -148,7 +148,7 @@ namespace Window
             camera.Set(new PostTonemappingComponent() { Exposure = 1f });
             camera.Set(new PostBloomComponent() { ThresholdStart = 0.7f, ThresholdEnd = 1.0f, Intensity = 1f, Samples = 5 });
             camera.Set(new PostAmbientOcclusionComponent() { Strength = 1f, Radius = 0.5f, Bias = 0.025f });
-            camera.Set(new PostGlobalIllumination() { });
+            camera.Set(new PostGlobalIllumination() { SampleBufferLength = 4 });
             camera.Set(new PrimitiveComponent() { IsShadowCaster = true, Material = Defaults.Material.PBR, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
 
 

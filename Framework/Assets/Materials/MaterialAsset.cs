@@ -21,6 +21,7 @@ namespace Framework.Assets.Materials
         public BlendingFactor SourceBlend { get; set; }
         public BlendingFactor DestinationBlend { get; set; }
 
+        public Dictionary<string, int> UniformInts;
         public Dictionary<string, float> UniformFloats;
         public Dictionary<string, Vector4> UniformVecs;
         public Dictionary<string, Matrix4> UniformMats;
@@ -50,12 +51,14 @@ namespace Framework.Assets.Materials
             SourceBlend = BlendingFactor.SrcAlpha;
             DestinationBlend = BlendingFactor.OneMinusSrcAlpha;
 
+            UniformInts = new Dictionary<string, int>();
             UniformFloats = new Dictionary<string, float>();
             UniformVecs = new Dictionary<string, Vector4>();
             UniformMats = new Dictionary<string, Matrix4>();
             UniformTextures = new Dictionary<string, TextureBaseAsset>();
         }
 
+        public void SetUniform(string name, int value) => SetUniform(name, value, UniformInts);
         public void SetUniform(string name, float value) => SetUniform(name, value, UniformFloats);
         public void SetUniform(string name, Vector4 value) => SetUniform(name, value, UniformVecs);
         public void SetUniform(string name, Matrix4 value) => SetUniform(name, value, UniformMats);

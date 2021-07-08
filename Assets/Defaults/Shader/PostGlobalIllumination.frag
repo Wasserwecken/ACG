@@ -10,6 +10,13 @@ in VertexScreenQuad
 }
 _vertexScreenQuad;
 
+layout (std430) buffer ShaderTimeBlock {
+    float Total;
+    float TotalSin;
+    float Frame;
+    float Fixed;
+} _time;
+
 float random(vec2 p)
 {
     p *= WHITE_NOISE_SCALE;
@@ -60,56 +67,70 @@ void main()
 {
     OutputColor = vec4(vec3(0.0), 1.0);
     
-    float texelScale = 5.0 + 10.0 * random(_vertexScreenQuad.UV0);
-    vec2 texelSize = texelScale / textureSize(DeferredPosition, 0);
+    // Preperations
+    float texelScale = 5.0 + 10.0 * random(_vertexScreenQuad.UV0); // scale the texels step to avoid banding
+    vec2 texelSize = texelScale / textureSize(DeferredPosition, 0); // scale for the DDA step, to avoid sampling every pixel
     vec3 normal = texture(DeferredNormalTexture, _vertexScreenQuad.UV0).xyz;
 
+    // Determine origin
     vec3 sampleOriginWS = texture(DeferredPosition, _vertexScreenQuad.UV0).xyz;
     vec2 sampleOriginSS = _vertexScreenQuad.UV0;
-    vec3 seed = sampleOriginWS - normal - vec3(_vertexScreenQuad.UV0, 0.0);
-
-    int samples = 3;
-    for (int i = 0; i < samples; i++)
+    vec3 seed = sampleOriginWS - normal - vec3(_vertexScreenQuad.UV0, 0.0) + vec3(_time.TotalSin * 20.0);
+    
+    // Sample along random rays
+    int rays = 3;
+    for (int i = 0; i < rays; i++)
     {
         seed = (1.0 / seed) + 1.0; 
 
-        vec3 sampleDirectionWS = normalize(mix(random_hemisphere(seed, normal), normal, 0.3));
+        // create random ray direction in WS and SS
+        vec3 sampleDirectionWS = normalize(mix(random_hemisphere(seed, normal), normal, 0.5));
         vec2 sampleDirectionSS = texelSize * DDAStep(sampleDirectionWS, Projection);
+
+        // check if something has been hit is done by dot. Therefore i can avoid to sample the depth buffer too.
         float sampleDot = dot(ViewDirection.xyz, sampleDirectionWS);
 
+        // prepare for tracing
         vec2 testPositionSS = sampleOriginSS + sampleDirectionSS;
-        vec3 hitPositon = vec3(testPositionSS, 0.0);
+        vec3 hitPositon = vec3(testPositionSS, -1.0);
         vec3 traceColor = vec3(0.0);
 
         int steps = 0;
         int hits = 0;
-        while(testPositionSS.x > 0 && testPositionSS.x < 1 && testPositionSS.y > 0 && testPositionSS.y < 1)
+
+        // check if max hits reached or screen has been left
+        while(hits < 8 && testPositionSS.x > 0 && testPositionSS.x < 1 && testPositionSS.y > 0 && testPositionSS.y < 1)
         {
             steps++;
 
+            // check where the ray is currently
             vec3 testPositionWS = texture(DeferredPosition, testPositionSS).xyz;
             vec3 testDiff = testPositionWS - sampleOriginWS;
             vec3 testDirectionWS = normalize(testDiff);
-            float testDot = dot(ViewDirection.xyz, testDirectionWS);
+            float testDot = dot(normal.xyz, testDirectionWS);
 
-            if (testDot > hitPositon.z)
+            // If the test-dot is higher than the last one, that means the new hit is nearer to the camera
+            // This point can also be used because the current test direction was not occluded to this point.
+            if (testDot > hitPositon.z || testPositionWS == vec3(0.0))
             {
                 hits++;
                 hitPositon = vec3(testPositionSS, testDot);
                 
-                float attenuation = 1.0 / (1.0 + dot(testDiff, testDiff));
+                float attenuation = testPositionWS != vec3(0.0) ? 1.0 / (1.0 + (dot(testDiff, testDiff) * 0.25)) : 1.0;
                 float lambert = max(0.0, dot(normal, testDirectionWS));
-                traceColor += lambert * texture(LightMap, testPositionSS).xyz;
+                traceColor += lambert * attenuation * texture(LightMap, testPositionSS).xyz;
             }
   
+            // If the test-dot is higher is higher than the sample-dot, that means the ray finnaly hit something.
             if (testDot > sampleDot)
                 break;
 
+            // move along the pixels
             testPositionSS += sampleDirectionSS;
         }
 
         OutputColor += vec4(traceColor / float(hits), 1.0);
     }
 
-    OutputColor /= samples;
+    OutputColor /= rays;
 }

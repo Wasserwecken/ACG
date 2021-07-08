@@ -20,6 +20,9 @@ namespace Framework.ECS.Systems.Render.Pipeline
         private readonly MaterialAsset _postSampleMaterial;
         private readonly MaterialAsset _postBlurMaterial;
 
+        private int _sampleBufferIndexX;
+        private int _sampleBufferIndexY;
+
         /// <summary>
         /// 
         /// </summary>
@@ -29,6 +32,9 @@ namespace Framework.ECS.Systems.Render.Pipeline
             _postTraceMaterial = new MaterialAsset("PostIllumination") { IsWritingDepth = false, DepthTest = DepthFunction.Always };
             _postSampleMaterial = new MaterialAsset("PostIllumination") { IsWritingDepth = false, DepthTest = DepthFunction.Always };
             _postBlurMaterial = new MaterialAsset("PostIllumination") { IsWritingDepth = false, DepthTest = DepthFunction.Always };
+
+            _sampleBufferIndexX = 0;
+            _sampleBufferIndexY = 0;
         }
 
 
@@ -44,14 +50,16 @@ namespace Framework.ECS.Systems.Render.Pipeline
                 config.TracingBuffer = CreateIlluminationBuffer();
             if (config.SampleBuffer == null)
                 config.SampleBuffer = CreateIlluminationBuffer();
-            if (config.BlurBuffer == null)
-                config.BlurBuffer = CreateIlluminationBuffer();
+            if (config.BlurBufferA == null)
+                config.BlurBufferA = CreateIlluminationBuffer();
+            if (config.BlurBufferB == null)
+                config.BlurBufferB = CreateIlluminationBuffer();
 
-            if (config.TracingBuffer.Width != camera.DeferredLightBuffer.Width / 4 || config.TracingBuffer.Height != camera.DeferredLightBuffer.Height / 4)
+            if (config.TracingBuffer.Width != camera.DeferredLightBuffer.Width / config.SampleBufferLength || config.TracingBuffer.Height != camera.DeferredLightBuffer.Height / config.SampleBufferLength)
             {
                 config.TracingBuffer.Handle = 0;
-                config.TracingBuffer.Width = camera.DeferredLightBuffer.Width / 4;
-                config.TracingBuffer.Height = camera.DeferredLightBuffer.Height / 4;
+                config.TracingBuffer.Width = camera.DeferredLightBuffer.Width / config.SampleBufferLength;
+                config.TracingBuffer.Height = camera.DeferredLightBuffer.Height / config.SampleBufferLength;
             }
 
             if (config.SampleBuffer.Width != camera.DeferredLightBuffer.Width || config.SampleBuffer.Height != camera.DeferredLightBuffer.Height)
@@ -61,18 +69,25 @@ namespace Framework.ECS.Systems.Render.Pipeline
                 config.SampleBuffer.Height = camera.DeferredLightBuffer.Height;
             }
 
-            if (config.BlurBuffer.Width != camera.DeferredLightBuffer.Width || config.BlurBuffer.Height != camera.DeferredLightBuffer.Height)
+            if (config.BlurBufferA.Width != camera.DeferredLightBuffer.Width || config.BlurBufferA.Height != camera.DeferredLightBuffer.Height)
             {
-                config.BlurBuffer.Handle = 0;
-                config.BlurBuffer.Width = camera.DeferredLightBuffer.Width;
-                config.BlurBuffer.Height = camera.DeferredLightBuffer.Height;
+                config.BlurBufferA.Handle = 0;
+                config.BlurBufferA.Width = camera.DeferredLightBuffer.Width;
+                config.BlurBufferA.Height = camera.DeferredLightBuffer.Height;
+            }
+
+            if (config.BlurBufferB.Width != camera.DeferredLightBuffer.Width || config.BlurBufferB.Height != camera.DeferredLightBuffer.Height)
+            {
+                config.BlurBufferB.Handle = 0;
+                config.BlurBufferB.Width = camera.DeferredLightBuffer.Width;
+                config.BlurBufferB.Height = camera.DeferredLightBuffer.Height;
             }
 
             // TRACE GI
             _postTraceMaterial.SetUniform("LightMap", camera.DeferredLightBuffer.Textures[0]);
             _postTraceMaterial.SetUniform("ViewPosition", camera.ShaderViewSpace.ViewPosition);
             _postTraceMaterial.SetUniform("ViewDirection", camera.ShaderViewSpace.ViewDirection);
-            _postTraceMaterial.SetUniform("Projection", camera.ShaderViewSpace.WorldToProjection);
+            _postTraceMaterial.SetUniform("Projection", camera.ShaderViewSpace.WorldToViewRotation);
             foreach (var texture in camera.DeferredGBuffer.Textures)
                 _postTraceMaterial.SetUniform(texture.Name, texture);
 
@@ -88,36 +103,57 @@ namespace Framework.ECS.Systems.Render.Pipeline
 
 
             // SAVE SAMPLES
+            _sampleBufferIndexX++;
+            if (_sampleBufferIndexX == config.SampleBufferLength)
+            {
+                _sampleBufferIndexX = 0;
+                _sampleBufferIndexY++;
+            }
+            if (_sampleBufferIndexY == config.SampleBufferLength)
+            {
+                _sampleBufferIndexY = 0;
+            }
+
             _postSampleMaterial.SetUniform("TraceMap", config.TracingBuffer.Textures[0]);
+            _postSampleMaterial.SetUniform("BufferLength", 4);
+            _postSampleMaterial.SetUniform("IndexX", _sampleBufferIndexX);
+            _postSampleMaterial.SetUniform("IndexY", _sampleBufferIndexY);
 
             Renderer.Use(config.SampleBuffer);
             Renderer.Use(Defaults.Shader.Program.PostGlobalIlluminationStorage);
             Renderer.Use(_postSampleMaterial, Defaults.Shader.Program.PostGlobalIlluminationStorage);
 
             GL.Viewport(0, 0, config.SampleBuffer.Width, config.SampleBuffer.Height);
-            GL.ClearColor(config.SampleBuffer.ClearColor);
-            GL.Clear(config.SampleBuffer.ClearMask);
 
             Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
 
 
             // BLUR SAMPLES
             _postBlurMaterial.SetUniform("BufferMap", config.SampleBuffer.Textures[0]);
-            _postBlurMaterial.SetUniform("Horizontal", 0);
+            _postBlurMaterial.SetUniform("Horizontal", 0f);
 
-            Renderer.Use(config.BlurBuffer);
+            Renderer.Use(config.BlurBufferA);
             Renderer.Use(Defaults.Shader.Program.PostGaussianBlur);
             Renderer.Use(_postBlurMaterial, Defaults.Shader.Program.PostGaussianBlur);
 
-            GL.Viewport(0, 0, config.BlurBuffer.Width, config.BlurBuffer.Height);
-            GL.ClearColor(config.BlurBuffer.ClearColor);
-            GL.Clear(config.BlurBuffer.ClearMask);
+            GL.Viewport(0, 0, config.BlurBufferA.Width, config.BlurBufferA.Height);
+
+            Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
+
+            _postBlurMaterial.SetUniform("BufferMap", config.BlurBufferA.Textures[0]);
+            _postBlurMaterial.SetUniform("Horizontal", 1f);
+
+            Renderer.Use(config.BlurBufferB);
+            Renderer.Use(Defaults.Shader.Program.PostGaussianBlur);
+            Renderer.Use(_postBlurMaterial, Defaults.Shader.Program.PostGaussianBlur);
+
+            GL.Viewport(0, 0, config.BlurBufferB.Width, config.BlurBufferB.Height);
 
             Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
 
 
             // COPY RESULT
-            Renderer.Blit(config.BlurBuffer, camera.DeferredLightBuffer, ClearBufferMask.ColorBufferBit);
+            Renderer.Blit(config.BlurBufferB, camera.DeferredLightBuffer, ClearBufferMask.ColorBufferBit);
         }
 
         /// <summary>

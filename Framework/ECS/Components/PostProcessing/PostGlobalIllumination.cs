@@ -7,8 +7,10 @@ namespace Framework.ECS.Components.PostProcessing
 {
     public struct PostGlobalIllumination
     {
+        public int SampleBufferLength;
         public FramebufferAsset TracingBuffer;
         public FramebufferAsset SampleBuffer;
-        public FramebufferAsset BlurBuffer;
+        public FramebufferAsset BlurBufferA;
+        public FramebufferAsset BlurBufferB;
     }
 }

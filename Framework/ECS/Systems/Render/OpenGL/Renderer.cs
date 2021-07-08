@@ -85,6 +85,10 @@ namespace Framework.ECS.Systems.Render.OpenGL
 
 
             // MATERIAL UNIFORMS
+            foreach (var uniform in material.UniformInts)
+                if (shader.IdentifierToLayout.TryGetValue(uniform.Key, out var layout))
+                    GL.Uniform1(layout, uniform.Value);
+
             foreach (var uniform in material.UniformFloats)
                 if (shader.IdentifierToLayout.TryGetValue(uniform.Key, out var layout))
                     GL.Uniform1(layout, uniform.Value);
