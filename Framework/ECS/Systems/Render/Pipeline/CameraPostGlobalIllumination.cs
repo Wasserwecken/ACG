@@ -86,7 +86,6 @@ namespace Framework.ECS.Systems.Render.Pipeline
             // TRACE GI
             _postTraceMaterial.SetUniform("LightMap", camera.DeferredLightBuffer.Textures[0]);
             _postTraceMaterial.SetUniform("ViewPosition", camera.ShaderViewSpace.ViewPosition);
-            _postTraceMaterial.SetUniform("ViewDirection", camera.ShaderViewSpace.ViewDirection);
             _postTraceMaterial.SetUniform("Projection", camera.ShaderViewSpace.WorldToViewRotation);
             foreach (var texture in camera.DeferredGBuffer.Textures)
                 _postTraceMaterial.SetUniform(texture.Name, texture);
@@ -153,7 +152,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
 
 
             // COPY RESULT
-            Renderer.Blit(config.BlurBufferB, camera.DeferredLightBuffer, ClearBufferMask.ColorBufferBit);
+            Renderer.Blit(config.TracingBuffer, camera.DeferredLightBuffer, ClearBufferMask.ColorBufferBit);
         }
 
         /// <summary>

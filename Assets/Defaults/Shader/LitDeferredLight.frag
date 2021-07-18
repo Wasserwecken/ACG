@@ -341,7 +341,8 @@ vec3 PBRDRDF(FragmentMaterial material, FragmentSurface surface, LightInfo light
 
 vec3 PBRAmbient(FragmentMaterial material, LightInfo light)
 {
-    vec3 result = mix(vec3(1.0), material.Albedo, material.MRO.x);
+    //return vec3(0.0);
+    vec3 result = material.Albedo;
     result *= material.MRO.y;
     result *= light.Color;
     result *= light.Ambient;
