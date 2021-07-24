@@ -117,7 +117,7 @@ namespace Window
                 new CameraPrepareSystem(_scene, _sceneComponents),
                 new CameraDeferredPassSystem(_scene, _sceneComponents),
                 new CameraPostAmbientOcclusionSystem(_scene, _sceneComponents),
-                //new CameraForwardPassSystem(_scene, _sceneComponents),
+                new CameraForwardPassSystem(_scene, _sceneComponents),
                 new CameraPostGlobalIllumination(_scene, _sceneComponents),
                 //new CameraPostBloomSystem(_scene, _sceneComponents),
                 new CameraPostTonemappingSystem(_scene, _sceneComponents),
@@ -148,7 +148,7 @@ namespace Window
             camera.Set(new PostTonemappingComponent() { Exposure = 1f });
             camera.Set(new PostBloomComponent() { ThresholdStart = 0.7f, ThresholdEnd = 1.0f, Intensity = 1f, Samples = 5 });
             camera.Set(new PostAmbientOcclusionComponent() { Strength = 1f, Radius = 0.5f, Bias = 0.025f });
-            camera.Set(new PostGlobalIllumination() { SampleBufferLength = 1 });
+            camera.Set(new PostGlobalIllumination() { TracingFraction = 2, SampleBufferLength = 2 });
             camera.Set(new PrimitiveComponent() { IsShadowCaster = true, Material = Defaults.Material.PBR, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
 
 
@@ -175,7 +175,7 @@ namespace Window
                 var position = new Vector3((float)rand.NextDouble() * 2f - 1f, (float)rand.NextDouble() * 0.8f, (float)rand.NextDouble() * 0.25f - 0.125f);
                 //var position = new Vector3(i - 1, 0.3f, 0f);
                 pointLight.Set(new TransformComponent(position * 8.0f, Vector3.UnitZ, new Vector3(0.1f)));
-                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 3f, AmbientFactor = 0.002f, Range = 8f });
+                pointLight.Set(new PointLightComponent() { Color = new Vector3(1f, 1f, 0.6f) * 0f, AmbientFactor = 0.002f, Range = 8f });
                 pointLight.Set(new PointShadowComponent() { Resolution = 1024, Strength = 1f, NearClipping = 0.01f });
                 pointLight.Set(new PrimitiveComponent() { IsShadowCaster = false, Material = pointMaterial, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
             }
@@ -193,7 +193,7 @@ namespace Window
                         var reflectionProbe = _scene.CreateEntity();
                         reflectionProbe.Set(new TransformComponent(position));
                         reflectionProbe.Set(new ReflectionProbeComponent() { HasChanged = true, Resolution = 256, NearClipping = 0.01f, FarClipping = 30f, Skybox = Defaults.Texture.SkyboxCoast });
-                        //reflectionProbe.Set(new PrimitiveComponent() { IsShadowCaster = false, Material = probeMaterial, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
+                        reflectionProbe.Set(new PrimitiveComponent() { IsShadowCaster = false, Material = probeMaterial, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
 
                         //if (x == 1 && y == 0 && z == 1) reflectionProbe.Set(new ReflectionProbeUpdateComponent());
                     }
@@ -204,7 +204,7 @@ namespace Window
 
             var emissiveMaterial = new MaterialAsset("Emission");
             emissiveMaterial.SetUniform("Albedo", Vector4.One);
-            emissiveMaterial.SetUniform("MREO", new Vector4(0f, 1f, 10f, 0f));
+            emissiveMaterial.SetUniform("MREO", new Vector4(0f, 1f, 100f, 0f));
 
             var emissive = _scene.CreateEntity();
             emissive.Set(new TransformComponent(new Vector3(-8.0f, 4f, -3f), new Vector3(1f, 1f, 1f)));

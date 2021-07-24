@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Defaults\Shader\Foo.frag" />
     <None Remove="Assets\Defaults\Shader\FrameBuffer.frag" />
     <None Remove="Assets\Defaults\Shader\LitDeferredBuffer.frag" />
     <None Remove="Assets\Defaults\Shader\LitDeferredLight.frag" />

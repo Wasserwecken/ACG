@@ -55,11 +55,11 @@ namespace Framework.ECS.Systems.Render.Pipeline
             if (config.BlurBufferB == null)
                 config.BlurBufferB = CreateIlluminationBuffer();
 
-            if (config.TracingBuffer.Width != camera.DeferredLightBuffer.Width / config.SampleBufferLength || config.TracingBuffer.Height != camera.DeferredLightBuffer.Height / config.SampleBufferLength)
+            if (config.TracingBuffer.Width != camera.DeferredLightBuffer.Width / config.TracingFraction || config.TracingBuffer.Height != camera.DeferredLightBuffer.Height / config.TracingFraction)
             {
                 config.TracingBuffer.Handle = 0;
-                config.TracingBuffer.Width = camera.DeferredLightBuffer.Width / config.SampleBufferLength;
-                config.TracingBuffer.Height = camera.DeferredLightBuffer.Height / config.SampleBufferLength;
+                config.TracingBuffer.Width = camera.DeferredLightBuffer.Width / config.TracingFraction;
+                config.TracingBuffer.Height = camera.DeferredLightBuffer.Height / config.TracingFraction;
             }
 
             if (config.SampleBuffer.Width != camera.DeferredLightBuffer.Width || config.SampleBuffer.Height != camera.DeferredLightBuffer.Height)
@@ -86,7 +86,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
             // TRACE GI
             _postTraceMaterial.SetUniform("LightMap", camera.DeferredLightBuffer.Textures[0]);
             _postTraceMaterial.SetUniform("ViewPosition", camera.ShaderViewSpace.ViewPosition);
-            _postTraceMaterial.SetUniform("Projection", camera.ShaderViewSpace.WorldToViewRotation);
+            _postTraceMaterial.SetUniform("Projection", camera.ShaderViewSpace.WorldToProjection);
             foreach (var texture in camera.DeferredGBuffer.Textures)
                 _postTraceMaterial.SetUniform(texture.Name, texture);
 
@@ -114,7 +114,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
             }
 
             _postSampleMaterial.SetUniform("TraceMap", config.TracingBuffer.Textures[0]);
-            _postSampleMaterial.SetUniform("BufferLength", 4);
+            _postSampleMaterial.SetUniform("BufferLength", config.SampleBufferLength);
             _postSampleMaterial.SetUniform("IndexX", _sampleBufferIndexX);
             _postSampleMaterial.SetUniform("IndexY", _sampleBufferIndexY);
 
@@ -152,7 +152,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
 
 
             // COPY RESULT
-            Renderer.Blit(config.TracingBuffer, camera.DeferredLightBuffer, ClearBufferMask.ColorBufferBit);
+            Renderer.Blit(config.BlurBufferB, camera.DeferredLightBuffer, ClearBufferMask.ColorBufferBit);
         }
 
         /// <summary>
