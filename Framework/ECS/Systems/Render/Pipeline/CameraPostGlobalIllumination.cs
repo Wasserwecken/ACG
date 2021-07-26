@@ -87,6 +87,8 @@ namespace Framework.ECS.Systems.Render.Pipeline
             _postTraceMaterial.SetUniform("LightMap", camera.DeferredLightBuffer.Textures[0]);
             _postTraceMaterial.SetUniform("ViewPosition", camera.ShaderViewSpace.ViewPosition);
             _postTraceMaterial.SetUniform("Projection", camera.ShaderViewSpace.WorldToProjection);
+            _postTraceMaterial.SetUniform("ProjectionInverse", camera.ShaderViewSpace.Projection.Inverted());
+            _postTraceMaterial.SetUniform("ViewInverse", camera.ShaderViewSpace.WorldToView.Inverted());
             foreach (var texture in camera.DeferredGBuffer.Textures)
                 _postTraceMaterial.SetUniform(texture.Name, texture);
 
@@ -152,7 +154,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
 
 
             // COPY RESULT
-            Renderer.Blit(config.BlurBufferB, camera.DeferredLightBuffer, ClearBufferMask.ColorBufferBit);
+            Renderer.Blit(config.SampleBuffer, camera.DeferredLightBuffer, ClearBufferMask.ColorBufferBit);
         }
 
         /// <summary>

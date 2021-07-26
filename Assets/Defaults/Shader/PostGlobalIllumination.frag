@@ -1,4 +1,10 @@
-﻿#version 430 core
+﻿// random algorithms sources
+// https://github.com/Wasserwecken/glslLib/blob/master/lib/random.glsl
+// https://www.shadertoy.com/view/4djSRW
+
+
+
+#version 430 core
 const float WHITE_NOISE_SCALE = 5461.5461;
 
 in VertexScreenQuad
@@ -37,14 +43,14 @@ vec3 random_hemisphere(vec3 p, vec3 normal)
     return random(p) * sign(dot(p, normal));
 }
 
-vec2 DDADirection(mat4 projectionToView, vec2 uv, vec3 originWS, vec3 directionWS)
+vec2 DDADirection(mat4 projectionToView, vec2 originSS, vec3 originWS, vec3 directionWS)
 {
     // to view space
     vec4 projectionSpace = projectionToView * vec4(originWS + (directionWS * 0.1), 1.0);
     projectionSpace = (projectionSpace / projectionSpace.w) * 0.5 + 0.5;
 
     // SS direction
-    vec2 pixelDirection = projectionSpace.xy - uv;
+    vec2 pixelDirection = projectionSpace.xy - originSS;
 
     // normalize to 1.0 on the dominant axis
     if (abs(pixelDirection.x) > abs(pixelDirection.y))
@@ -56,11 +62,15 @@ vec2 DDADirection(mat4 projectionToView, vec2 uv, vec3 originWS, vec3 directionW
 
 uniform sampler2D LightMap;
 uniform sampler2D DeferredPosition;
-uniform sampler2D DeferredMRO;
-uniform sampler2D DeferredNormalTexture;
+uniform sampler2D DeferredDepth;
+uniform sampler2D DeferredNormalSurface;
 
 uniform mat4 Projection;
 uniform vec4 ViewPosition;
+uniform float RayCount = 8.0;
+uniform float MaxMarchingSteps = 32.0;
+uniform float DDAStepsBase = 5.0;
+uniform float DDAStepsRandom = 5.0;
 
 out vec4 OutputColor;
 
@@ -68,67 +78,80 @@ out vec4 OutputColor;
 void main()
 {
     OutputColor = vec4(vec3(0.0), 1.0);
-    
-    // General infos
-    float margeScale = 5.0 + 5.0 * random(_vertexScreenQuad.UV0);
-    vec2 texelSize = margeScale / textureSize(DeferredPosition, 0);
-    vec3 surfaceNormalWS = normalize(texture(DeferredNormalTexture, _vertexScreenQuad.UV0).xyz);
-    vec4 surfaceMREO = texture(DeferredMRO, _vertexScreenQuad.UV0);
 
-    vec3 sampleOriginWS = texture(DeferredPosition, _vertexScreenQuad.UV0).xyz;
-    vec2 sampleOriginSS = _vertexScreenQuad.UV0;
-    vec3 viewDirectionWS = normalize(ViewPosition.xyz - sampleOriginWS);
-    vec3 reflectionDirectionWS = reflect(-viewDirectionWS, surfaceNormalWS);
-    vec3 sampleRaySeed = sampleOriginWS - vec3(_vertexScreenQuad.UV0, 0.0);// + vec3(fract(_time.Total));
+    // ray origin information
+    vec3 originNormalWS = normalize(texture(DeferredNormalSurface, _vertexScreenQuad.UV0).xyz);
+    vec3 originPositionWS = texture(DeferredPosition, _vertexScreenQuad.UV0).xyz;
+    vec2 originPositionSS = _vertexScreenQuad.UV0;
+    vec3 viewDirectionWS = normalize(ViewPosition.xyz - originPositionWS);
 
+    // general information
+    vec2 textureDimensions = textureSize(DeferredPosition, 0);
+    vec2 ddaStepScale = (DDAStepsBase + DDAStepsRandom * random(_vertexScreenQuad.UV0)) / textureDimensions;
+    vec3 sampleRaySeed = originPositionWS + vec3(originPositionSS, 0.0) + vec3(fract(_time.Total));
 
-    // Sample along random rays
-    float rays = 200;
-    float hits = 0;
-    for (int i = 0; i < rays; i++)
+    // Loop through rays
+    float hitCount = 0;
+    for (int i = 0; i < RayCount; i++)
     {
         sampleRaySeed = random(sampleRaySeed);
     
-        // Gather direction infos
-        vec3 sampleDirectionWS = normalize(mix(reflectionDirectionWS, random_hemisphere(sampleRaySeed, surfaceNormalWS), surfaceMREO.y));
-        vec2 sampleDirectionSS = texelSize * DDADirection(Projection, _vertexScreenQuad.UV0, sampleOriginWS, sampleDirectionWS);
-        float sampleDot = dot(viewDirectionWS, sampleDirectionWS);
+        // Create ray information
+        vec3 sampleDirectionWS = random_hemisphere(sampleRaySeed, originNormalWS);
+        vec2 sampleDirectionSS = ddaStepScale * DDADirection(Projection, originPositionSS, originPositionWS, sampleDirectionWS);
+        vec2 testPositionSS = originPositionSS + sampleDirectionSS;
+        float sampleTargetDot = dot(viewDirectionWS, sampleDirectionWS);
 
-        // Move along the ray unitl the end of the screen has been reached
-        float hitDot = -1.0;
-        float steps = 0.0;
-        vec2 testPositionSS = sampleOriginSS + 3.0 * sampleDirectionSS;
-
-        while(steps < 200.0 && testPositionSS.x > 0 && testPositionSS.x < 1 && testPositionSS.y > 0 && testPositionSS.y < 1)
+        // Ray marching loop
+        float closestHitDot = -1.0;
+        float stepCount = 0.0;
+        
+        while(stepCount < MaxMarchingSteps && testPositionSS.x > 0 && testPositionSS.x < 1 && testPositionSS.y > 0 && testPositionSS.y < 1)
         {
-            steps++;
+            stepCount++;
 
+            // Gather information about the test / ray location
             vec3 testPositionWS = texture(DeferredPosition, testPositionSS).xyz;
-            vec3 testDiff = testPositionWS - sampleOriginWS;
-            vec3 testDirectionWS = normalize(testDiff);
+            vec3 testDifference = testPositionWS - originPositionWS;
+            vec3 testDirectionWS = normalize(testDifference);
             float testDot = dot(viewDirectionWS, testDirectionWS);
 
-            // if the new dot is higher, a hit has been found
-            if (testDot > sampleDot)
+            // If the new dot is higher, than the closest one, the point is not occluded.
+            if (testDot > closestHitDot)
             {
-                vec3 hitNormal = texture(DeferredNormalTexture, testPositionSS).xyz;
-                float lambert = dot(surfaceNormalWS, testDirectionWS);
-                float attenuation = 1.0 / (1.0 + (dot(testDiff, testDiff) * dot(testDiff, testDiff)));
+                closestHitDot = testDot;
 
-                if (lambert > 0 && attenuation > 0.01 && dot(hitNormal, testDirectionWS) < 0)
+                // Check if the hit has viable light information.
+                // If the hit is "behind" the origin, it will not contribute.
+                float lambert = dot(originNormalWS, testDirectionWS);
+                if (lambert > 0)
                 {
-                    hits++;
-                    OutputColor += lambert * attenuation * vec4(texture(LightMap, testPositionSS).xyz, 1.0);
+                    // If the hit is "facing away" from the origin, it will not contribute.
+                    vec3 hitNormal = -testDirectionWS;// texture(DeferredNormalSurface, testPositionSS).xyz;
+                    if (dot(hitNormal, testDirectionWS) < 0)
+                    {
+                        hitCount++;
+                        
+                        float distanceSquared = dot(testDifference, testDifference);
+                        float attenuation = 1.0 / (1.0 + (distanceSquared * distanceSquared));
+                        vec3 light = vec3(1.0); // vec4(texture(LightMap, testPositionSS).xyz, 1.0).xyz;
+                        
+                        OutputColor.xyz += lambert * attenuation * light;
+                    }
                 }
-
-                break;
             }
+
+            // if the testDot is grater than the target dot, the ray has now hit something in the scene.
+            if (testDot > sampleTargetDot)
+                break;
 
             // move to the next pixel
             testPositionSS += sampleDirectionSS;
         }
     }
 
-    OutputColor /= max(0.0001, hits);
+    // average out the results of the gathered light information. (monte carlo)
+    OutputColor /= max(0.0001, hitCount);
+
     OutputColor *= 5.0; // multiplication only to see the results better
 }
