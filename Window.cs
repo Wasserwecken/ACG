@@ -118,8 +118,10 @@ namespace Window
                 new CameraDeferredPassSystem(_scene, _sceneComponents),
                 new CameraPostAmbientOcclusionSystem(_scene, _sceneComponents),
                 //new CameraForwardPassSystem(_scene, _sceneComponents),
-                new CameraPostGlobalIllumination(_scene, _sceneComponents),
+                //new CameraPostGlobalIllumination(_scene, _sceneComponents),
+
                 //new CameraPostBloomSystem(_scene, _sceneComponents),
+                new PostVolumetricLightSystem(_scene, _sceneComponents),
                 new CameraPostTonemappingSystem(_scene, _sceneComponents),
                 new CameraPublishSystem(_scene, _sceneComponents)
 
@@ -149,12 +151,13 @@ namespace Window
             camera.Set(new PostBloomComponent() { ThresholdStart = 0.7f, ThresholdEnd = 1.0f, Intensity = 1f, Samples = 5 });
             camera.Set(new PostAmbientOcclusionComponent() { Strength = 1f, Radius = 0.5f, Bias = 0.025f });
             camera.Set(new PostGlobalIllumination() { TracingFraction = 1, SampleBufferLength = 1 });
+            camera.Set(new PostVolumetricLightComponent() { });
             camera.Set(new PrimitiveComponent() { IsShadowCaster = true, Material = Defaults.Material.PBR, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
 
 
             var sunEntity = _scene.CreateEntity();
             sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1f, Vector3.UnitY)));
-            sunEntity.Set(new DirectionalLightComponent() { Color = Vector3.One * 5f, AmbientFactor = 0.003f });
+            sunEntity.Set(new DirectionalLightComponent() { Color = new Vector3(1.0f, 1.0f, 0.9f) * 5f, AmbientFactor = 0.003f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
             //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
 

@@ -43,6 +43,7 @@ namespace Framework
                 public static ShaderSourceAsset FragmentAmbientOcclusionMerge { get; }
                 public static ShaderSourceAsset FragmentGlobalIllumination { get; }
                 public static ShaderSourceAsset FragmentGlobalIlluminationStorage { get; }
+                public static ShaderSourceAsset FragmentVolumetricLight { get; }
 
                 static Source()
                 {
@@ -65,6 +66,7 @@ namespace Framework
                     FragmentAmbientOcclusionMerge = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostAmbientOcclusionMerge.frag"));
                     FragmentGlobalIllumination = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostGlobalIllumination.frag"));
                     FragmentGlobalIlluminationStorage = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostGlobalIlluminationStorage.frag"));
+                    FragmentVolumetricLight = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostVolumetricSample.frag"));
                 }
             }
 
@@ -85,6 +87,7 @@ namespace Framework
                 public static ShaderProgramAsset PostAmbientOcclusionMerge { get; }
                 public static ShaderProgramAsset PostGlobalIllumination { get; }
                 public static ShaderProgramAsset PostGlobalIlluminationStorage { get; }
+                public static ShaderProgramAsset PostVolumetricSample { get; }
 
                 static Program()
                 {
@@ -103,6 +106,7 @@ namespace Framework
                     PostAmbientOcclusionMerge = new ShaderProgramAsset("PostAmbientOcclusionMerge", Source.VertexScreenQuad, Source.FragmentAmbientOcclusionMerge);
                     PostGlobalIllumination = new ShaderProgramAsset("PostGlobalIllumination", Source.VertexScreenQuad, Source.FragmentGlobalIllumination);
                     PostGlobalIlluminationStorage = new ShaderProgramAsset("PostGlobalIlluminationStorage", Source.VertexScreenQuad, Source.FragmentGlobalIlluminationStorage);
+                    PostVolumetricSample = new ShaderProgramAsset("PostVolumetricSample", Source.VertexScreenQuad, Source.FragmentVolumetricLight);
                 }
             }
         }
