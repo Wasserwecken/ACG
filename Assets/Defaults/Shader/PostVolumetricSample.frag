@@ -89,48 +89,27 @@ layout (std430) buffer ShaderSpotShadowBlock {
 };
 
 
-float random(vec2 p)
-{
-    p *= WHITE_NOISE_SCALE;
-	vec3 p3  = fract(vec3(p.xyx) * .1031);
-    p3 += dot(p3, p3.yzx + 33.33);
-    return fract((p3.x + p3.y) * p3.z);
-}
 
-vec3 random(vec3 p)
-{
-    p = fract(p);
-    p *= WHITE_NOISE_SCALE;
-	p = fract(p * vec3(.1031, .1030, .0973));
-    p += dot(p, p.yxz+33.33);
-    return normalize(fract((p.xxy + p.yxx)*p.zyx) - 0.5);
-}
-
-vec3 random_hemisphere(vec3 p, vec3 normal)
-{
-    return random(p) * sign(dot(p, normal));
-}
 
 vec4 ToScreenSpace(mat4 projectionToView, vec3 postionWS)
 {
-    // projection
-    vec4 projection = projectionToView * vec4(postionWS, 1.0);
+    // to projection space
+    vec4 screenSpace = projectionToView * vec4(postionWS, 1.0);
     
-    // to standard space
-    return (projection / projection.w) * 0.5 + 0.5;
+    // to NDC and SS
+    return (screenSpace / screenSpace.w) * 0.5 + 0.5;
 }
 
-void DDA(vec2 startSS, vec2 endSS, out vec2 ddaDirection, out float ddaDistance)
+vec2 DDAStep(vec2 directionSS, vec2 resolution)
 {
-    // direction
-    ddaDirection = endSS - startSS;
-    ddaDistance = length(ddaDirection);
-    
-    // normalize to 1.0 on the dominant axis
-    if (abs(ddaDirection.x) > abs(ddaDirection.y))
-        ddaDirection *= (1.0 / abs(ddaDirection.x));
+    // normalize to the dominant axis to hit a diffrent pixel each step
+    if (abs(directionSS.x) > abs(directionSS.y))
+        directionSS *= (1.0 / abs(directionSS.x));
     else
-        ddaDirection *= (1.0 / abs(ddaDirection.y));
+        directionSS *= (1.0 / abs(directionSS.y));
+
+    // scale step to match the pixel size
+    return directionSS / resolution;
 }
 
 
@@ -150,117 +129,46 @@ void main()
     OutputColor = vec4(vec3(0.0), 1.0);
 
     // general information
-    vec2 shadowDimensions = textureSize(ShadowMap, 0);
+    vec3 viewPositionWS = ViewPosition.xyz;
     vec3 vertexPositionWS = texture(DeferredPosition, _vertexScreenQuad.UV0).xyz;
     vec3 viewDirectionWS = normalize(ViewPosition.xyz - vertexPositionWS);
     float marchDistance = distance(vertexPositionWS, ViewPosition.xyz);
+    vec2 shadowDimensions = textureSize(ShadowMap, 0);
 
     for(int i = 0; i < _directionalLights.length(); i++)
     {
-        // directional information
+        // light & shadow information
         vec2 shadowAtlasStart = _directionalShadows[i].Area.xy;
         vec2 shadowAtlasSize = _directionalShadows[i].Area.zw;
-        vec4 viewPositionSS = ToScreenSpace(_directionalShadows[i].Space, ViewPosition.xyz);
+        vec4 viewPositionSS = ToScreenSpace(_directionalShadows[i].Space, viewPositionWS);
         vec4 vertexPositionSS = ToScreenSpace(_directionalShadows[i].Space, vertexPositionWS);
 
-        // shadow depth
-        float vertexDepth = texture(ShadowMap, shadowAtlasStart + vertexPositionSS.xy * shadowAtlasSize).r;
-        float viewDepth = texture(ShadowMap, shadowAtlasStart + viewPositionSS.xy * shadowAtlasSize).r;
-
         // DDA information
-        vec2 ddaDirection;
-        float ddaDistance;
-        DDA(viewPositionSS.xy, vertexPositionSS.xy, ddaDirection, ddaDistance);
-        vec2 ddaStep = ddaDirection / (shadowDimensions * shadowAtlasSize);
+        vec2 ddaDirection = vertexPositionSS.xy - viewPositionSS.xy;
+        vec2 ddaStep = DDAStep(ddaDirection, shadowDimensions * shadowAtlasSize) * 2;
+        float ddaDistance = length(ddaDirection);
         float ddaStepDistance = length(ddaStep);
 
-        // ray marching loop
-        float testDistance = ddaStepDistance;
+        // marching loop
         vec2 testPositionSS = viewPositionSS.xy + ddaStep;
+        float testDistance = ddaStepDistance;
+        
         while(testDistance < ddaDistance)
         {
-            float sampleDepth = texture(ShadowMap, shadowAtlasStart + testPositionSS * shadowAtlasSize).r;
-            vec3 samplePositionWS = mix(ViewPosition.xyz, vertexPositionWS, ddaDistance / testDistance);
+            // sample information
+            vec3 samplePositionWS = mix(viewPositionWS, vertexPositionWS, testDistance / ddaDistance);
             vec4 samplePositionSS = ToScreenSpace(_directionalShadows[i].Space, samplePositionWS);
-            float isExposed = (samplePositionSS.z > sampleDepth) ? 0.0 : 1.0;
             
-            OutputColor.r += ddaStepDistance * isExposed;
+            // depth test
+            float sampleShadowDepth = texture(ShadowMap, shadowAtlasStart + testPositionSS * shadowAtlasSize).r;
+            float isExposed = (samplePositionSS.z < sampleShadowDepth) ? 1.0 : 0.0;
+            
+            OutputColor.r += isExposed * ddaStepDistance * 2;
 
-            testDistance += ddaStepDistance;
             testPositionSS += ddaStep;
+            testDistance += ddaStepDistance;
         }
 
         OutputColor += vec4(0.0);
     }
-
-//
-//    // general information
-//    vec2 textureDimensions = textureSize(DeferredPosition, 0);
-//    vec2 ddaStepScale = (DDAStepsBase + DDAStepsRandom * random(_vertexScreenQuad.UV0)) / textureDimensions;
-//    vec3 sampleRaySeed = originPositionWS + vec3(originPositionSS, 0.0) + vec3(fract(_time.Total));
-//
-//    // Loop through rays
-//    float hitCount = 0;
-//    for (int i = 0; i < RayCount; i++)
-//    {
-//        sampleRaySeed = random(sampleRaySeed);
-//    
-//        // Create ray information
-//        vec3 sampleDirectionWS = random_hemisphere(sampleRaySeed, originNormalWS);
-//        vec2 sampleDirectionSS = ddaStepScale * DDADirection(Projection, originPositionSS, originPositionWS, sampleDirectionWS);
-//        vec2 testPositionSS = originPositionSS + sampleDirectionSS;
-//        float sampleTargetDot = dot(viewDirectionWS, sampleDirectionWS);
-//
-//        // Ray marching loop
-//        float closestHitDot = -1.0;
-//        float stepCount = 0.0;
-//        
-//        while(stepCount < MaxMarchingSteps && testPositionSS.x > 0 && testPositionSS.x < 1 && testPositionSS.y > 0 && testPositionSS.y < 1)
-//        {
-//            stepCount++;
-//
-//            // Gather information about the test / ray location
-//            vec3 testPositionWS = texture(DeferredPosition, testPositionSS).xyz;
-//            vec3 testDifference = testPositionWS - originPositionWS;
-//            vec3 testDirectionWS = normalize(testDifference);
-//            float testDot = dot(viewDirectionWS, testDirectionWS);
-//
-//            // If the new dot is higher, than the closest one, the point is not occluded.
-//            if (testDot > closestHitDot)
-//            {
-//                closestHitDot = testDot;
-//
-//                // Check if the hit has viable light information.
-//                // If the hit is "behind" the origin, it will not contribute.
-//                float lambert = dot(originNormalWS, testDirectionWS);
-//                if (lambert > 0)
-//                {
-//                    // If the hit is "facing away" from the origin, it will not contribute.
-//                    vec3 hitNormal = -testDirectionWS;// texture(DeferredNormalSurface, testPositionSS).xyz;
-//                    if (dot(hitNormal, testDirectionWS) < 0)
-//                    {
-//                        hitCount++;
-//                        
-//                        float distanceSquared = dot(testDifference, testDifference);
-//                        float attenuation = 1.0 / (1.0 + (distanceSquared * distanceSquared));
-//                        vec3 light = vec3(1.0); // vec4(texture(LightMap, testPositionSS).xyz, 1.0).xyz;
-//                        
-//                        OutputColor.xyz += lambert * attenuation * light;
-//                    }
-//                }
-//            }
-//
-//            // if the testDot is grater than the target dot, the ray has now hit something in the scene.
-//            if (testDot > sampleTargetDot)
-//                break;
-//
-//            // move to the next pixel
-//            testPositionSS += sampleDirectionSS;
-//        }
-//    }
-//
-//    // average out the results of the gathered light information. (monte carlo)
-//    OutputColor /= max(0.0001, hitCount);
-//
-//    OutputColor *= 5.0; // multiplication only to see the results better
 }
