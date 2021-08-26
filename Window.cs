@@ -152,14 +152,14 @@ namespace Window
             camera.Set(new PostAmbientOcclusionComponent() { Strength = 1f, Radius = 0.5f, Bias = 0.025f });
             camera.Set(new PostGlobalIllumination() { TracingFraction = 1, SampleBufferLength = 1 });
             camera.Set(new PostVolumetricLightComponent() { });
-            camera.Set(new PrimitiveComponent() { IsShadowCaster = true, Material = Defaults.Material.PBR, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
+            //camera.Set(new PrimitiveComponent() { IsShadowCaster = true, Material = Defaults.Material.PBR, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
 
 
             var sunEntity = _scene.CreateEntity();
-            sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.5f, Vector3.UnitX).Rotate(0.5f, Vector3.UnitY)));
+            sunEntity.Set(new TransformComponent(Vector3.Zero, -Vector3.UnitY.Rotate(-0.4f, Vector3.UnitX).Rotate(1.0f, Vector3.UnitY)));
             sunEntity.Set(new DirectionalLightComponent() { Color = new Vector3(1.0f, 1.0f, 0.9f) * 5f, AmbientFactor = 0.003f });
             sunEntity.Set(new DirectionalShadowComponent() { Resolution = 2048, Strength = 1.0f, Width = 50, NearClipping = -25, FarClipping = +25 });
-            //sunEntity.Set(new TransformRotatorComponent() { Speed = 0.05f });
+
 
             var spotLight = _scene.CreateEntity();
             spotLight.Set(new TransformComponent(new Vector3(8.0f, 2f, 3f), new Vector3(0.5f, -0.1f, -1f)));
