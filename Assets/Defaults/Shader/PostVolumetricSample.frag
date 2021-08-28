@@ -3,9 +3,10 @@
 // https://www.shadertoy.com/view/4djSRW
 
 
-
 #version 430 core
 const float WHITE_NOISE_SCALE = 5461.5461;
+const float PI = 3.14159265359;
+const float PI4 = PI * 4.0;
 
 in VertexScreenQuad
 {
@@ -89,8 +90,6 @@ layout (std430) buffer ShaderSpotShadowBlock {
 };
 
 
-
-
 vec4 ToScreenSpace(mat4 projection, vec3 postionWS)
 {
     // to projection space
@@ -105,41 +104,27 @@ vec4 ToScreenSpace(mat4 projection, vec3 postionWS)
     return screenSpace;
 }
 
-vec3 ToWorldSpace(mat4 inverseProjection, vec2 uv, float depth)
+// https://www.shadertoy.com/view/4ltGWl
+float HenyeyGreenstein(float g, float costh)
 {
-    // to NDC
-    vec3 positonSS = vec3(uv, depth) * 2.0 - 1.0;
-    
-    // to WS
-    return (inverseProjection * vec4(positonSS, 1.0)).xyz;
+    return (1.0 - g * g) / (PI4 * pow(1.0 + g * g - 2.0 * g * costh, 3.0/2.0));
 }
 
-vec2 DDAStep(vec2 directionSS, vec2 resolution)
+float Schlick(float k, float costh)
 {
-    // normalize to the dominant axis to hit a diffrent pixel each step
-    if (abs(directionSS.x) > abs(directionSS.y))
-        directionSS *= (1.0 / abs(directionSS.x));
-    else
-        directionSS *= (1.0 / abs(directionSS.y));
-
-    // scale step to match the pixel size
-    return directionSS / resolution;
+    return (1.0 - k * k) / (PI4 * pow(1.0 - k * costh, 2.0));
 }
-
-float RayPlaneDistance(vec3 planeOrign, vec3 planeNormal, vec3 rayOrigin, vec3 rayDirection)
-{
-        float denom = dot(planeNormal, rayDirection);
-        return dot(planeOrign - rayOrigin, planeNormal) / denom;
-}
-
 
 uniform sampler2D ShadowMap;
 uniform sampler2D DeferredPosition;
 
 uniform vec4 ViewPosition;
-uniform int ClusterSize;
 
-uniform vec3 VolumeColor;
+uniform int ClusterSize;
+uniform float MarchStepMaxSize;
+uniform float MarchStepMaxCount;
+
+uniform vec4 VolumeColor;
 uniform float VolumeDensity;
 uniform float VolumeScattering;
 
@@ -153,59 +138,63 @@ void main()
     // general information
     vec3 viewPositionWS = ViewPosition.xyz;
     vec3 vertexPositionWS = texture(DeferredPosition, _vertexScreenQuad.UV0).xyz;
-    vec3 marchDifferenceWS = vertexPositionWS - viewPositionWS;
-    float marchDistance = distance(vertexPositionWS, ViewPosition.xyz);
     vec2 shadowDimensions = textureSize(ShadowMap, 0);
 
-    // volumetric light information
-    vec3 volumetricLightColor = vec3(0.0);
+    // interleaved sampling
+    ivec2 pixel = ivec2(gl_FragCoord.xy);
+    float clusterElements = ClusterSize * ClusterSize;
+    float clusterIndex = 1.0 + mod(pixel.x, ClusterSize) + ClusterSize * mod(pixel.y, ClusterSize);
+    float clusterOffset = clusterIndex / clusterElements;
 
+    // march information
+    vec3 marchDifference = vertexPositionWS - viewPositionWS;
+    vec3 marchDirection = normalize(marchDifference);
+    float marchDistance = length(marchDifference);
+    float marchStepCount = min(MarchStepMaxCount, trunc(marchDistance / MarchStepMaxSize)) / clusterElements;
+    vec3 marchStep = marchDifference / marchStepCount;
+    float marchStepDistance = marchDistance / marchStepCount;
+
+    // volumetric light information
+    float volumetricTAU = VolumeDensity * VolumeScattering;
+    
     for(int i = 0; i < _directionalLights.length(); i++)
     {
         // light & shadow information
         vec2 shadowAtlasStart = _directionalShadows[i].Area.xy;
         vec2 shadowAtlasSize = _directionalShadows[i].Area.zw;
-        vec3 lightDirectionWS = _directionalLights[i].Direction.xyz;
         vec3 lightColor = _directionalLights[i].Color.xyz;
-        mat4 inverseProjection = inverse(_directionalShadows[i].Space);
-        vec4 viewPositionSS = ToScreenSpace(_directionalShadows[i].Space, viewPositionWS);
-        vec4 vertexPositionSS = ToScreenSpace(_directionalShadows[i].Space, vertexPositionWS);
+        vec3 lightDirection = _directionalLights[i].Direction.xyz;
 
-        // DDA information
-        vec2 ddaDirection = vertexPositionSS.xy - viewPositionSS.xy;
-        vec2 ddaStep = DDAStep(ddaDirection, shadowDimensions * shadowAtlasSize) * 2;
-        float ddaDistance = length(ddaDirection);
-        float ddaStepDistance = length(ddaStep);
-
-        // march test information
-        vec3 helpingTestAxis = cross(_directionalLights[i].Direction.xyz, marchDifferenceWS);
-        vec3 depthTestAxisWS = normalize(cross(marchDifferenceWS, helpingTestAxis));
-        vec3 testPositionWS = vertexPositionWS;
-        vec2 testPositionSS = viewPositionSS.xy + ddaStep;
-        float testDistance = ddaStepDistance;
+        // march start information
+        vec3 testPositionWS = viewPositionWS + (marchStep * clusterOffset);
+        float testDistance = marchStepDistance * clusterOffset;
 
         // marching loop
-        while(testDistance < ddaDistance)
+        while(testDistance < marchDistance)
         {
             // shadow map sampling
-            float sampleDepth = texture(ShadowMap, shadowAtlasStart + testPositionSS * shadowAtlasSize).r;
-            vec3 samplePositionWS = ToWorldSpace(inverseProjection, testPositionSS, sampleDepth);
-            vec3 sampleDirectionWS = vertexPositionWS - samplePositionWS;
-
-            // march WS information
-            float marchDeviationWS = RayPlaneDistance(vertexPositionWS, depthTestAxisWS, samplePositionWS, lightDirectionWS);
-            vec3 marchPositionWS = samplePositionWS + lightDirectionWS * marchDeviationWS;
-            float isExposed = marchDeviationWS > 0 ? 1.0 : 0.0;
-            float marchDistanceWS = distance(testPositionWS, marchPositionWS);
+            vec4 samplePositionSS = ToScreenSpace(_directionalShadows[i].Space, testPositionWS);
+            float sampleShadowDepth = texture(ShadowMap, shadowAtlasStart + samplePositionSS.xy * shadowAtlasSize).r;
+            float isExposed = sampleShadowDepth < samplePositionSS.z ? 0.0 : 1.0;
 
             // light contribution
-            
-            OutputColor.xyz += isExposed * marchDistanceWS * 0.01 * _directionalLights[i].Color.xyz;
+            if (isExposed > 0)
+            {
+            /* POINTLIGHT
+                float incidenceDistance = distance(testPositionWS, _pointLights[i].Position.xyz);
+                float incidenceLight = lightColor * exp(-incidenceDistance * volumetricTAU) / (PI4 * incidenceDistance * incidenceDistance);
+            */
+                
+                vec3 incidenceLight = lightColor;
+                vec3 radianceLight = VolumeColor.xyz;
+                float phase = HenyeyGreenstein(0.9, dot(marchDirection, lightDirection));
 
-            // next shadow texel
-            testPositionWS = marchPositionWS;
-            testPositionSS += ddaStep;
-            testDistance += ddaStepDistance;
+                OutputColor.xyz += marchStepDistance * incidenceLight * radianceLight * phase;
+            }
+
+            // next test position
+            testPositionWS += marchStep;
+            testDistance += marchStepDistance;
         }
 
         OutputColor += vec4(0.0);

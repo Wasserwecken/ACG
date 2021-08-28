@@ -39,11 +39,13 @@ namespace Framework.ECS.Systems.Render.Pipeline
             if (config.SamplingBuffer == null)
                 config.SamplingBuffer = CreateBuffer();
 
-            if (config.SamplingBuffer.Width != camera.DeferredLightBuffer.Width || config.SamplingBuffer.Height != camera.DeferredLightBuffer.Height)
+            var samplingWidth = (int)(camera.DeferredLightBuffer.Width * config.SamplingBufferScale);
+            var samplingHeight = (int)(camera.DeferredLightBuffer.Height * config.SamplingBufferScale);
+            if (config.SamplingBuffer.Width != samplingWidth || config.SamplingBuffer.Height != samplingHeight)
             {
                 config.SamplingBuffer.Handle = 0;
-                config.SamplingBuffer.Width = camera.DeferredLightBuffer.Width;
-                config.SamplingBuffer.Height = camera.DeferredLightBuffer.Height;
+                config.SamplingBuffer.Width = samplingWidth;
+                config.SamplingBuffer.Height = samplingHeight;
             }
 
             if (config.ResultBuffer == null)
@@ -59,9 +61,13 @@ namespace Framework.ECS.Systems.Render.Pipeline
 
             // TRACE Volumetrics
             _postMaterial.SetUniform("ViewPosition", camera.ShaderViewSpace.ViewPosition);
-            _postMaterial.SetUniform("Projection", camera.ShaderViewSpace.WorldToProjection);
-            _postMaterial.SetUniform("ProjectionInverse", camera.ShaderViewSpace.Projection.Inverted());
-            _postMaterial.SetUniform("ViewInverse", camera.ShaderViewSpace.WorldToView.Inverted());
+            _postMaterial.SetUniform("ClusterSize", config.SamplingClusterSize);
+            _postMaterial.SetUniform("MarchStepMaxSize", config.SamplingMarchStepMaxSize);
+            _postMaterial.SetUniform("MarchStepMaxCount", config.SamplingMarchStepMaxCount);
+            _postMaterial.SetUniform("VolumeColor", config.VolumeColor);
+            _postMaterial.SetUniform("VolumeDensity", config.VolumeDensity);
+            _postMaterial.SetUniform("VolumeScattering", config.VolumeScattering);
+
             foreach (var texture in camera.DeferredGBuffer.Textures)
                 _postMaterial.SetUniform(texture.Name, texture);
 

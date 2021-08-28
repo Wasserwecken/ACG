@@ -151,8 +151,8 @@ namespace Window
             camera.Set(new PostBloomComponent() { ThresholdStart = 0.7f, ThresholdEnd = 1.0f, Intensity = 1f, Samples = 5 });
             camera.Set(new PostAmbientOcclusionComponent() { Strength = 1f, Radius = 0.5f, Bias = 0.025f });
             camera.Set(new PostGlobalIllumination() { TracingFraction = 1, SampleBufferLength = 1 });
-            camera.Set(new PostVolumetricLightComponent() { });
-            //camera.Set(new PrimitiveComponent() { IsShadowCaster = true, Material = Defaults.Material.PBR, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
+            camera.Set(new PostVolumetricLightComponent() { VolumeColor = new Vector4(0.9f ,0.8f, 0.5f, 1.0f), VolumeDensity = 2f, VolumeScattering = 1f, SamplingBufferScale = 0.5f, SamplingClusterSize = 3, SamplingMarchStepMaxSize = 0.02f, SamplingMarchStepMaxCount = 1024.0f });
+            camera.Set(new PrimitiveComponent() { IsShadowCaster = true, Material = Defaults.Material.PBR, Shader = Defaults.Shader.Program.MeshLitDeferredLight, Verticies = Defaults.Vertex.Mesh.Sphere[0] });
 
 
             var sunEntity = _scene.CreateEntity();
