@@ -20,6 +20,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
         private readonly Entity _worldComponents;
         private readonly MaterialAsset _samplingMaterial;
         private readonly MaterialAsset _blurMaterial;
+        private readonly MaterialAsset _addMaterial;
 
         /// <summary>
         /// 
@@ -29,6 +30,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
             _worldComponents = worldComponents;
             _samplingMaterial = new MaterialAsset("VolumetricSampling") { DepthTest = DepthFunction.Always };
             _blurMaterial = new MaterialAsset("BilateralBlur") { DepthTest = DepthFunction.Always };
+            _addMaterial = new MaterialAsset("Add") { DepthTest = DepthFunction.Always };
         }
 
         /// <summary>
@@ -62,6 +64,16 @@ namespace Framework.ECS.Systems.Render.Pipeline
                 config.BlurBuffer.Height = samplingHeight;
             }
 
+            if (config.AddBuffer == null)
+                config.AddBuffer = CreateBuffer();
+
+            if (config.AddBuffer.Width != camera.DeferredLightBuffer.Width || config.AddBuffer.Height != camera.DeferredLightBuffer.Height)
+            {
+                config.AddBuffer.Handle = 0;
+                config.AddBuffer.Width = camera.DeferredLightBuffer.Width;
+                config.AddBuffer.Height = camera.DeferredLightBuffer.Height;
+            }
+
             // TRACE Volumetrics
             _samplingMaterial.SetUniform("ViewPosition", camera.ShaderViewSpace.ViewPosition);
             _samplingMaterial.SetUniform("ClusterSize", config.SamplingClusterSize);
@@ -69,7 +81,7 @@ namespace Framework.ECS.Systems.Render.Pipeline
             _samplingMaterial.SetUniform("MarchStepMaxCount", config.SamplingMarchStepMaxCount);
             _samplingMaterial.SetUniform("VolumeColor", config.VolumeColor);
             _samplingMaterial.SetUniform("VolumeDensity", config.VolumeDensity);
-            _samplingMaterial.SetUniform("VolumeScattering", config.VolumeScattering);
+            _samplingMaterial.SetUniform("VolumeScattering", 1f - config.VolumeScattering);
 
             foreach (var texture in camera.DeferredGBuffer.Textures)
                 _samplingMaterial.SetUniform(texture.Name, texture);
@@ -118,8 +130,23 @@ namespace Framework.ECS.Systems.Render.Pipeline
             Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
 
 
+            // ADD
+            _addMaterial.SetUniform("TextureA", config.SamplingBuffer.Textures[0]);
+            _addMaterial.SetUniform("TextureB", camera.DeferredLightBuffer.Textures[0]);
+
+            Renderer.Use(config.AddBuffer);
+            Renderer.Use(Defaults.Shader.Program.PostAdd);
+            Renderer.Use(_addMaterial, Defaults.Shader.Program.PostAdd);
+
+            GL.Viewport(0, 0, config.AddBuffer.Width, config.AddBuffer.Height);
+            GL.ClearColor(config.AddBuffer.ClearColor);
+            GL.Clear(config.AddBuffer.ClearMask);
+
+            Renderer.Draw(Defaults.Vertex.Mesh.Plane[0]);
+
+
             // COPY RESULT
-            Renderer.Blit(config.SamplingBuffer, camera.DeferredLightBuffer, ClearBufferMask.ColorBufferBit);
+            Renderer.Blit(config.AddBuffer, camera.DeferredLightBuffer, ClearBufferMask.ColorBufferBit);
         }
 
 

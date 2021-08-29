@@ -45,6 +45,7 @@ namespace Framework
                 public static ShaderSourceAsset FragmentGlobalIlluminationStorage { get; }
                 public static ShaderSourceAsset FragmentVolumetricLight { get; }
                 public static ShaderSourceAsset FragmentBilaterlBlur { get; }
+                public static ShaderSourceAsset FragmentAdd { get; }
 
                 static Source()
                 {
@@ -69,6 +70,7 @@ namespace Framework
                     FragmentGlobalIlluminationStorage = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostGlobalIlluminationStorage.frag"));
                     FragmentVolumetricLight = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostVolumetricSample.frag"));
                     FragmentBilaterlBlur = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostBilateralBlur.frag"));
+                    FragmentAdd = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostAdd.frag"));
                 }
             }
 
@@ -91,6 +93,7 @@ namespace Framework
                 public static ShaderProgramAsset PostGlobalIllumination { get; }
                 public static ShaderProgramAsset PostGlobalIlluminationStorage { get; }
                 public static ShaderProgramAsset PostVolumetricSample { get; }
+                public static ShaderProgramAsset PostAdd { get; }
 
                 static Program()
                 {
@@ -111,6 +114,7 @@ namespace Framework
                     PostGlobalIllumination = new ShaderProgramAsset("PostGlobalIllumination", Source.VertexScreenQuad, Source.FragmentGlobalIllumination);
                     PostGlobalIlluminationStorage = new ShaderProgramAsset("PostGlobalIlluminationStorage", Source.VertexScreenQuad, Source.FragmentGlobalIlluminationStorage);
                     PostVolumetricSample = new ShaderProgramAsset("PostVolumetricSample", Source.VertexScreenQuad, Source.FragmentVolumetricLight);
+                    PostAdd = new ShaderProgramAsset("PostAdd", Source.VertexScreenQuad, Source.FragmentAdd);
                 }
             }
         }

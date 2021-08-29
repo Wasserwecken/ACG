@@ -7,6 +7,7 @@ namespace Framework.ECS.Components.PostProcessing
     {
         public FramebufferAsset SamplingBuffer;
         public FramebufferAsset BlurBuffer;
+        public FramebufferAsset AddBuffer;
         public int SamplingClusterSize;
         public float SamplingMarchStepMaxSize;
         public float SamplingMarchStepMaxCount;

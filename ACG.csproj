@@ -24,6 +24,7 @@
     <None Remove="Assets\Defaults\Shader\FrameBuffer.frag" />
     <None Remove="Assets\Defaults\Shader\LitDeferredBuffer.frag" />
     <None Remove="Assets\Defaults\Shader\LitDeferredLight.frag" />
+    <None Remove="Assets\Defaults\Shader\PostAdd.frag" />
     <None Remove="Assets\Defaults\Shader\PostAmbientOcclusionMerge.frag" />
     <None Remove="Assets\Defaults\Shader\PostAmbientOcclusionSelect.frag" />
     <None Remove="Assets\Defaults\Shader\PostBilateralBlur.frag" />

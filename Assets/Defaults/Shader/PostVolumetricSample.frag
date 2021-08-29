@@ -154,9 +154,7 @@ void main()
     vec3 marchStep = marchDifference / marchStepCount;
     float marchStepDistance = marchDistance / marchStepCount;
 
-    // volumetric light information
-    float volumetricTAU = VolumeDensity * VolumeScattering;
-    
+
     for(int i = 0; i < _directionalLights.length(); i++)
     {
         // light & shadow information
@@ -168,7 +166,7 @@ void main()
         // march start information
         vec3 testPositionWS = viewPositionWS + (marchStep * clusterOffset);
         float testDistance = marchStepDistance * clusterOffset;
-
+                
         // marching loop
         while(testDistance < marchDistance)
         {
@@ -179,19 +177,69 @@ void main()
 
             // light contribution
             if (isExposed > 0)
-            {
-            /* POINTLIGHT
-                float incidenceDistance = distance(testPositionWS, _pointLights[i].Position.xyz);
-                float incidenceLight = lightColor * exp(-incidenceDistance * volumetricTAU) / (PI4 * incidenceDistance * incidenceDistance);
-            */
-                
-                vec3 incidenceLight = lightColor;
+            {                
+                vec3 incidenceLight = lightColor * VolumeDensity;
                 vec3 radianceLight = VolumeColor.xyz;
-                float phase = HenyeyGreenstein(0.9, dot(marchDirection, lightDirection));
+                float phase = HenyeyGreenstein(VolumeScattering, dot(marchDirection, lightDirection));
 
                 OutputColor.xyz += marchStepDistance * incidenceLight * radianceLight * phase;
             }
 
+            // next test position
+            testPositionWS += marchStep;
+            testDistance += marchStepDistance;
+        }
+    }
+
+
+
+
+    for(int i = 0; i < _spotLights.length(); i++)
+    {
+        // light & shadow information
+        vec2 shadowAtlasStart = _spotShadows[i].Area.xy;
+        vec2 shadowAtlasSize = _spotShadows[i].Area.zw;
+        vec3 lightColor = _spotLights[i].Color.xyz;
+            
+        // march start information
+        vec3 testPositionWS = viewPositionWS + (marchStep * clusterOffset);
+        float testDistance = marchStepDistance * clusterOffset;
+                
+        // marching loop
+        while(testDistance < marchDistance)
+        {
+            // light information
+            vec3 lightDiff = _spotLights[i].Position.xyz - testPositionWS;
+            vec3 lightDirection = normalize(lightDiff);
+            float lightDistance = length(lightDiff);
+
+            // range check
+            if (lightDistance < _spotLights[i].Range.x)
+            {
+                // shadow map sampling
+                vec4 samplePositionSS = ToScreenSpace(_spotShadows[i].Space, testPositionWS);
+                float sampleShadowDepth = texture(ShadowMap, shadowAtlasStart + samplePositionSS.xy * shadowAtlasSize).r;
+                float isExposed = sampleShadowDepth < samplePositionSS.z ? 0.0 : 1.0;
+
+                // light contribution
+                if (isExposed > 0 && samplePositionSS.x > 0 && samplePositionSS.x < 1.0 && samplePositionSS.y > 0 && samplePositionSS.y < 1.0 )
+                {
+                    float outerAngle = _spotLights[i].Position.w;
+                    float innerAngle = _spotLights[i].Direction.w;
+                    float epsilon = innerAngle - outerAngle;
+                    float theta = dot(lightDirection, normalize(_spotLights[i].Direction.xyz));
+                    float attenuation = 1 - clamp(lightDistance / _spotLights[i].Range.x, 0, 1);
+                    attenuation *= attenuation * attenuation;
+                    attenuation *= clamp((theta - outerAngle) / epsilon, 0.0, 1.0);
+                    
+                    vec3 incidenceLight = lightColor * attenuation * VolumeDensity;
+                    vec3 radianceLight = VolumeColor.xyz;
+                    float phase = HenyeyGreenstein(VolumeScattering, dot(marchDirection, lightDirection));
+
+                    OutputColor.xyz += marchStepDistance * incidenceLight * radianceLight * phase;
+                }
+            }
+            
             // next test position
             testPositionWS += marchStep;
             testDistance += marchStepDistance;
