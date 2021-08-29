@@ -6,7 +6,7 @@ namespace Framework.ECS.Components.PostProcessing
     public struct PostVolumetricLightComponent
     {
         public FramebufferAsset SamplingBuffer;
-        public FramebufferAsset ResultBuffer;
+        public FramebufferAsset BlurBuffer;
         public int SamplingClusterSize;
         public float SamplingMarchStepMaxSize;
         public float SamplingMarchStepMaxCount;

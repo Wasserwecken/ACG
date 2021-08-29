@@ -44,6 +44,7 @@ namespace Framework
                 public static ShaderSourceAsset FragmentGlobalIllumination { get; }
                 public static ShaderSourceAsset FragmentGlobalIlluminationStorage { get; }
                 public static ShaderSourceAsset FragmentVolumetricLight { get; }
+                public static ShaderSourceAsset FragmentBilaterlBlur { get; }
 
                 static Source()
                 {
@@ -67,6 +68,7 @@ namespace Framework
                     FragmentGlobalIllumination = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostGlobalIllumination.frag"));
                     FragmentGlobalIlluminationStorage = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostGlobalIlluminationStorage.frag"));
                     FragmentVolumetricLight = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostVolumetricSample.frag"));
+                    FragmentBilaterlBlur = new ShaderSourceAsset(ShaderType.FragmentShader, Path.Combine(Definitions.Directories.DefaultShader, "PostBilateralBlur.frag"));
                 }
             }
 
@@ -83,6 +85,7 @@ namespace Framework
                 public static ShaderProgramAsset PostBloomSelect { get; }
                 public static ShaderProgramAsset PostBloomMerge { get; }
                 public static ShaderProgramAsset PostGaussianBlur { get; }
+                public static ShaderProgramAsset PostBilaterlBlur { get; }
                 public static ShaderProgramAsset PostAmbientOcclusionSelect { get; }
                 public static ShaderProgramAsset PostAmbientOcclusionMerge { get; }
                 public static ShaderProgramAsset PostGlobalIllumination { get; }
@@ -102,6 +105,7 @@ namespace Framework
                     PostBloomSelect = new ShaderProgramAsset("PostBloomSelect", Source.VertexScreenQuad, Source.FragmentBloomSelect);
                     PostBloomMerge = new ShaderProgramAsset("PostBloomMerge", Source.VertexScreenQuad, Source.FragmentBloomMerge);
                     PostGaussianBlur = new ShaderProgramAsset("PostGaussianBlur", Source.VertexScreenQuad, Source.FragmentGaussianBlur);
+                    PostBilaterlBlur = new ShaderProgramAsset("PostBilaterlBlur", Source.VertexScreenQuad, Source.FragmentBilaterlBlur);
                     PostAmbientOcclusionSelect = new ShaderProgramAsset("PostAmbientOcclusionSelect", Source.VertexScreenQuad, Source.FragmentAmbientOcclusionSelect);
                     PostAmbientOcclusionMerge = new ShaderProgramAsset("PostAmbientOcclusionMerge", Source.VertexScreenQuad, Source.FragmentAmbientOcclusionMerge);
                     PostGlobalIllumination = new ShaderProgramAsset("PostGlobalIllumination", Source.VertexScreenQuad, Source.FragmentGlobalIllumination);

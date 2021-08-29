@@ -133,7 +133,7 @@ out vec4 OutputColor;
 
 void main()
 {
-    OutputColor = vec4(vec3(0.0), 1.0);
+    OutputColor = vec4(0.0);
 
     // general information
     vec3 viewPositionWS = ViewPosition.xyz;
@@ -196,7 +196,5 @@ void main()
             testPositionWS += marchStep;
             testDistance += marchStepDistance;
         }
-
-        OutputColor += vec4(0.0);
     }
 }
