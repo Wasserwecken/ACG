@@ -13,6 +13,7 @@ This is a real-time C# openGL render project made with [OpenTK](https://github.c
     - Shadows
         - Direct, Point, Spot
         - Single shadow map for all light sources
+        - PCF
     - Dynamic reflection probs
         - Realtime or first frame creation
         - Also with shadow mapping
